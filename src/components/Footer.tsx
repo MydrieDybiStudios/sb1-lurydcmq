@@ -36,7 +36,7 @@ const Footer: React.FC = () => {
               </li>
               <li className="flex items-center">
                 <i className="text-yellow-400 mr-2">☎️</i>
-                <span className="text-gray-400">+7 982 506 9400</span>
+                <span className="text-gray-400">Номер появится позже</span>
               </li>
               <li className="flex items-center">
                 <i className="text-yellow-400 mr-2">📍</i>
