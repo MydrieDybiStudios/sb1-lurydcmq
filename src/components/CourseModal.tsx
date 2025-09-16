@@ -157,7 +157,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
               <p className="text-2xl font-bold mb-4">{userName}</p>
               <p className="text-xl mb-6">успешно завершил(а) курс</p>
               <p className="text-2xl font-bold mb-8">"{course.title}"</p>
-              <p className="text-lg">на образовательной платформе "НефтеГаз-Квант"</p>
+              <p className="text-lg">на образовательной платформе "Югра.Нефть"</p>
               <div className="mt-8 border-t border-gray-200 pt-4">
                 <p className="text-sm text-gray-500">Дата выдачи: {new Date().toLocaleDateString()}</p>
               </div>
