@@ -11,7 +11,7 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
       <div className="container mx-auto px-4 text-center">
         <h2 className="text-3xl font-bold mb-6">Готовы начать обучение?</h2>
         <p className="text-xl mb-8 max-w-2xl mx-auto">
-          Присоединяйтесь к платформе "НефтеГаз-Квант" и откройте для себя увлекательный мир нефтегазовой отрасли!
+          Присоединяйтесь к платформе "Югра.Нефть" и откройте для себя увлекательный мир нефтегазовой отрасли!
         </p>
         <div className="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
           <button 
