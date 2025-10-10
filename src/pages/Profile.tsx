@@ -137,9 +137,9 @@ const Profile: React.FC = () => {
   };
 
   // Кнопка выхода в профиле
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+  const handleBackToMenu = () => {
+  navigate("/"); // Возвращаем в главное меню
+};
   };
 
   if (loading) return <div className="p-8 text-center">Загрузка...</div>;
