@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import { Menu } from 'lucide-react';
+import { Link } from "react-router-dom";
+<Link to="/profile" className="text-yellow-600 hover:underline">
+  Профиль
+</Link>
 
 interface HeaderProps {
   onLogin: () => void;
