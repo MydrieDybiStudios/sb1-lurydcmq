@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient"; // убедись, что путь правильный
+import { supabase } from "../../supabaseClient";
 
 interface HeaderProps {
   onLogin: () => void;
