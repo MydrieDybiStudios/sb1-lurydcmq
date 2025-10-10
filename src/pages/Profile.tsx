@@ -63,6 +63,25 @@ const Profile: React.FC = () => {
       if (error) {
         setToastType("error");
         setToastMessage("Ошибка загрузки профиля");
+      } else if (!data) {
+        // Если профиля нет, создаём пустой
+        await supabase.from("profiles").insert({
+          id: user.id,
+          first_name: "",
+          last_name: "",
+          class_num: 1,
+          class_range: "1-8",
+          avatar_url: null,
+          updated_at: new Date().toISOString(),
+        });
+        setProfile({
+          id: user.id,
+          first_name: "",
+          last_name: "",
+          class_num: 1,
+          class_range: "1-8",
+          avatar_url: null,
+        });
       } else setProfile(data as ProfileData);
 
       setLoading(false);
@@ -83,7 +102,14 @@ const Profile: React.FC = () => {
 
     const { error } = await supabase
       .from("profiles")
-      .upsert({ id: user.id, ...profile, updated_at: new Date().toISOString() });
+      .upsert(
+        {
+          id: user.id,
+          ...profile,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
 
     setSaving(false);
 
@@ -157,7 +183,9 @@ const Profile: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-3xl shadow-2xl border border-gray-200 relative">
-      {toastMessage && <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />}
+      {toastMessage && (
+        <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />
+      )}
 
       <div className="flex flex-col items-center gap-6">
         {/* Аватар */}
@@ -194,7 +222,9 @@ const Profile: React.FC = () => {
           </label>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800">{profile.first_name} {profile.last_name}</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          {profile.first_name} {profile.last_name}
+        </h1>
 
         {/* Поля ввода */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -202,14 +232,14 @@ const Profile: React.FC = () => {
             type="text"
             placeholder="Имя"
             value={profile.first_name}
-            onChange={(e) => setProfile((p) => p && { ...p, first_name: e.target.value })}
+            onChange={(e) => setProfile((p) => p && ({ ...p, first_name: e.target.value }))}
             className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
           <input
             type="text"
             placeholder="Фамилия"
             value={profile.last_name}
-            onChange={(e) => setProfile((p) => p && { ...p, last_name: e.target.value })}
+            onChange={(e) => setProfile((p) => p && ({ ...p, last_name: e.target.value }))}
             className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
         </div>
@@ -240,7 +270,7 @@ const Profile: React.FC = () => {
 
         <select
           value={profile.class_num}
-          onChange={(e) => setProfile((p) => p && { ...p, class_num: Number(e.target.value) })}
+          onChange={(e) => setProfile((p) => p && ({ ...p, class_num: Number(e.target.value) }))}
           className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
         >
           {classOptions.map((num) => (
