@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
 interface AuthModalsProps {
   isLoginOpen: boolean;
@@ -18,35 +19,90 @@ const AuthModals: React.FC<AuthModalsProps> = ({
   onSwitchToLogin,
   onSwitchToRegister,
 }) => {
-  // Login form state
+  // ----------------------------
+  // Состояния для логина
+  // ----------------------------
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  
-  // Register form state
+  const [loginError, setLoginError] = useState('');
+  const [loginSuccess, setLoginSuccess] = useState('');
+
+  // ----------------------------
+  // Состояния для регистрации
+  // ----------------------------
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [registerError, setRegisterError] = useState('');
+  const [registerSuccess, setRegisterSuccess] = useState('');
 
-   const handleLoginSubmit = (e: React.FormEvent) => {
+  // ----------------------------
+  // Вход
+  // ----------------------------
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Вход выполнен успешно! (Это демо-версия, реальная авторизация не реализована)');
-    onCloseLogin();
+    setLoginError('');
+    setLoginSuccess('');
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
+      password: loginPassword,
+    });
+
+    if (error) {
+      setLoginError(error.message);
+    } else if (data.user) {
+      setLoginSuccess('Вход выполнен успешно!');
+      onCloseLogin();
+      window.location.reload();
+    }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  // ----------------------------
+  // Регистрация
+  // ----------------------------
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Регистрация прошла успешно! (Это демо-версия, реальная регистрация не реализована)');
-    onCloseRegister();
-  };
+    setRegisterError('');
+    setRegisterSuccess('');
 
+    if (registerPassword !== confirmPassword) {
+      setRegisterError('Пароли не совпадают.');
+      return;
+    }
+
+    if (!acceptTerms) {
+      setRegisterError('Вы должны принять условия использования.');
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email: registerEmail,
+      password: registerPassword,
+      options: {
+        data: { name: registerName },
+      },
+    });
+
+    if (error) {
+      setRegisterError(error.message);
+    } else {
+      setRegisterSuccess('Регистрация прошла успешно! Проверьте почту для подтверждения.');
+      onCloseRegister();
+    }
+  };
 
   return (
     <>
-      {/* Login Modal */}
-      <div className={`modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${isLoginOpen ? 'visible opacity-100' : 'invisible opacity-0'} transition`}>
+      {/* ---------------- LOGIN MODAL ---------------- */}
+      <div
+        className={`modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
+          isLoginOpen ? 'visible opacity-100' : 'invisible opacity-0'
+        } transition`}
+      >
         <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
@@ -55,71 +111,62 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                 <X />
               </button>
             </div>
-            
-            <form id="loginForm" className="space-y-4" onSubmit={handleLoginSubmit}>
+
+            <form className="space-y-4" onSubmit={handleLoginSubmit}>
               <div>
-                <label htmlFor="loginEmail" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input 
-                  type="email" 
-                  id="loginEmail" 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  required 
+                  required
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="loginPassword" className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-                <input 
-                  type="password" 
-                  id="loginPassword" 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
+                <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+                <input
+                  type="password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  required 
+                  required
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <input 
-                    type="checkbox" 
-                    id="rememberMe" 
-                    className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    className="h-4 w-4 text-yellow-600 border-gray-300 rounded"
                     checked={rememberMe}
                     onChange={() => setRememberMe(!rememberMe)}
                   />
-                  <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-700">Запомнить меня</label>
+                  <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700">
+                    Запомнить меня
+                  </label>
                 </div>
-                <a href="#" className="text-sm text-yellow-600 hover:text-yellow-700">Забыли пароль?</a>
               </div>
-              
-              <button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-4 rounded-lg transition">
+
+              {loginError && <p className="text-red-600 text-sm">{loginError}</p>}
+              {loginSuccess && <p className="text-green-600 text-sm">{loginSuccess}</p>}
+
+              <button
+                type="submit"
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 rounded-lg transition"
+              >
                 Войти
               </button>
-              
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Или войдите через</span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <button type="button" className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">
-                  <span>VK</span>
-                </button>
-                <button type="button" className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition">
-                  <span>Google</span>
-                </button>
-              </div>
-              
-              <p className="text-center text-sm text-gray-600">
-                Нет аккаунта? 
-                <button type="button" onClick={onSwitchToRegister} className="text-yellow-600 hover:text-yellow-700 font-medium ml-1">
+
+              <p className="text-center text-sm text-gray-600 mt-4">
+                Нет аккаунта?
+                <button
+                  type="button"
+                  onClick={onSwitchToRegister}
+                  className="text-yellow-600 hover:text-yellow-700 font-medium ml-1"
+                >
                   Зарегистрироваться
                 </button>
               </p>
@@ -128,8 +175,12 @@ const AuthModals: React.FC<AuthModalsProps> = ({
         </div>
       </div>
 
-      {/* Register Modal */}
-      <div className={`modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${isRegisterOpen ? 'visible opacity-100' : 'invisible opacity-0'} transition`}>
+      {/* ---------------- REGISTER MODAL ---------------- */}
+      <div
+        className={`modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
+          isRegisterOpen ? 'visible opacity-100' : 'invisible opacity-0'
+        } transition`}
+      >
         <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
@@ -138,77 +189,83 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                 <X />
               </button>
             </div>
-            
-            <form id="registerForm" className="space-y-4" onSubmit={handleRegisterSubmit}>
+
+            <form className="space-y-4" onSubmit={handleRegisterSubmit}>
               <div>
-                <label htmlFor="registerName" className="block text-sm font-medium text-gray-700 mb-1">Имя</label>
-                <input 
-                  type="text" 
-                  id="registerName" 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
+                <label className="block text-sm font-medium text-gray-700 mb-1">Имя</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
                   value={registerName}
                   onChange={(e) => setRegisterName(e.target.value)}
-                  required 
+                  required
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="registerEmail" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input 
-                  type="email" 
-                  id="registerEmail" 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  type="email"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
                   value={registerEmail}
                   onChange={(e) => setRegisterEmail(e.target.value)}
-                  required 
+                  required
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="registerPassword" className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-                <input 
-                  type="password" 
-                  id="registerPassword" 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
+                <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
+                <input
+                  type="password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
                   value={registerPassword}
                   onChange={(e) => setRegisterPassword(e.target.value)}
-                  required 
+                  required
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="registerConfirmPassword" className="block text-sm font-medium text-gray-700 mb-1">Подтвердите пароль</label>
-                <input 
-                  type="password" 
-                  id="registerConfirmPassword" 
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500" 
+                <label className="block text-sm font-medium text-gray-700 mb-1">Подтвердите пароль</label>
+                <input
+                  type="password"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  required 
+                  required
                 />
               </div>
-              
+
               <div className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  id="acceptTerms" 
-                  className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded" 
+                <input
+                  type="checkbox"
+                  id="acceptTerms"
+                  className="h-4 w-4 text-yellow-600 border-gray-300 rounded"
                   checked={acceptTerms}
                   onChange={() => setAcceptTerms(!acceptTerms)}
-                  required 
+                  required
                 />
-                <label htmlFor="acceptTerms" className="ml-2 block text-sm text-gray-700">
+                <label htmlFor="acceptTerms" className="ml-2 text-sm text-gray-700">
                   Я принимаю <a href="#" className="text-yellow-600 hover:text-yellow-700">условия использования</a>
                 </label>
               </div>
-              
-              <button type="submit" className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-4 rounded-lg transition">
+
+              {registerError && <p className="text-red-600 text-sm">{registerError}</p>}
+              {registerSuccess && <p className="text-green-600 text-sm">{registerSuccess}</p>}
+
+              <button
+                type="submit"
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 rounded-lg transition"
+              >
                 Зарегистрироваться
               </button>
-              
-              <p className="text-center text-sm text-gray-600">
-                Уже есть аккаунт? 
-                <button type="button" onClick={onSwitchToLogin} className="text-yellow-600 hover:text-yellow-700 font-medium ml-1">
+
+              <p className="text-center text-sm text-gray-600 mt-4">
+                Уже есть аккаунт?
+                <button
+                  type="button"
+                  onClick={onSwitchToLogin}
+                  className="text-yellow-600 hover:text-yellow-700 font-medium ml-1"
+                >
                   Войти
                 </button>
               </p>
@@ -221,3 +278,4 @@ const AuthModals: React.FC<AuthModalsProps> = ({
 };
 
 export default AuthModals;
+
