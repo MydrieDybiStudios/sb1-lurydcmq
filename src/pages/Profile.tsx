@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 
 interface ProfileData {
+  id?: string;
   first_name: string;
   last_name: string;
   class_num: number;
@@ -60,7 +61,7 @@ const Profile: React.FC = () => {
         .eq("id", user.id)
         .single();
 
-      if (error) {
+      if (error && error.code !== "PGRST116") {
         setToastType("error");
         setToastMessage("Ошибка загрузки профиля");
       } else if (!data) {
@@ -91,78 +92,42 @@ const Profile: React.FC = () => {
   }, [navigate]);
 
   // Сохранение профиля
-const handleSave = async () => {
-  if (!profile) return;
+  const handleSave = async () => {
+    if (!profile) return;
 
-  setSaving(true);
+    setSaving(true);
 
-  // Получаем текущего пользователя
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
 
-  try {
-    // 1️⃣ Проверяем, есть ли уже профиль
-    const { data: profileExists, error: selectError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    if (selectError && selectError.code !== "PGRST116") {
-      // PGRST116 — это Not Found, то есть профиля нет
-      throw selectError;
-    }
-
-    if (!profileExists) {
-      // 2️⃣ Если нет — создаём новую строку
-      const { error: insertError } = await supabase
+    try {
+      const { error } = await supabase
         .from("profiles")
-        .insert({
-          id: user.id,
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          class_num: profile.class_num,
-          class_range: profile.class_range,
-          avatar_url: profile.avatar_url,
-          updated_at: new Date().toISOString(),
-        });
+        .upsert(
+          {
+            id: user.id,
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            class_num: profile.class_num,
+            class_range: profile.class_range,
+            avatar_url: profile.avatar_url,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "id" }
+        );
 
-      if (insertError) throw insertError;
-    } else {
-      // 3️⃣ Если есть — обновляем через upsert
-      const { error: upsertError } = await supabase
-        .from("profiles")
-        .upsert({
-          id: user.id,
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          class_num: profile.class_num,
-          class_range: profile.class_range,
-          avatar_url: profile.avatar_url,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "id" });
+      if (error) throw error;
 
-      if (upsertError) throw upsertError;
-    }
-
-    setToastType("success");
-    setToastMessage("Профиль успешно сохранён!");
-  } catch (err) {
-    console.error(err);
-    setToastType("error");
-    setToastMessage("Ошибка сохранения профиля!");
-  } finally {
-    setSaving(false);
-  }
-};
-
-
-    if (error) {
+      setToastType("success");
+      setToastMessage("Профиль успешно сохранён!");
+    } catch (err) {
+      console.error(err);
       setToastType("error");
       setToastMessage("Ошибка сохранения профиля!");
-    } else {
-      setToastType("success");
-      setToastMessage("Профиль обновлён!");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -179,32 +144,28 @@ const handleSave = async () => {
     setAvatarLoading(true);
 
     try {
-      if (!file.type.startsWith("image/")) {
-        throw new Error("Можно загружать только изображения");
-      }
+      if (!file.type.startsWith("image/")) throw new Error("Можно загружать только изображения");
 
       const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${user.id}-${Date.now()}.${fileExt}`;
 
-      // Загрузка файла в bucket avatars
+      // Загрузка в bucket avatars
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(fileName, file, { upsert: true });
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      // Получение публичного URL
-      const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
+      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
       if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
 
-      // Обновление профиля локально и в БД
-      setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
       await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
+      setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
 
       setToastType("success");
       setToastMessage("Аватар успешно обновлён");
     } catch (err: any) {
-      console.error("Ошибка загрузки аватара:", err.message || err);
+      console.error(err);
       setToastType("error");
       setToastMessage("Ошибка загрузки аватара: " + (err.message || "неизвестная ошибка"));
     } finally {
@@ -212,10 +173,8 @@ const handleSave = async () => {
     }
   };
 
-  // Кнопка возврата в главное меню
-  const handleBackToMenu = () => {
-    navigate("/"); // просто переходим на главную
-  };
+  // Возврат в главное меню
+  const handleBackToMenu = () => navigate("/");
 
   if (loading) return <div className="p-8 text-center">Загрузка...</div>;
   if (!profile) return null;
@@ -227,21 +186,14 @@ const handleSave = async () => {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-3xl shadow-2xl border border-gray-200 relative">
-      {toastMessage && (
-        <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />
-      )}
+      {toastMessage && <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />}
 
       <div className="flex flex-col items-center gap-6">
         {/* Аватар */}
         <div className="relative group">
           {avatarLoading ? (
             <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-gray-400 animate-spin"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-6 h-6 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" strokeWidth="4" strokeDasharray="31.4" strokeLinecap="round" />
               </svg>
             </div>
@@ -254,21 +206,13 @@ const handleSave = async () => {
           )}
           <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition transform hover:scale-110">
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v8m0-8V7m0 4h4m-4 0H8" />
             </svg>
           </label>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800">
-          {profile.first_name} {profile.last_name}
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-800">{profile.first_name} {profile.last_name}</h1>
 
         {/* Поля ввода */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -346,3 +290,4 @@ const handleSave = async () => {
 };
 
 export default Profile;
+
