@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
+mport Toast from "./Toast"; // импорт нашего кастомного toast
+import React, { useState } from "react";
 
 interface ProfileData {
   first_name: string;
@@ -15,6 +17,8 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+const [toastType, setToastType] = useState<"success" | "error">("success");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -56,9 +60,13 @@ const Profile: React.FC = () => {
 
     setSaving(false);
 
-    if (error) console.error("Ошибка сохранения профиля:", error);
-    else alert("✅ Профиль обновлён");
-  };
+ if (error) {
+  setToastType("error");
+  setToastMessage("Ошибка сохранения профиля!");
+} else {
+  setToastType("success");
+  setToastMessage("Профиль обновлён!");
+}
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
