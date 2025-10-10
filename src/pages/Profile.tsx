@@ -3,7 +3,6 @@ import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 
 interface ProfileData {
-  id?: string;
   first_name: string;
   last_name: string;
   class_num: number;
@@ -62,27 +61,37 @@ const Profile: React.FC = () => {
         .single();
 
       if (error && error.code !== "PGRST116") {
+        // PGRST116 — Not Found
         setToastType("error");
         setToastMessage("Ошибка загрузки профиля");
       } else if (!data) {
-        // Если профиля нет, создаём пустой
-        await supabase.from("profiles").insert({
-          id: user.id,
-          first_name: "",
-          last_name: "",
-          class_num: 1,
-          class_range: "1-8",
-          avatar_url: null,
-          updated_at: new Date().toISOString(),
-        });
-        setProfile({
-          id: user.id,
-          first_name: "",
-          last_name: "",
-          class_num: 1,
-          class_range: "1-8",
-          avatar_url: null,
-        });
+        // Если профиля нет, создаём через upsert
+        const { error: upsertError } = await supabase
+          .from("profiles")
+          .upsert(
+            {
+              id: user.id,
+              first_name: "",
+              last_name: "",
+              class_num: 1,
+              class_range: "1-8",
+              avatar_url: null,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "id" }
+          );
+        if (upsertError) {
+          setToastType("error");
+          setToastMessage("Ошибка создания профиля");
+        } else {
+          setProfile({
+            first_name: "",
+            last_name: "",
+            class_num: 1,
+            class_range: "1-8",
+            avatar_url: null,
+          });
+        }
       } else setProfile(data as ProfileData);
 
       setLoading(false);
@@ -91,7 +100,7 @@ const Profile: React.FC = () => {
     fetchProfile();
   }, [navigate]);
 
-  // Сохранение профиля
+  // Сохранение профиля через upsert
   const handleSave = async () => {
     if (!profile) return;
 
@@ -117,7 +126,6 @@ const Profile: React.FC = () => {
           },
           { onConflict: "id" }
         );
-
       if (error) throw error;
 
       setToastType("success");
@@ -144,28 +152,30 @@ const Profile: React.FC = () => {
     setAvatarLoading(true);
 
     try {
-      if (!file.type.startsWith("image/")) throw new Error("Можно загружать только изображения");
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Можно загружать только изображения");
+      }
 
       const fileExt = file.name.split(".").pop();
-      const filePath = `avatars/${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
-      // Загрузка в bucket avatars
+      // Загружаем в bucket avatars
       const { error: uploadError } = await supabase.storage
         .from("avatars")
-        .upload(filePath, file, { upsert: true });
-
+        .upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
       if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
 
-      await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
+      // Обновляем профиль
       setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
+      await supabase.from("profiles").upsert({ id: user.id, avatar_url: data.publicUrl }, { onConflict: "id" });
 
       setToastType("success");
       setToastMessage("Аватар успешно обновлён");
     } catch (err: any) {
-      console.error(err);
+      console.error("Ошибка загрузки аватара:", err.message || err);
       setToastType("error");
       setToastMessage("Ошибка загрузки аватара: " + (err.message || "неизвестная ошибка"));
     } finally {
@@ -173,8 +183,10 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Возврат в главное меню
-  const handleBackToMenu = () => navigate("/");
+  // Кнопка возврата в главное меню
+  const handleBackToMenu = () => {
+    navigate("/"); // просто переходим на главную
+  };
 
   if (loading) return <div className="p-8 text-center">Загрузка...</div>;
   if (!profile) return null;
@@ -186,14 +198,21 @@ const Profile: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-3xl shadow-2xl border border-gray-200 relative">
-      {toastMessage && <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />}
+      {toastMessage && (
+        <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />
+      )}
 
       <div className="flex flex-col items-center gap-6">
         {/* Аватар */}
         <div className="relative group">
           {avatarLoading ? (
             <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
-              <svg className="w-6 h-6 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-6 h-6 text-gray-400 animate-spin"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <circle cx="12" cy="12" r="10" strokeWidth="4" strokeDasharray="31.4" strokeLinecap="round" />
               </svg>
             </div>
@@ -206,13 +225,21 @@ const Profile: React.FC = () => {
           )}
           <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition transform hover:scale-110">
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v8m0-8V7m0 4h4m-4 0H8" />
             </svg>
           </label>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800">{profile.first_name} {profile.last_name}</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          {profile.first_name} {profile.last_name}
+        </h1>
 
         {/* Поля ввода */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -290,4 +317,3 @@ const Profile: React.FC = () => {
 };
 
 export default Profile;
-
