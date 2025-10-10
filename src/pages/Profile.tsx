@@ -110,9 +110,13 @@ const Profile: React.FC = () => {
 
     try {
       if (!file.type.startsWith("image/")) {
-        setToastType("error");
-        setToastMessage("Можно загружать только изображения");
-        return;
+        throw new Error("Можно загружать только изображения");
+      }
+
+      // Проверка bucket
+      const { data: buckets } = await supabase.storage.listBuckets();
+      if (!buckets?.some((b) => b.name === "avatars")) {
+        throw new Error("Bucket 'avatars' не найден! Создайте его в Supabase Storage.");
       }
 
       const fileExt = file.name.split(".").pop();
@@ -127,22 +131,22 @@ const Profile: React.FC = () => {
       const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
       if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
 
+      // Обновление профиля локально и в БД
       setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
-
       await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
 
       setToastType("success");
       setToastMessage("Аватар успешно обновлён");
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error("Ошибка загрузки аватара:", err.message || err);
       setToastType("error");
-      setToastMessage("Ошибка загрузки аватара");
+      setToastMessage("Ошибка загрузки аватара: " + (err.message || "неизвестная ошибка"));
     } finally {
       setAvatarLoading(false);
     }
   };
 
-  // Кнопка возвращения в главное меню
+  // Кнопка возврата в главное меню
   const handleBackToMenu = () => {
     navigate("/"); // просто переходим на главную
   };
@@ -261,7 +265,7 @@ const Profile: React.FC = () => {
           </button>
           <button
             onClick={handleBackToMenu}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition transform hover:scale-105"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition"
           >
             Главное меню
           </button>
