@@ -43,6 +43,7 @@ const Profile: React.FC = () => {
 
   const navigate = useNavigate();
 
+  // Загрузка профиля
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -68,6 +69,7 @@ const Profile: React.FC = () => {
     fetchProfile();
   }, [navigate]);
 
+  // Сохранение профиля
   const handleSave = async () => {
     if (!profile) return;
     setSaving(true);
@@ -90,6 +92,7 @@ const Profile: React.FC = () => {
     }
   };
 
+  // Загрузка аватара
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -98,27 +101,42 @@ const Profile: React.FC = () => {
     if (!user) return;
 
     setAvatarLoading(true);
-    const fileExt = file.name.split(".").pop();
-    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-    const filePath = `avatars/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
-    if (uploadError) {
+    try {
+      // Проверяем, что bucket avatars существует
+      const { data: buckets } = await supabase.storage.listBuckets();
+      if (!buckets?.some(b => b.name === "avatars")) {
+        setToastType("error");
+        setToastMessage("Bucket avatars не найден! Создайте его в Supabase Storage.");
+        setAvatarLoading(false);
+        return;
+      }
+
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      setProfile(prev => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
+
+      // Сохраняем ссылку на аватар в профиле
+      await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
+
+      setToastType("success");
+      setToastMessage("Аватар успешно обновлён");
+    } catch (err) {
       setToastType("error");
       setToastMessage("Ошибка загрузки аватара");
+      console.error(err);
+    } finally {
       setAvatarLoading(false);
-      return;
     }
-
-    const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
-    await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
-
-    setToastType("success");
-    setToastMessage("Аватар успешно обновлён");
-    setAvatarLoading(false);
   };
 
+  // Кнопка выхода в профиле
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
