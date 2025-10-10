@@ -91,27 +91,71 @@ const Profile: React.FC = () => {
   }, [navigate]);
 
   // Сохранение профиля
-  const handleSave = async () => {
-    if (!profile) return;
-    setSaving(true);
+const handleSave = async () => {
+  if (!profile) return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+  setSaving(true);
 
-    const { error } = await supabase
+  // Получаем текущего пользователя
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  try {
+    // 1️⃣ Проверяем, есть ли уже профиль
+    const { data: profileExists, error: selectError } = await supabase
       .from("profiles")
-      .upsert(
-        {
-          id: user.id,
-          ...profile,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "id" }
-      );
+      .select("*")
+      .eq("id", user.id)
+      .single();
 
+    if (selectError && selectError.code !== "PGRST116") {
+      // PGRST116 — это Not Found, то есть профиля нет
+      throw selectError;
+    }
+
+    if (!profileExists) {
+      // 2️⃣ Если нет — создаём новую строку
+      const { error: insertError } = await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          class_num: profile.class_num,
+          class_range: profile.class_range,
+          avatar_url: profile.avatar_url,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (insertError) throw insertError;
+    } else {
+      // 3️⃣ Если есть — обновляем через upsert
+      const { error: upsertError } = await supabase
+        .from("profiles")
+        .upsert({
+          id: user.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          class_num: profile.class_num,
+          class_range: profile.class_range,
+          avatar_url: profile.avatar_url,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "id" });
+
+      if (upsertError) throw upsertError;
+    }
+
+    setToastType("success");
+    setToastMessage("Профиль успешно сохранён!");
+  } catch (err) {
+    console.error(err);
+    setToastType("error");
+    setToastMessage("Ошибка сохранения профиля!");
+  } finally {
     setSaving(false);
+  }
+};
+
 
     if (error) {
       setToastType("error");
