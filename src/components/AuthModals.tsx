@@ -30,17 +30,6 @@ const AuthModals: React.FC<AuthModalsProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert('Вход выполнен успешно! (Это демо-версия, реальная авторизация не реализована)');
-    onCloseLogin();
-  };
-
-  const handleRegisterSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert('Регистрация прошла успешно! (Это демо-версия, реальная регистрация не реализована)');
-    onCloseRegister();
-  };
 
   return (
     <>
