@@ -109,6 +109,12 @@ const Profile: React.FC = () => {
     setAvatarLoading(true);
 
     try {
+      if (!file.type.startsWith("image/")) {
+        setToastType("error");
+        setToastMessage("Можно загружать только изображения");
+        return;
+      }
+
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
@@ -119,17 +125,18 @@ const Profile: React.FC = () => {
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
+      if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
+
       setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
 
-      // Сохраняем ссылку на аватар в профиле
       await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
 
       setToastType("success");
       setToastMessage("Аватар успешно обновлён");
     } catch (err) {
+      console.error(err);
       setToastType("error");
       setToastMessage("Ошибка загрузки аватара");
-      console.error(err);
     } finally {
       setAvatarLoading(false);
     }
@@ -149,32 +156,45 @@ const Profile: React.FC = () => {
       : Array.from({ length: 4 }, (_, i) => i + 8);
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-3xl shadow-xl border border-gray-200 relative">
+    <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-3xl shadow-2xl border border-gray-200 relative">
       {toastMessage && <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />}
 
       <div className="flex flex-col items-center gap-6">
         {/* Аватар */}
-        <div className="relative">
+        <div className="relative group">
           {avatarLoading ? (
-            <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse"></div>
+            <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-gray-400 animate-spin"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="10" strokeWidth="4" strokeDasharray="31.4" strokeLinecap="round" />
+              </svg>
+            </div>
           ) : (
             <img
               src={profile.avatar_url || "https://via.placeholder.com/100"}
               alt="Avatar"
-              className="w-28 h-28 rounded-full object-cover shadow-md"
+              className="w-28 h-28 rounded-full object-cover shadow-md border-4 border-yellow-400 group-hover:scale-105 transition-transform duration-300"
             />
           )}
-          <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition">
+          <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition transform hover:scale-110">
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v8m0-8V7m0 4h4m-4 0H8" />
             </svg>
           </label>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800">
-          {profile.first_name} {profile.last_name}
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-800">{profile.first_name} {profile.last_name}</h1>
 
         {/* Поля ввода */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -241,7 +261,7 @@ const Profile: React.FC = () => {
           </button>
           <button
             onClick={handleBackToMenu}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition"
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition transform hover:scale-105"
           >
             Главное меню
           </button>
