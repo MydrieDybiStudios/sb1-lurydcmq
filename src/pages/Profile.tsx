@@ -113,21 +113,17 @@ const Profile: React.FC = () => {
         throw new Error("Можно загружать только изображения");
       }
 
-      // Проверка bucket
-      const { data: buckets } = await supabase.storage.listBuckets();
-      if (!buckets?.some((b) => b.name === "avatars")) {
-        throw new Error("Bucket 'avatars' не найден! Создайте его в Supabase Storage.");
-      }
-
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
+      // Загрузка файла в bucket avatars
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
+      // Получение публичного URL
       const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
       if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
 
