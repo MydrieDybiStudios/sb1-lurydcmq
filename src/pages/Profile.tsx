@@ -13,13 +13,14 @@ interface ProfileData {
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        navigate("/"); // если не авторизован — редиректим
+        navigate("/");
         return;
       }
 
@@ -29,11 +30,8 @@ const Profile: React.FC = () => {
         .eq("id", user.id)
         .single();
 
-      if (error) {
-        console.error("Ошибка загрузки профиля:", error);
-      } else if (data) {
-        setProfile(data as ProfileData);
-      }
+      if (error) console.error("Ошибка загрузки профиля:", error);
+      else setProfile(data as ProfileData);
 
       setLoading(false);
     };
@@ -42,8 +40,11 @@ const Profile: React.FC = () => {
   }, [navigate]);
 
   const handleSave = async () => {
+    if (!profile) return;
+    setSaving(true);
+
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !profile) return;
+    if (!user) return;
 
     const { error } = await supabase
       .from("profiles")
@@ -53,32 +54,44 @@ const Profile: React.FC = () => {
         updated_at: new Date().toISOString(),
       });
 
-    if (error) {
-      console.error("Ошибка сохранения профиля:", error);
-    } else {
-      alert("✅ Профиль обновлён");
-    }
+    setSaving(false);
+
+    if (error) console.error("Ошибка сохранения профиля:", error);
+    else alert("✅ Профиль обновлён");
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
     const fileExt = file.name.split(".").pop();
-    const fileName = `${Date.now()}.${fileExt}`;
+    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
     const filePath = `avatars/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("avatars")
-      .upload(filePath, file);
+      .upload(filePath, file, { upsert: true });
 
     if (uploadError) {
-      console.error(uploadError);
+      console.error("Ошибка загрузки:", uploadError);
       return;
     }
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-    setProfile((prev) => prev ? { ...prev, avatar_url: data.publicUrl } : prev);
+    const publicUrl = data.publicUrl;
+
+    // Сохраняем ссылку в профиле
+    setProfile((prev) => prev ? { ...prev, avatar_url: publicUrl } : prev);
+
+    await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
   };
 
   if (loading) return <div className="p-8 text-center">Загрузка...</div>;
@@ -90,29 +103,39 @@ const Profile: React.FC = () => {
       : Array.from({ length: 4 }, (_, i) => i + 8);
 
   return (
-    <div className="max-w-lg mx-auto p-6 bg-white shadow-md rounded-lg mt-10">
-      <h1 className="text-2xl font-bold mb-4">Профиль пользователя</h1>
-
-      {/* Аватар */}
-      <div className="flex flex-col items-center mb-4">
-        <img
-          src={profile.avatar_url || "https://via.placeholder.com/100"}
-          alt="Avatar"
-          className="w-24 h-24 rounded-full object-cover mb-2"
-        />
-        <label className="cursor-pointer text-yellow-600 hover:underline">
-          Изменить аватар
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleAvatarUpload}
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg border border-gray-100">
+      <div className="flex flex-col items-center">
+        <div className="relative">
+          <img
+            src={profile.avatar_url || "https://via.placeholder.com/100"}
+            alt="Avatar"
+            className="w-24 h-24 rounded-full object-cover shadow-md"
           />
-        </label>
+          <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition">
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v8m0-8V7m0 4h4m-4 0H8" />
+            </svg>
+          </label>
+        </div>
+
+        <h1 className="mt-4 text-xl font-semibold text-gray-800">
+          {profile.first_name} {profile.last_name}
+        </h1>
       </div>
 
-      {/* Имя / фамилия */}
-      <div className="space-y-3">
+      <div className="mt-6 space-y-3">
         <input
           type="text"
           placeholder="Имя"
@@ -120,7 +143,7 @@ const Profile: React.FC = () => {
           onChange={(e) =>
             setProfile((p) => p && { ...p, first_name: e.target.value })
           }
-          className="w-full border p-2 rounded"
+          className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
         <input
           type="text"
@@ -129,13 +152,12 @@ const Profile: React.FC = () => {
           onChange={(e) =>
             setProfile((p) => p && { ...p, last_name: e.target.value })
           }
-          className="w-full border p-2 rounded"
+          className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
         />
       </div>
 
-      {/* Тумблер диапазона */}
-      <div className="flex justify-between items-center mt-4">
-        <span>1–8</span>
+      <div className="flex justify-between items-center mt-6">
+        <span className="text-sm">1–8</span>
         <label className="relative inline-flex items-center cursor-pointer">
           <input
             type="checkbox"
@@ -151,20 +173,19 @@ const Profile: React.FC = () => {
               )
             }
           />
-          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-yellow-500"></div>
+          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-yellow-500"></div>
           <div className="absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition peer-checked:translate-x-full"></div>
         </label>
-        <span>8–11</span>
+        <span className="text-sm">8–11</span>
       </div>
 
-      {/* Выбор класса */}
       <div className="mt-4">
         <select
           value={profile.class_num}
           onChange={(e) =>
             setProfile((p) => p && { ...p, class_num: Number(e.target.value) })
           }
-          className="w-full border p-2 rounded"
+          className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
         >
           {classOptions.map((num) => (
             <option key={num} value={num}>
@@ -176,9 +197,17 @@ const Profile: React.FC = () => {
 
       <button
         onClick={handleSave}
-        className="mt-6 w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 rounded"
+        disabled={saving}
+        className="mt-6 w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 rounded-lg transition disabled:opacity-50"
       >
-        Сохранить
+        {saving ? "Сохранение..." : "Сохранить изменения"}
+      </button>
+
+      <button
+        onClick={handleLogout}
+        className="mt-3 w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition"
+      >
+        Выйти из аккаунта
       </button>
     </div>
   );
