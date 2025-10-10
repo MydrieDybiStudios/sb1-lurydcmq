@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
-mport Toast from "./Toast"; // импорт нашего кастомного toast
-import React, { useState } from "react";
 
 interface ProfileData {
   first_name: string;
@@ -12,13 +10,40 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
+// Кастомный toast
+const Toast: React.FC<{
+  message: string;
+  type?: "success" | "error";
+  onClose: () => void;
+  duration?: number;
+}> = ({ message, type = "success", onClose, duration = 3000 }) => {
+  useEffect(() => {
+    const timer = setTimeout(onClose, duration);
+    return () => clearTimeout(timer);
+  }, [onClose, duration]);
+
+  return (
+    <div
+      className={`
+        fixed top-5 right-5 min-w-[200px] px-4 py-2 rounded-lg shadow-lg text-white font-medium
+        transition-transform transform
+        ${type === "success" ? "bg-green-500" : "bg-red-500"}
+      `}
+    >
+      {message}
+    </div>
+  );
+};
+
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const navigate = useNavigate();
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-const [toastType, setToastType] = useState<"success" | "error">("success");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -34,8 +59,10 @@ const [toastType, setToastType] = useState<"success" | "error">("success");
         .eq("id", user.id)
         .single();
 
-      if (error) console.error("Ошибка загрузки профиля:", error);
-      else setProfile(data as ProfileData);
+      if (error) {
+        setToastType("error");
+        setToastMessage("Ошибка загрузки профиля");
+      } else setProfile(data as ProfileData);
 
       setLoading(false);
     };
@@ -60,13 +87,14 @@ const [toastType, setToastType] = useState<"success" | "error">("success");
 
     setSaving(false);
 
- if (error) {
-  setToastType("error");
-  setToastMessage("Ошибка сохранения профиля!");
-} else {
-  setToastType("success");
-  setToastMessage("Профиль обновлён!");
-}
+    if (error) {
+      setToastType("error");
+      setToastMessage("Ошибка сохранения профиля!");
+    } else {
+      setToastType("success");
+      setToastMessage("Профиль обновлён!");
+    }
+  };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,6 +102,8 @@ const [toastType, setToastType] = useState<"success" | "error">("success");
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+
+    setAvatarLoading(true);
 
     const fileExt = file.name.split(".").pop();
     const fileName = `${user.id}-${Date.now()}.${fileExt}`;
@@ -84,17 +114,21 @@ const [toastType, setToastType] = useState<"success" | "error">("success");
       .upload(filePath, file, { upsert: true });
 
     if (uploadError) {
-      console.error("Ошибка загрузки:", uploadError);
+      setToastType("error");
+      setToastMessage("Ошибка загрузки аватара");
+      setAvatarLoading(false);
       return;
     }
 
     const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
     const publicUrl = data.publicUrl;
 
-    // Сохраняем ссылку в профиле
     setProfile((prev) => prev ? { ...prev, avatar_url: publicUrl } : prev);
-
     await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", user.id);
+
+    setToastType("success");
+    setToastMessage("Аватар успешно обновлён");
+    setAvatarLoading(false);
   };
 
   const handleLogout = async () => {
@@ -111,14 +145,27 @@ const [toastType, setToastType] = useState<"success" | "error">("success");
       : Array.from({ length: 4 }, (_, i) => i + 8);
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg border border-gray-100">
+    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-2xl shadow-lg border border-gray-100 relative">
+      {/* Toast */}
+      {toastMessage && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setToastMessage(null)}
+        />
+      )}
+
       <div className="flex flex-col items-center">
         <div className="relative">
-          <img
-            src={profile.avatar_url || "https://via.placeholder.com/100"}
-            alt="Avatar"
-            className="w-24 h-24 rounded-full object-cover shadow-md"
-          />
+          {avatarLoading ? (
+            <div className="w-24 h-24 rounded-full bg-gray-200 animate-pulse"></div>
+          ) : (
+            <img
+              src={profile.avatar_url || "https://via.placeholder.com/100"}
+              alt="Avatar"
+              className="w-24 h-24 rounded-full object-cover shadow-md"
+            />
+          )}
           <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition">
             <input
               type="file"
