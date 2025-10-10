@@ -11,12 +11,12 @@ interface ProfileData {
 }
 
 // Кастомный toast
-const Toast: React.FC<{ message: string; type?: "success" | "error"; onClose: () => void; duration?: number }> = ({
-  message,
-  type = "success",
-  onClose,
-  duration = 3000,
-}) => {
+const Toast: React.FC<{
+  message: string;
+  type?: "success" | "error";
+  onClose: () => void;
+  duration?: number;
+}> = ({ message, type = "success", onClose, duration = 3000 }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);
@@ -46,7 +46,9 @@ const Profile: React.FC = () => {
   // Загрузка профиля
   useEffect(() => {
     const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         navigate("/");
         return;
@@ -74,7 +76,9 @@ const Profile: React.FC = () => {
     if (!profile) return;
     setSaving(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     const { error } = await supabase
@@ -97,30 +101,25 @@ const Profile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     setAvatarLoading(true);
 
     try {
-      // Проверяем, что bucket avatars существует
-      const { data: buckets } = await supabase.storage.listBuckets();
-      if (!buckets?.some(b => b.name === "avatars")) {
-        setToastType("error");
-        setToastMessage("Bucket avatars не найден! Создайте его в Supabase Storage.");
-        setAvatarLoading(false);
-        return;
-      }
-
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true });
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(fileName, file, { upsert: true });
+
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      setProfile(prev => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
+      const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
+      setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
 
       // Сохраняем ссылку на аватар в профиле
       await supabase.from("profiles").update({ avatar_url: data.publicUrl }).eq("id", user.id);
@@ -136,17 +135,18 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Кнопка выхода в профиле
+  // Кнопка возвращения в главное меню
   const handleBackToMenu = () => {
-  navigate("/"); // Возвращаем в главное меню
-};
+    navigate("/"); // просто переходим на главную
   };
 
   if (loading) return <div className="p-8 text-center">Загрузка...</div>;
   if (!profile) return null;
 
   const classOptions =
-    profile.class_range === "1-8" ? Array.from({ length: 8 }, (_, i) => i + 1) : Array.from({ length: 4 }, (_, i) => i + 8);
+    profile.class_range === "1-8"
+      ? Array.from({ length: 8 }, (_, i) => i + 1)
+      : Array.from({ length: 4 }, (_, i) => i + 8);
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-3xl shadow-xl border border-gray-200 relative">
@@ -158,7 +158,11 @@ const Profile: React.FC = () => {
           {avatarLoading ? (
             <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse"></div>
           ) : (
-            <img src={profile.avatar_url || "https://via.placeholder.com/100"} alt="Avatar" className="w-28 h-28 rounded-full object-cover shadow-md" />
+            <img
+              src={profile.avatar_url || "https://via.placeholder.com/100"}
+              alt="Avatar"
+              className="w-28 h-28 rounded-full object-cover shadow-md"
+            />
           )}
           <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition">
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
@@ -168,36 +172,78 @@ const Profile: React.FC = () => {
           </label>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800">{profile.first_name} {profile.last_name}</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          {profile.first_name} {profile.last_name}
+        </h1>
 
         {/* Поля ввода */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input type="text" placeholder="Имя" value={profile.first_name} onChange={(e) => setProfile(p => p && ({ ...p, first_name: e.target.value }))} className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500" />
-          <input type="text" placeholder="Фамилия" value={profile.last_name} onChange={(e) => setProfile(p => p && ({ ...p, last_name: e.target.value }))} className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+          <input
+            type="text"
+            placeholder="Имя"
+            value={profile.first_name}
+            onChange={(e) => setProfile((p) => p && { ...p, first_name: e.target.value })}
+            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          />
+          <input
+            type="text"
+            placeholder="Фамилия"
+            value={profile.last_name}
+            onChange={(e) => setProfile((p) => p && { ...p, last_name: e.target.value })}
+            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+          />
         </div>
 
         {/* Диапазон и класс */}
         <div className="flex items-center gap-4 w-full justify-between">
           <span>1–8</span>
           <label className="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" className="sr-only peer" checked={profile.class_range === "8-11"} onChange={() => setProfile(p => p && ({ ...p, class_range: p.class_range === "1-8" ? "8-11" : "1-8", class_num: p.class_range === "1-8" ? 8 : 1 }))} />
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={profile.class_range === "8-11"}
+              onChange={() =>
+                setProfile((p) =>
+                  p && {
+                    ...p,
+                    class_range: p.class_range === "1-8" ? "8-11" : "1-8",
+                    class_num: p.class_range === "1-8" ? 8 : 1,
+                  }
+                )
+              }
+            />
             <div className="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:bg-yellow-500"></div>
             <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition peer-checked:translate-x-full"></div>
           </label>
           <span>8–11</span>
         </div>
 
-        <select value={profile.class_num} onChange={(e) => setProfile(p => p && ({ ...p, class_num: Number(e.target.value) }))} className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500">
-          {classOptions.map(num => <option key={num} value={num}>{num} класс</option>)}
+        <select
+          value={profile.class_num}
+          onChange={(e) => setProfile((p) => p && { ...p, class_num: Number(e.target.value) })}
+          className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        >
+          {classOptions.map((num) => (
+            <option key={num} value={num}>
+              {num} класс
+            </option>
+          ))}
         </select>
 
         {/* Кнопки */}
         <div className="flex gap-4 w-full">
-          <button onClick={handleSave} disabled={saving} className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 rounded-lg transition disabled:opacity-50">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 rounded-lg transition disabled:opacity-50"
+          >
             {saving ? "Сохранение..." : "Сохранить"}
           </button>
-          <button onClick={handleLogout} className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition">
-            Выйти
+          <button
+            onClick={handleBackToMenu}
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition"
+          >
+            Главное меню
           </button>
         </div>
       </div>
