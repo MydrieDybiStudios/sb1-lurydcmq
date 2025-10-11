@@ -39,12 +39,12 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [isTestMode, setIsTestMode] = useState(false);
   const [isResultsMode, setIsResultsMode] = useState(false);
   const [testResults, setTestResults] = useState<{ score: number; total: number; percentage: number } | null>(null);
-  const [userName, setUserName] = useState('Студент');
+  const [userName, setUserName] = useState('Студент'); // Можно заменить на user_id из профиля
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [achievements, setAchievements] = useState<any[]>([]);
 
-  // ✅ Загружаем прошлые результаты
+  // ✅ Загружаем прошлый прогресс
   useEffect(() => {
     if (course && userName) {
       const fetchProgress = async () => {
@@ -75,7 +75,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
       const { data, error } = await supabase
         .from('user_achievements')
         .select('*, achievements(*)')
-        .eq('user_id', userName) // здесь user_id должен быть uuid, если нет, поменять на user_name
+        .eq('user_id', userName) // если используешь uuid, заменяем на реальный user_id
         .order('earned_at', { ascending: false });
 
       if (!error && data) setAchievements(data);
@@ -92,21 +92,16 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   }, [course]);
 
   const handlePrevLesson = () => {
-    if (currentLessonIndex > 0) {
-      setCurrentLessonIndex(prev => prev - 1);
-    }
+    if (currentLessonIndex > 0) setCurrentLessonIndex(prev => prev - 1);
   };
 
   const handleNextLesson = () => {
     if (!course) return;
-    if (currentLessonIndex < course.lessons.length - 1) {
-      setCurrentLessonIndex(prev => prev + 1);
-    } else {
-      setIsTestMode(true);
-    }
+    if (currentLessonIndex < course.lessons.length - 1) setCurrentLessonIndex(prev => prev + 1);
+    else setIsTestMode(true);
   };
 
-  // ✅ Сохраняем прогресс и автоматически выдаём достижения
+  // ✅ Сохраняем прогресс и выдаём достижение
   const handleTestSubmit = async (score: number, total: number) => {
     const percentage = Math.round((score / total) * 100);
     setTestResults({ score, total, percentage });
@@ -116,9 +111,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     if (!course) return;
 
     try {
-      // 1️⃣ Upsert прогресса
-      const { data, error } = await supabase
-        .from("progress")
+      // 1️⃣ Сохраняем прогресс
+      const { data: progressData, error: progressError } = await supabase
+        .from('progress')
         .upsert(
           [
             {
@@ -130,36 +125,35 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
               updated_at: new Date().toISOString(),
             },
           ],
-          {
-            onConflict: ["user_name", "course_id"],
-          }
+          { onConflict: ['user_name', 'course_id'] }
         )
         .select();
 
-      if (error) throw error;
+      if (progressError) throw progressError;
 
-      // 2️⃣ Автоматическая выдача достижения
-      const { error: achievementError } = await supabase
-        .from("user_achievements")
+      // 2️⃣ Выдаём достижение автоматически
+      const { data: achData, error: achError } = await supabase
+        .from('user_achievements')
         .upsert(
           [
             {
-              user_id: userName, // или uuid пользователя
-              achievement_id: course.id, // пример: achievement_id = course_id
+              user_id: userName, // заменить на реальный uuid пользователя
+              achievement_id: course.id, // пример: связываем achievement с course_id
               earned_at: new Date().toISOString(),
             },
           ],
-          { onConflict: ["user_id", "achievement_id"] }
-        );
+          { onConflict: ['user_id', 'achievement_id'] }
+        )
+        .select();
 
-      if (achievementError) throw achievementError;
+      if (achError) throw achError;
 
-      setToastType("success");
-      setToastMessage("✅ Результат и достижение успешно сохранены!");
+      setToastType('success');
+      setToastMessage('✅ Результат и достижение успешно сохранены!');
     } catch (err) {
-      console.error("Ошибка сохранения:", err);
-      setToastType("error");
-      setToastMessage("❌ Не удалось сохранить результат или достижение");
+      console.error('Ошибка сохранения:', err);
+      setToastType('error');
+      setToastMessage('❌ Не удалось сохранить результат или достижение');
     }
   };
 
@@ -180,11 +174,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   return (
     <>
       {toastMessage && (
-        <Toast
-          message={toastMessage}
-          type={toastType}
-          onClose={() => setToastMessage(null)}
-        />
+        <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />
       )}
 
       <div
@@ -194,8 +184,8 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
       >
         <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 transform transition-all max-h-[90vh] overflow-y-auto">
           {isResultsMode ? (
-            <ResultsComponent 
-              results={testResults} 
+            <ResultsComponent
+              results={testResults}
               courseName={course.title}
               onClose={handleCloseResults}
               onDownloadCertificate={handleDownloadCertificate}
@@ -209,10 +199,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
                 </button>
               </div>
 
-              {/* Прогресс */}
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                <div 
-                  className="bg-yellow-500 h-2 rounded-full transition-all duration-500" 
+                <div
+                  className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${isTestMode ? 100 : progressPercentage}%` }}
                 ></div>
               </div>
@@ -229,7 +218,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 
               <div className="mt-6 flex justify-between items-center">
                 {!isTestMode && (
-                  <button 
+                  <button
                     className={`flex items-center space-x-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition ${currentLessonIndex === 0 ? 'invisible' : 'visible'}`}
                     onClick={handlePrevLesson}
                   >
@@ -239,7 +228,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
                 )}
 
                 {!isTestMode && (
-                  <button 
+                  <button
                     className="flex items-center space-x-1 ml-auto bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
                     onClick={handleNextLesson}
                   >
