@@ -93,7 +93,6 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     }
   };
 
-// ✅ Сохранение результатов с toast и upsert
 const handleTestSubmit = async (score: number, total: number) => {
   const percentage = Math.round((score / total) * 100);
   setTestResults({ score, total, percentage });
@@ -103,8 +102,8 @@ const handleTestSubmit = async (score: number, total: number) => {
   if (!course) return;
 
   try {
-    // ✅ Вместо insert используем upsert
-    const { error } = await supabase
+    // ✅ Upsert: сохраняем прогресс, обновляем если уже есть запись
+    const { data, error } = await supabase
       .from("progress")
       .upsert(
         [
@@ -114,11 +113,12 @@ const handleTestSubmit = async (score: number, total: number) => {
             score,
             total,
             percentage,
-            updated_at: new Date(),
+            updated_at: new Date().toISOString(),
           },
         ],
         {
-          onConflict: ["user_name", "course_id"], // обновляет, если запись уже существует
+          onConflict: ["user_name", "course_id"], // уникальный ключ
+          ignoreDuplicates: false,
         }
       );
 
