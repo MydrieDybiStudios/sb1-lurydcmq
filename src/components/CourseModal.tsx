@@ -93,34 +93,50 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     }
   };
 
-  // ✅ Сохранение результатов с toast
-  const handleTestSubmit = async (score: number, total: number) => {
-    const percentage = Math.round((score / total) * 100);
-    setTestResults({ score, total, percentage });
-    setIsTestMode(false);
-    setIsResultsMode(true);
+// ✅ Сохранение результатов с toast и upsert
+const handleTestSubmit = async (score: number, total: number) => {
+  const percentage = Math.round((score / total) * 100);
+  setTestResults({ score, total, percentage });
+  setIsTestMode(false);
+  setIsResultsMode(true);
 
-    if (!course) return;
+  if (!course) return;
 
-    const { error } = await supabase.from('progress').insert([
-      {
-        user_name: userName,
-        course_id: course.id,
-        score,
-        total,
-        percentage,
-      },
-    ]);
+  try {
+    // ✅ Вместо insert используем upsert
+    const { error } = await supabase
+      .from("progress")
+      .upsert(
+        [
+          {
+            user_name: userName,
+            course_id: course.id,
+            score,
+            total,
+            percentage,
+            updated_at: new Date(),
+          },
+        ],
+        {
+          onConflict: ["user_name", "course_id"], // обновляет, если запись уже существует
+        }
+      );
 
     if (error) {
-      console.error('Ошибка сохранения результата:', error);
-      setToastType('error');
-      setToastMessage('❌ Не удалось сохранить результат');
+      console.error("Ошибка сохранения результата:", error);
+      setToastType("error");
+      setToastMessage("❌ Не удалось сохранить результат");
     } else {
-      setToastType('success');
-      setToastMessage('✅ Результат успешно сохранён!');
+      setToastType("success");
+      setToastMessage("✅ Результат успешно сохранён!");
     }
-  };
+  } catch (err) {
+    console.error("Ошибка при upsert:", err);
+    setToastType("error");
+    setToastMessage("⚠️ Ошибка сохранения результата");
+  }
+};
+
 
   const handleCloseResults = () => {
     setIsResultsMode(false);
