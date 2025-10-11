@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 
+// ---------- Типы ----------
 interface ProfileData {
   first_name: string;
   last_name: string;
@@ -10,7 +11,15 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
-// Кастомный toast
+interface Achievement {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  earned_at: string;
+}
+
+// ---------- Кастомный Toast ----------
 const Toast: React.FC<{
   message: string;
   type?: "success" | "error";
@@ -33,8 +42,10 @@ const Toast: React.FC<{
   );
 };
 
+// ---------- Компонент профиля ----------
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -43,7 +54,7 @@ const Profile: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // Загрузка профиля
+  // ---------- Загрузка профиля + ачивок ----------
   useEffect(() => {
     const fetchProfile = async () => {
       const {
@@ -54,6 +65,7 @@ const Profile: React.FC = () => {
         return;
       }
 
+      // Профиль
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -61,38 +73,31 @@ const Profile: React.FC = () => {
         .single();
 
       if (error && error.code !== "PGRST116") {
-        // PGRST116 — Not Found
         setToastType("error");
         setToastMessage("Ошибка загрузки профиля");
       } else if (!data) {
-        // Если профиля нет, создаём через upsert
-        const { error: upsertError } = await supabase
+        await supabase
           .from("profiles")
-          .upsert(
-            {
-              id: user.id,
-              first_name: "",
-              last_name: "",
-              class_num: 1,
-              class_range: "1-8",
-              avatar_url: null,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "id" }
-          );
-        if (upsertError) {
-          setToastType("error");
-          setToastMessage("Ошибка создания профиля");
-        } else {
-          setProfile({
+          .upsert({
+            id: user.id,
             first_name: "",
             last_name: "",
             class_num: 1,
             class_range: "1-8",
             avatar_url: null,
-          });
-        }
+            updated_at: new Date().toISOString(),
+          })
+          .select();
       } else setProfile(data as ProfileData);
+
+      // Ачивки
+      const { data: ach, error: achError } = await supabase
+        .from("achievements")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("earned_at", { ascending: false });
+
+      if (!achError && ach) setAchievements(ach);
 
       setLoading(false);
     };
@@ -100,10 +105,9 @@ const Profile: React.FC = () => {
     fetchProfile();
   }, [navigate]);
 
-  // Сохранение профиля через upsert
+  // ---------- Сохранение профиля ----------
   const handleSave = async () => {
     if (!profile) return;
-
     setSaving(true);
 
     const {
@@ -112,20 +116,18 @@ const Profile: React.FC = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .upsert(
-          {
-            id: user.id,
-            first_name: profile.first_name,
-            last_name: profile.last_name,
-            class_num: profile.class_num,
-            class_range: profile.class_range,
-            avatar_url: profile.avatar_url,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" }
-        );
+      const { error } = await supabase.from("profiles").upsert(
+        {
+          id: user.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          class_num: profile.class_num,
+          class_range: profile.class_range,
+          avatar_url: profile.avatar_url,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
       if (error) throw error;
 
       setToastType("success");
@@ -139,7 +141,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Загрузка аватара
+  // ---------- Загрузка аватара ----------
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -152,14 +154,11 @@ const Profile: React.FC = () => {
     setAvatarLoading(true);
 
     try {
-      if (!file.type.startsWith("image/")) {
-        throw new Error("Можно загружать только изображения");
-      }
+      if (!file.type.startsWith("image/")) throw new Error("Можно загружать только изображения");
 
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
 
-      // Загружаем в bucket avatars
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(fileName, file, { upsert: true });
@@ -168,14 +167,12 @@ const Profile: React.FC = () => {
       const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
       if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
 
-      // Обновляем профиль
-      setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
       await supabase.from("profiles").upsert({ id: user.id, avatar_url: data.publicUrl }, { onConflict: "id" });
+      setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
 
       setToastType("success");
       setToastMessage("Аватар успешно обновлён");
     } catch (err: any) {
-      console.error("Ошибка загрузки аватара:", err.message || err);
       setToastType("error");
       setToastMessage("Ошибка загрузки аватара: " + (err.message || "неизвестная ошибка"));
     } finally {
@@ -183,10 +180,8 @@ const Profile: React.FC = () => {
     }
   };
 
-  // Кнопка возврата в главное меню
-  const handleBackToMenu = () => {
-    navigate("/"); // просто переходим на главную
-  };
+  // ---------- Возврат в меню ----------
+  const handleBackToMenu = () => navigate("/");
 
   if (loading) return <div className="p-8 text-center">Загрузка...</div>;
   if (!profile) return null;
@@ -196,6 +191,7 @@ const Profile: React.FC = () => {
       ? Array.from({ length: 8 }, (_, i) => i + 1)
       : Array.from({ length: 4 }, (_, i) => i + 8);
 
+  // ---------- JSX ----------
   return (
     <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-3xl shadow-2xl border border-gray-200 relative">
       {toastMessage && (
@@ -203,16 +199,11 @@ const Profile: React.FC = () => {
       )}
 
       <div className="flex flex-col items-center gap-6">
-        {/* Аватар */}
+        {/* ---------- Аватар ---------- */}
         <div className="relative group">
           {avatarLoading ? (
             <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-gray-400 animate-spin"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-6 h-6 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" strokeWidth="4" strokeDasharray="31.4" strokeLinecap="round" />
               </svg>
             </div>
@@ -225,13 +216,7 @@ const Profile: React.FC = () => {
           )}
           <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition transform hover:scale-110">
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v8m0-8V7m0 4h4m-4 0H8" />
             </svg>
           </label>
@@ -241,7 +226,7 @@ const Profile: React.FC = () => {
           {profile.first_name} {profile.last_name}
         </h1>
 
-        {/* Поля ввода */}
+        {/* ---------- Поля ввода ---------- */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             type="text"
@@ -259,7 +244,7 @@ const Profile: React.FC = () => {
           />
         </div>
 
-        {/* Диапазон и класс */}
+        {/* ---------- Переключатель классов ---------- */}
         <div className="flex items-center gap-4 w-full justify-between">
           <span>1–8</span>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -295,7 +280,7 @@ const Profile: React.FC = () => {
           ))}
         </select>
 
-        {/* Кнопки */}
+        {/* ---------- Кнопки ---------- */}
         <div className="flex gap-4 w-full">
           <button
             onClick={handleSave}
@@ -310,6 +295,33 @@ const Profile: React.FC = () => {
           >
             Главное меню
           </button>
+        </div>
+
+        {/* ---------- Блок достижений ---------- */}
+        <div className="w-full mt-8 bg-gray-50 rounded-2xl p-4 border border-yellow-200">
+          <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            🏆 Мои достижения
+          </h2>
+
+          {achievements.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center">Пока нет достижений 😅</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {achievements.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex flex-col items-center bg-white p-3 rounded-xl shadow hover:shadow-md transition"
+                >
+                  <span className="text-3xl mb-2">{a.icon}</span>
+                  <p className="text-sm font-bold text-gray-700 text-center">{a.title}</p>
+                  <p className="text-xs text-gray-500 text-center">{a.description}</p>
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    {new Date(a.earned_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
