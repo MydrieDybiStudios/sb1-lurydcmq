@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, ArrowLeft, ArrowRight, Award } from 'lucide-react';
 import CourseContent from './CourseContent';
 import TestComponent from './TestComponent';
 import ResultsComponent from './ResultsComponent';
 import { Course } from '../types/course';
+import { supabase } from '../lib/supabaseClient';
 
 interface CourseModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [testResults, setTestResults] = useState<{ score: number; total: number; percentage: number } | null>(null);
   const [userName, setUserName] = useState('Студент');
   const [showCertificate, setShowCertificate] = useState(false);
+  const [awarding, setAwarding] = useState(false); // блокировка UI при записи в БД
 
   // Reset state when course changes
   useEffect(() => {
@@ -26,30 +28,180 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     setIsResultsMode(false);
     setTestResults(null);
     setShowCertificate(false);
+    setAwarding(false);
   }, [course]);
 
+  // --- Helper: mark course complete and award achievement ---
+  const markCourseCompletedAndAward = async () => {
+    if (!course) return;
+    setAwarding(true);
+
+    try {
+      // Get current user
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      const user = userData?.user;
+      if (user == null) {
+        alert('Требуется войти в систему, чтобы сохранить прогресс.');
+        return;
+      }
+      const userId = user.id;
+
+      // 1) Upsert user_courses: если запись есть — обновляем, если нет — вставляем
+      // сначала пытаем найти существующую запись
+      const { data: existing, error: selErr } = await supabase
+        .from('user_courses')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('course_id', course.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (selErr && selErr.code !== 'PGRST116') {
+        // PGRST116 — not found in some setups; но если другая ошибка — логируем
+        console.error('Ошибка при поиске user_courses:', selErr);
+      }
+
+      const nowIso = new Date().toISOString();
+      if (existing) {
+        const { error: updErr } = await supabase
+          .from('user_courses')
+          .update({
+            progress: 100,
+            completed: true,
+            completed_at: nowIso,
+            updated_at: nowIso,
+          })
+          .eq('id', (existing as any).id);
+        if (updErr) console.error('Ошибка обновления user_courses:', updErr);
+      } else {
+        const { error: insErr } = await supabase
+          .from('user_courses')
+          .insert({
+            user_id: userId,
+            course_id: course.id,
+            progress: 100,
+            completed: true,
+            completed_at: nowIso,
+            created_at: nowIso,
+            updated_at: nowIso,
+          });
+        if (insErr) console.error('Ошибка вставки user_courses:', insErr);
+      }
+
+      // 2) Найти ачивку, привязанную к этому курсу (по course_id или по имени курса)
+      // Сначала пробуем найти achievement с course_id = course.id
+      let achId: number | null = null;
+      const { data: achByCourse, error: achCourseErr } = await supabase
+        .from('achievements')
+        .select('id')
+        .eq('course_id', course.id)
+        .limit(1)
+        .maybeSingle();
+
+      if (achCourseErr) {
+        console.error('Ошибка поиска ачивки по course_id:', achCourseErr);
+      } else if (achByCourse) {
+        achId = (achByCourse as any).id;
+      }
+
+      // Если не нашли — попробуем по имени (name/title)
+      if (!achId) {
+        const { data: achByName, error: achNameErr } = await supabase
+          .from('achievements')
+          .select('id')
+          .eq('name', course.title)
+          .limit(1)
+          .maybeSingle();
+
+        if (achNameErr) {
+          console.error('Ошибка поиска ачивки по имени:', achNameErr);
+        } else if (achByName) {
+          achId = (achByName as any).id;
+        }
+      }
+
+      // 3) Если ачивка найдена — проверить, есть ли запись в user_achievements — если нет, вставить
+      if (achId) {
+        const { data: already, error: alreadyErr } = await supabase
+          .from('user_achievements')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('achievement_id', achId)
+          .limit(1)
+          .maybeSingle();
+
+        if (alreadyErr && alreadyErr.code !== 'PGRST116') {
+          console.error('Ошибка проверки user_achievements:', alreadyErr);
+        }
+
+        if (!already) {
+          const { error: insUAErr } = await supabase
+            .from('user_achievements')
+            .insert({
+              user_id: userId,
+              achievement_id: achId,
+              received_at: nowIso,
+            });
+
+          if (insUAErr) {
+            console.error('Ошибка вставки user_achievements:', insUAErr);
+          } else {
+            // уведомление пользователю
+            alert(`Поздравляем! Вы получили достижение по курсу "${course.title}"!`);
+          }
+        } else {
+          // уже есть ачивка — можно не показывать ничего или показать сообщение
+          console.log('Ачивка уже получена ранее.');
+        }
+      } else {
+        console.log('Для этого курса не настроена ачивка (achievement).');
+      }
+    } catch (err) {
+      console.error('Ошибка при сохранении прогресса / начислении ачивки:', err);
+      alert('Ошибка при сохранении прогресса. Посмотри консоль.');
+    } finally {
+      setAwarding(false);
+    }
+  };
+
+  // --- Навигация по урокам ---
   const handlePrevLesson = () => {
     if (currentLessonIndex > 0) {
       setCurrentLessonIndex(prev => prev - 1);
     }
   };
 
-  const handleNextLesson = () => {
+  const handleNextLesson = async () => {
     if (!course) return;
-    
-    if (currentLessonIndex < course.lessons.length - 1) {
+
+    if (currentLessonIndex < (course.lessons?.length ?? 0) - 1) {
       setCurrentLessonIndex(prev => prev + 1);
     } else {
-      // If we're at the last lesson, start the test
-      setIsTestMode(true);
+      // We are at the last lesson
+      // If there's a test, start it, otherwise mark course complete immediately
+      if (!course.test || course.test.length === 0) {
+        // no test: mark complete and award
+        await markCourseCompletedAndAward();
+        // show results modal with 100%
+        setTestResults({ score: 0, total: 0, percentage: 100 });
+        setIsResultsMode(true);
+        // optionally close modal after a delay:
+        // setTimeout(() => onClose(), 1500);
+      } else {
+        setIsTestMode(true);
+      }
     }
   };
 
-  const handleTestSubmit = (score: number, total: number) => {
-    const percentage = Math.round((score / total) * 100);
+  const handleTestSubmit = async (score: number, total: number) => {
+    const percentage = total === 0 ? 0 : Math.round((score / total) * 100);
     setTestResults({ score, total, percentage });
     setIsTestMode(false);
     setIsResultsMode(true);
+
+    // По результатам теста считаем курс завершённым (в данном примере — всегда),
+    // если нужна проверка проходного балла — добавь условие percentage >= 70 и т.д.
+    await markCourseCompletedAndAward();
   };
 
   const handleCloseResults = () => {
@@ -59,12 +211,13 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 
   const handleDownloadCertificate = () => {
     setShowCertificate(true);
-    // In a real app, this would generate and download a certificate
     alert(`Сертификат для ${userName} по курсу "${course?.title}" успешно создан!`);
   };
 
   // Progress percentage calculation
-  const progressPercentage = course ? ((currentLessonIndex + 1) / course.lessons.length) * 100 : 0;
+  const progressPercentage = course && course.lessons && course.lessons.length > 0
+    ? ((currentLessonIndex + 1) / course.lessons.length) * 100
+    : 0;
 
   if (!course) return null;
 
@@ -125,10 +278,11 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
                 </div>
               ) : (
                 <button 
-                  className="flex items-center space-x-1 ml-auto bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
+                  className="flex items-center space-x-1 ml-auto bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition disabled:opacity-50"
                   onClick={handleNextLesson}
+                  disabled={awarding}
                 >
-                  <span>{currentLessonIndex === course.lessons.length - 1 ? 'Начать тест' : 'Далее'}</span>
+                  <span>{currentLessonIndex === course.lessons.length - 1 ? 'Далее' : 'Далее'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}
