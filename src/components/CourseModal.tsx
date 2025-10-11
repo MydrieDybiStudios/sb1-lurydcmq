@@ -6,7 +6,6 @@ import ResultsComponent from './ResultsComponent';
 import { Course } from '../types/course';
 import { supabase } from '../lib/supabaseClient';
 
-// ---------- Локальный Toast (из профиля) ----------
 const Toast: React.FC<{
   message: string;
   type?: 'success' | 'error';
@@ -29,7 +28,6 @@ const Toast: React.FC<{
   );
 };
 
-// ---------- Компонент модалки курса ----------
 interface CourseModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -44,30 +42,46 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [userName, setUserName] = useState('Студент');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [achievements, setAchievements] = useState<any[]>([]);
 
- useEffect(() => {
-  if (course && userName) {
-    const fetchProgress = async () => {
+  // ✅ Загружаем прошлые результаты
+  useEffect(() => {
+    if (course && userName) {
+      const fetchProgress = async () => {
+        const { data, error } = await supabase
+          .from('progress')
+          .select('*')
+          .eq('user_name', userName)
+          .eq('course_id', course.id)
+          .order('updated_at', { ascending: false })
+          .limit(1);
+
+        if (!error && data && data.length > 0) {
+          setTestResults({
+            score: data[0].score,
+            total: data[0].total,
+            percentage: data[0].percentage,
+          });
+          setIsResultsMode(true);
+        }
+      };
+      fetchProgress();
+    }
+  }, [course, userName]);
+
+  // ✅ Загружаем достижения пользователя
+  useEffect(() => {
+    const fetchAchievements = async () => {
       const { data, error } = await supabase
-        .from('progress')
-        .select('*')
-        .eq('user_name', userName)
-        .eq('course_id', course.id)
-        .order('updated_at', { ascending: false })
-        .limit(1);
+        .from('user_achievements')
+        .select('*, achievements(*)')
+        .eq('user_id', userName) // здесь user_id должен быть uuid, если нет, поменять на user_name
+        .order('earned_at', { ascending: false });
 
-      if (!error && data && data.length > 0) {
-        setTestResults({
-          score: data[0].score,
-          total: data[0].total,
-          percentage: data[0].percentage,
-        });
-        setIsResultsMode(true);
-      }
+      if (!error && data) setAchievements(data);
     };
-    fetchProgress();
-  }
-}, [course, userName]);
+    fetchAchievements();
+  }, [userName]);
 
   // Сброс при смене курса
   useEffect(() => {
@@ -92,50 +106,62 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     }
   };
 
-const handleTestSubmit = async (score: number, total: number) => {
-  const percentage = Math.round((score / total) * 100);
-  setTestResults({ score, total, percentage });
-  setIsTestMode(false);
-  setIsResultsMode(true);
+  // ✅ Сохраняем прогресс и автоматически выдаём достижения
+  const handleTestSubmit = async (score: number, total: number) => {
+    const percentage = Math.round((score / total) * 100);
+    setTestResults({ score, total, percentage });
+    setIsTestMode(false);
+    setIsResultsMode(true);
 
-  if (!course) return;
+    if (!course) return;
 
-  try {
-    // ✅ Upsert: сохраняем прогресс, обновляем если уже есть запись
-    const { data, error } = await supabase
-      .from("progress")
-      .upsert(
-        [
+    try {
+      // 1️⃣ Upsert прогресса
+      const { data, error } = await supabase
+        .from("progress")
+        .upsert(
+          [
+            {
+              user_name: userName,
+              course_id: course.id,
+              score,
+              total,
+              percentage,
+              updated_at: new Date().toISOString(),
+            },
+          ],
           {
-            user_name: userName,
-            course_id: course.id,
-            score,
-            total,
-            percentage,
-            updated_at: new Date().toISOString(),
-          },
-        ],
-        {
-          onConflict: ["user_name", "course_id"], // уникальный ключ
-          ignoreDuplicates: false,
-        }
-      );
+            onConflict: ["user_name", "course_id"],
+          }
+        )
+        .select();
 
-    if (error) {
-      console.error("Ошибка сохранения результата:", error);
-      setToastType("error");
-      setToastMessage("❌ Не удалось сохранить результат");
-    } else {
+      if (error) throw error;
+
+      // 2️⃣ Автоматическая выдача достижения
+      const { error: achievementError } = await supabase
+        .from("user_achievements")
+        .upsert(
+          [
+            {
+              user_id: userName, // или uuid пользователя
+              achievement_id: course.id, // пример: achievement_id = course_id
+              earned_at: new Date().toISOString(),
+            },
+          ],
+          { onConflict: ["user_id", "achievement_id"] }
+        );
+
+      if (achievementError) throw achievementError;
+
       setToastType("success");
-      setToastMessage("✅ Результат успешно сохранён!");
+      setToastMessage("✅ Результат и достижение успешно сохранены!");
+    } catch (err) {
+      console.error("Ошибка сохранения:", err);
+      setToastType("error");
+      setToastMessage("❌ Не удалось сохранить результат или достижение");
     }
-  } catch (err) {
-    console.error("Ошибка при upsert:", err);
-    setToastType("error");
-    setToastMessage("⚠️ Ошибка сохранения результата");
-  }
-};
-
+  };
 
   const handleCloseResults = () => {
     setIsResultsMode(false);
