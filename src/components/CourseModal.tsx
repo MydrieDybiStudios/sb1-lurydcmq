@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, ArrowLeft, ArrowRight, Award } from 'lucide-react';
+import { X, ArrowLeft, ArrowRight } from 'lucide-react';
 import CourseContent from './CourseContent';
 import TestComponent from './TestComponent';
 import ResultsComponent from './ResultsComponent';
 import { Course } from '../types/course';
-import { supabase } from '../lib/supabaseClient'; // ✅ убедись, что этот импорт есть
+import { supabase } from '../lib/supabaseClient';
+import toast, { Toaster } from 'react-hot-toast'; // ✅ добавлен toast
 
 interface CourseModalProps {
   isOpen: boolean;
@@ -32,13 +33,17 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
           .order('completed_at', { ascending: false })
           .limit(1);
 
-        if (!error && data && data.length > 0) {
+        if (error) {
+          console.error('Ошибка при загрузке прогресса:', error);
+          toast.error('Не удалось загрузить прогресс 😢');
+        } else if (data && data.length > 0) {
           setTestResults({
             score: data[0].score,
             total: data[0].total,
             percentage: data[0].percentage,
           });
           setIsResultsMode(true);
+          toast.success('Ваши результаты загружены 🎓');
         }
       };
       fetchProgress();
@@ -65,6 +70,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     if (currentLessonIndex < course.lessons.length - 1) {
       setCurrentLessonIndex(prev => prev + 1);
     } else {
+      toast('🚀 Пора пройти финальный тест!', { icon: '🧠' });
       setIsTestMode(true);
     }
   };
@@ -90,9 +96,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 
     if (error) {
       console.error('Ошибка сохранения результата:', error);
-      alert('Не удалось сохранить результат 😢');
+      toast.error('❌ Не удалось сохранить результат');
     } else {
-      console.log('Результат сохранён!');
+      toast.success('✅ Результат успешно сохранён!');
     }
   };
 
@@ -103,7 +109,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 
   const handleDownloadCertificate = () => {
     setShowCertificate(true);
-    alert(`Сертификат для ${userName} по курсу "${course?.title}" успешно создан!`);
+    toast.success(`🎉 Сертификат для ${userName} по курсу "${course?.title}" создан!`);
   };
 
   const progressPercentage = course ? ((currentLessonIndex + 1) / course.lessons.length) * 100 : 0;
@@ -111,7 +117,12 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   if (!course) return null;
 
   return (
-    <div className={`modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${isOpen ? 'visible opacity-100' : 'invisible opacity-0'} transition`}>
+    <div
+      className={`modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 
+      ${isOpen ? 'visible opacity-100' : 'invisible opacity-0'} transition`}
+    >
+      <Toaster position="top-center" reverseOrder={false} /> {/* ✅ Контейнер для toast */}
+      
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 transform transition-all max-h-[90vh] overflow-y-auto">
         {isResultsMode ? (
           <ResultsComponent 
@@ -176,3 +187,4 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 };
 
 export default CourseModal;
+
