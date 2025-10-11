@@ -45,30 +45,29 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
-  // ✅ Загружаем прошлые результаты
-  useEffect(() => {
-    if (course && userName) {
-      const fetchProgress = async () => {
-        const { data, error } = await supabase
-          .from('progress')
-          .select('*')
-          .eq('user_name', userName)
-          .eq('course_id', course.id)
-          .order('completed_at', { ascending: false })
-          .limit(1);
+ useEffect(() => {
+  if (course && userName) {
+    const fetchProgress = async () => {
+      const { data, error } = await supabase
+        .from('progress')
+        .select('*')
+        .eq('user_name', userName)
+        .eq('course_id', course.id)
+        .order('updated_at', { ascending: false })
+        .limit(1);
 
-        if (!error && data && data.length > 0) {
-          setTestResults({
-            score: data[0].score,
-            total: data[0].total,
-            percentage: data[0].percentage,
-          });
-          setIsResultsMode(true);
-        }
-      };
-      fetchProgress();
-    }
-  }, [course, userName]);
+      if (!error && data && data.length > 0) {
+        setTestResults({
+          score: data[0].score,
+          total: data[0].total,
+          percentage: data[0].percentage,
+        });
+        setIsResultsMode(true);
+      }
+    };
+    fetchProgress();
+  }
+}, [course, userName]);
 
   // Сброс при смене курса
   useEffect(() => {
