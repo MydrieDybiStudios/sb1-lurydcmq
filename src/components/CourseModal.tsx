@@ -48,34 +48,41 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
-      if (!error && data?.user) setUserId(data.user.id);
+      if (error) console.error('Ошибка при получении пользователя:', error);
+      if (data?.user) setUserId(data.user.id);
     };
     getUser();
   }, []);
 
-  // ✅ Загружаем последний прогресс по курсу
+  // ✅ Загружаем прогресс пользователя
   useEffect(() => {
-    if (course && userId) {
-      const fetchProgress = async () => {
-        const { data, error } = await supabase
-          .from('progress')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('course_id', course.id)
-          .order('updated_at', { ascending: false })
-          .limit(1);
+    if (!course || !userId) return;
 
-        if (!error && data?.length > 0) {
-          setTestResults({
-            score: data[0].score,
-            total: data[0].total,
-            percentage: data[0].percentage,
-          });
-          setIsResultsMode(true);
-        }
-      };
-      fetchProgress();
-    }
+    const fetchProgress = async () => {
+      const { data, error } = await supabase
+        .from('progress')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('course_id', course.id)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        console.error('Ошибка загрузки прогресса:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setTestResults({
+          score: data[0].score,
+          total: data[0].total,
+          percentage: data[0].percentage,
+        });
+        setIsResultsMode(true);
+      }
+    };
+
+    fetchProgress();
   }, [course, userId]);
 
   // ✅ Обработка завершения теста
@@ -92,39 +99,45 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     setIsResultsMode(true);
 
     try {
-      // 1️⃣ Сохраняем прогресс
-      const { error: progressError } = await supabase.from('progress').upsert(
-        [
-          {
-            user_id: userId,
-            course_id: course.id,
-            score,
-            total,
-            percentage,
-            updated_at: new Date().toISOString(),
-          },
-        ],
-        { onConflict: ['user_id', 'course_id'] }
-      );
+      // ✅ 1. Сохраняем прогресс
+      const { error: progressError } = await supabase
+        .from('progress')
+        .upsert(
+          [
+            {
+              user_id: userId,
+              course_id: course.id,
+              score,
+              total,
+              percentage,
+              updated_at: new Date().toISOString(),
+            },
+          ],
+          { onConflict: ['user_id', 'course_id'] }
+        );
+
       if (progressError) throw progressError;
 
-      // 2️⃣ Выдаём достижение
-      const { error: achError } = await supabase.from('user_achievements').upsert(
-        [
-          {
-            user_id: userId,
-            achievement_id: course.id,
-            earned_at: new Date().toISOString(),
-          },
-        ],
-        { onConflict: ['user_id', 'achievement_id'] }
-      );
+      // ✅ 2. Выдаём достижение
+      const { error: achError } = await supabase
+        .from('user_achievements')
+        .upsert(
+          [
+            {
+              user_id: userId,
+              achievement_id: course.id,
+              earned_at: new Date().toISOString(),
+            },
+          ],
+          { onConflict: ['user_id', 'achievement_id'] }
+        );
+
       if (achError) throw achError;
 
       setToastType('success');
-      setToastMessage('✅ Прогресс и достижение сохранены!');
+      setToastMessage('✅ Прогресс и достижение успешно сохранены!');
     } catch (err) {
-      console.error(err);
+      console.error('Ошибка при сохранении:', err);
       setToastType('error');
       setToastMessage('❌ Ошибка при сохранении результата');
     }
@@ -132,8 +145,11 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 
   const handleNextLesson = () => {
     if (!course) return;
-    if (currentLessonIndex < course.lessons.length - 1) setCurrentLessonIndex((prev) => prev + 1);
-    else setIsTestMode(true);
+    if (currentLessonIndex < course.lessons.length - 1) {
+      setCurrentLessonIndex((prev) => prev + 1);
+    } else {
+      setIsTestMode(true);
+    }
   };
 
   const handlePrevLesson = () => {
@@ -146,9 +162,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 
   return (
     <>
-      {toastMessage && (
-        <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />
-      )}
+      {toastMessage && <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />}
 
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
