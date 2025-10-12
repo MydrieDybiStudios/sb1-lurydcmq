@@ -314,3 +314,44 @@ const Profile: React.FC = () => {
           <button
             onClick={handleBackToMenu}
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition"
+          >
+            Главное меню
+          </button>
+        </div>
+
+        {/* ---------- Достижения ---------- */}
+        <div className="w-full mt-8 bg-gray-50 rounded-2xl p-4 border border-yellow-200">
+          <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            🏆 Мои достижения
+          </h2>
+
+          {achievements.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center">Пока нет достижений 😅</p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {achievements.map((a, index) => (
+                <div
+                  key={a.id}
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                  className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform animate-fade-in-up"
+                >
+                  <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
+                    <div className="shine"></div>
+                  </div>
+                  <span className="text-3xl mb-2 drop-shadow">{a.icon}</span>
+                  <p className="text-sm font-bold text-gray-700 text-center">{a.title}</p>
+                  <p className="text-xs text-gray-500 text-center">{a.description}</p>
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    {new Date(a.earned_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;
