@@ -19,7 +19,7 @@ interface Achievement {
   earned_at: string;
 }
 
-// ---------- Кастомный Toast ----------
+// ---------- Toast ----------
 const Toast: React.FC<{
   message: string;
   type?: "success" | "error";
@@ -54,7 +54,7 @@ const Profile: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // ---------- Загрузка профиля + ачивок ----------
+  // ---------- Загрузка профиля + достижений ----------
   useEffect(() => {
     const fetchProfile = async () => {
       const {
@@ -90,7 +90,7 @@ const Profile: React.FC = () => {
           .select();
       } else setProfile(data as ProfileData);
 
-      // Ачивки
+      // Достижения
       const { data: ach, error: achError } = await supabase
         .from("achievements")
         .select("*")
@@ -191,7 +191,6 @@ const Profile: React.FC = () => {
       ? Array.from({ length: 8 }, (_, i) => i + 1)
       : Array.from({ length: 4 }, (_, i) => i + 8);
 
-  // ---------- JSX ----------
   return (
     <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-3xl shadow-2xl border border-gray-200 relative">
       {toastMessage && (
@@ -226,7 +225,7 @@ const Profile: React.FC = () => {
           {profile.first_name} {profile.last_name}
         </h1>
 
-        {/* ---------- Поля ввода ---------- */}
+        {/* ---------- Поля ---------- */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             type="text"
@@ -297,7 +296,7 @@ const Profile: React.FC = () => {
           </button>
         </div>
 
-        {/* ---------- Блок достижений ---------- */}
+        {/* ---------- Достижения ---------- */}
         <div className="w-full mt-8 bg-gray-50 rounded-2xl p-4 border border-yellow-200">
           <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
             🏆 Мои достижения
@@ -307,12 +306,18 @@ const Profile: React.FC = () => {
             <p className="text-gray-500 text-sm text-center">Пока нет достижений 😅</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {achievements.map((a) => (
+              {achievements.map((a, index) => (
                 <div
                   key={a.id}
-                  className="flex flex-col items-center bg-white p-3 rounded-xl shadow hover:shadow-md transition"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                  className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform animate-fade-in-up"
                 >
-                  <span className="text-3xl mb-2">{a.icon}</span>
+                  {/* Блик */}
+                  <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
+                    <div className="shine"></div>
+                  </div>
+
+                  <span className="text-3xl mb-2 drop-shadow">{a.icon}</span>
                   <p className="text-sm font-bold text-gray-700 text-center">{a.title}</p>
                   <p className="text-xs text-gray-500 text-center">{a.description}</p>
                   <p className="text-[10px] text-gray-400 mt-1">
