@@ -10,10 +10,10 @@ import CtaSection from "./components/CtaSection";
 import Footer from "./components/Footer";
 import AuthModals from "./components/AuthModals";
 import CourseModal from "./components/CourseModal";
-import Profile from "./pages/Profile"; // 👈 подключаем страницу профиля
+import Profile from "./pages/Profile";
 import coursesData from "./data/coursesData";
 
-import { Course } from "./types/course";
+import { Course } from "./types/course"; // ✅ использовать общий тип
 
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
@@ -29,35 +29,25 @@ function App() {
     }
   };
 
-  const handleLogin = () => {
-    setIsLoginModalOpen(true);
-  };
-
-  const handleRegister = () => {
-    setIsRegisterModalOpen(true);
-  };
-
   return (
     <Router>
       <Routes>
-        {/* Главная страница */}
         <Route
           path="/"
           element={
             <div className="min-h-screen flex flex-col">
-              <Header onLogin={handleLogin} onRegister={handleRegister} />
+              <Header onLogin={() => setIsLoginModalOpen(true)} onRegister={() => setIsRegisterModalOpen(true)} />
               <HeroSection />
               <CoursesSection onStartCourse={handleStartCourse} />
               <AboutSection />
               <AchievementsSection />
               <TestimonialsSection />
               <CtaSection
-                onLogin={handleLogin}
-                onRegister={handleRegister}
+                onLogin={() => setIsLoginModalOpen(true)}
+                onRegister={() => setIsRegisterModalOpen(true)}
               />
               <Footer />
 
-              {/* Модалки */}
               <AuthModals
                 isLoginOpen={isLoginModalOpen}
                 isRegisterOpen={isRegisterModalOpen}
@@ -76,13 +66,11 @@ function App() {
               <CourseModal
                 isOpen={isCourseModalOpen}
                 onClose={() => setIsCourseModalOpen(false)}
-                course={currentCourse}
+                course={currentCourse} // ✅ совпадает по типу
               />
             </div>
           }
         />
-
-        {/* Страница профиля */}
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
