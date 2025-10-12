@@ -425,7 +425,25 @@ const Profile: React.FC = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                   className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform animate-fade-in-up"
                 >
-                  <span className="text-3xl mb-2">{a.icon}</span>
+                  {
+  // Определяем иконку по названию из БД
+  const IconComponent = (LucideIcons as any)[a.icon] || LucideIcons.Award;
+  return (
+    <div
+      key={a.id}
+      style={{ animationDelay: `${index * 0.1}s` }}
+      className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform animate-fade-in-up"
+    >
+      <IconComponent className="w-10 h-10 text-yellow-500 mb-2" />
+      <p className="text-sm font-bold text-gray-700 text-center">{a.title}</p>
+      <p className="text-xs text-gray-500 text-center">{a.description}</p>
+      <p className="text-[10px] text-gray-400 mt-1">
+        {new Date(a.earned_at).toLocaleDateString()}
+      </p>
+    </div>
+  );
+}
+
                   <p className="text-sm font-bold text-gray-700 text-center">
                     {a.title}
                   </p>
