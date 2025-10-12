@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
-import { Star, Mountain, HardHat, Crown, Medal } from "lucide-react";
 
 // ---------- Типы ----------
 interface ProfileData {
@@ -49,21 +48,6 @@ const Toast: React.FC<{
       {message}
     </div>
   );
-};
-
-// ---------- Функция для выбора иконки ----------
-const getIcon = (icon: string) => {
-  const lower = icon?.toLowerCase() || "";
-
-  if (lower.includes("mountain") || lower.includes("geo") || lower.includes("🪨"))
-    return <Mountain className="w-6 h-6 text-yellow-600" />;
-  if (lower.includes("hard") || lower.includes("oil") || lower.includes("hat") || lower.includes("🛢"))
-    return <HardHat className="w-6 h-6 text-yellow-600" />;
-  if (lower.includes("crown") || lower.includes("👑"))
-    return <Crown className="w-6 h-6 text-yellow-600" />;
-  if (lower.includes("medal") || lower.includes("🎖"))
-    return <Medal className="w-6 h-6 text-yellow-600" />;
-  return <Star className="w-6 h-6 text-yellow-600" />;
 };
 
 // ---------- Компонент профиля ----------
@@ -115,7 +99,7 @@ const Profile: React.FC = () => {
           .select();
       } else setProfile(profileData as ProfileData);
 
-      // Прогресс
+      // Прогресс по курсам
       const { data: progressData } = await supabase
         .from("progress")
         .select("*")
@@ -208,7 +192,9 @@ const Profile: React.FC = () => {
         .upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
+      const { data } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(fileName);
       if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
 
       await supabase
@@ -328,11 +314,103 @@ const Profile: React.FC = () => {
           />
         </div>
 
-        {/* ---------- Прогресс ---------- */}
+        {/* ---------- Переключатель классов ---------- */}
+        <div className="flex items-center gap-4 w-full justify-between">
+          <span>1–8</span>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={profile.class_range === "8-11"}
+              onChange={() =>
+                setProfile((p) =>
+                  p && {
+                    ...p,
+                    class_range: p.class_range === "1-8" ? "8-11" : "1-8",
+                    class_num: p.class_range === "1-8" ? 8 : 1,
+                  }
+                )
+              }
+            />
+            <div className="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:bg-yellow-500"></div>
+            <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition peer-checked:translate-x-full"></div>
+          </label>
+          <span>8–11</span>
+        </div>
+
+        <select
+          value={profile.class_num}
+          onChange={(e) =>
+            setProfile((p) => p && { ...p, class_num: Number(e.target.value) })
+          }
+          className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        >
+          {classOptions.map((num) => (
+            <option key={num} value={num}>
+              {num} класс
+            </option>
+          ))}
+        </select>
+
+        {/* ---------- Кнопки ---------- */}
+        <div className="flex gap-4 w-full">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 rounded-lg transition disabled:opacity-50"
+          >
+            {saving ? "Сохранение..." : "Сохранить"}
+          </button>
+          <button
+            onClick={handleBackToMenu}
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition"
+          >
+            Главное меню
+          </button>
+        </div>
+
+        {/* ---------- Прогресс по курсам ---------- */}
+        <div className="w-full mt-8 bg-gray-50 rounded-2xl p-4 border border-yellow-200">
+          <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            📘 Прогресс по курсам
+          </h2>
+          {progress.length === 0 ? (
+            <p className="text-gray-500 text-sm text-center">
+              Пока нет данных о прохождении курсов 😅
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {progress.map((p) => (
+                <div
+                  key={p.course_id}
+                  className="flex justify-between bg-white border rounded-lg p-3 shadow-sm hover:shadow-md transition"
+                >
+                  <div>
+                    <p className="font-semibold">{p.course_id}</p>
+                    <p className="text-sm text-gray-500">
+                      Баллы: {p.score}/{p.total}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-yellow-600">
+                      {p.percentage}%
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {new Date(p.updated_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ---------- Достижения ---------- */}
         <div className="w-full mt-8 bg-gray-50 rounded-2xl p-4 border border-yellow-200">
           <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
             🏆 Мои достижения
           </h2>
+
           {achievements.length === 0 ? (
             <p className="text-gray-500 text-sm text-center">
               Пока нет достижений 😅
@@ -345,9 +423,7 @@ const Profile: React.FC = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                   className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform animate-fade-in-up"
                 >
-                  <div className="mb-2 w-12 h-12 flex items-center justify-center rounded-full bg-yellow-100">
-                    {getIcon(a.icon)}
-                  </div>
+                  <span className="text-3xl mb-2">{a.icon}</span>
                   <p className="text-sm font-bold text-gray-700 text-center">
                     {a.title}
                   </p>
