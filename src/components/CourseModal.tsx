@@ -6,7 +6,6 @@ import ResultsComponent from './ResultsComponent';
 import { Course } from '../types/course';
 import { supabase } from '../lib/supabaseClient';
 
-// ✅ Toast уведомления
 const Toast: React.FC<{
   message: string;
   type?: 'success' | 'error';
@@ -44,7 +43,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [userId, setUserId] = useState<string | null>(null);
 
-  // ✅ Получаем текущего пользователя
+  // Получаем пользователя
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -54,7 +53,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     getUser();
   }, []);
 
-  // ✅ Загружаем прогресс пользователя
+  // Загружаем прогресс
   useEffect(() => {
     if (!course || !userId) return;
 
@@ -63,7 +62,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
         .from('progress')
         .select('*')
         .eq('user_id', userId)
-        .eq('course_id', Number(course.id))
+        .eq('course_id', course.id)
         .order('updated_at', { ascending: false })
         .limit(1);
 
@@ -85,7 +84,6 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     fetchProgress();
   }, [course, userId]);
 
-  // ✅ Обработка завершения теста
   const handleTestSubmit = async (score: number, total: number) => {
     if (!course || !userId) {
       setToastType('error');
@@ -98,7 +96,6 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     setIsTestMode(false);
     setIsResultsMode(true);
 
-    // ✅ Получаем имя пользователя
     const { data: userData } = await supabase.auth.getUser();
     const userName =
       userData?.user?.user_metadata?.full_name ||
@@ -107,47 +104,36 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 
     const payload = {
       user_id: userId,
-      user_name: userName, // 🟢 добавлено поле для исправления ошибки
-      course_id: Number(course.id),
+      user_name: userName,
+      course_id: course.id,
       score,
       total,
       percentage,
       updated_at: new Date().toISOString(),
     };
 
-    console.log('📤 Отправляем в Supabase (progress):', payload);
-
     try {
-      // ✅ Сохраняем прогресс
       const { error: progressError } = await supabase
         .from('progress')
-        .upsert([payload], { onConflict: ['user_id', 'course_id'] });
+        .upsert([payload], { onConflict: 'user_id,course_id' });
 
-      if (progressError) {
-        console.error('❌ Ошибка Supabase (progress):', progressError.message || progressError);
-        throw new Error(progressError.message);
-      }
+      if (progressError) throw progressError;
 
-      // ✅ Добавляем достижение
+      // 🟡 achievement_id теперь строка: "course1", "course2" и т.п.
       const achievementPayload = {
         user_id: userId,
-        achievement_id: Number(course.id),
+        achievement_id: `course${course.id}`,
         earned_at: new Date().toISOString(),
       };
 
-      console.log('📤 Отправляем в Supabase (achievement):', achievementPayload);
-
       const { error: achError } = await supabase
         .from('user_achievements')
-        .upsert([achievementPayload], { onConflict: ['user_id', 'achievement_id'] });
+        .upsert([achievementPayload], { onConflict: 'user_id,achievement_id' });
 
-      if (achError) {
-        console.error('❌ Ошибка Supabase (achievement):', achError.message || achError);
-        throw new Error(achError.message);
-      }
+      if (achError) throw achError;
 
       setToastType('success');
-      setToastMessage('✅ Прогресс и достижение успешно сохранены!');
+      setToastMessage('✅ Прогресс и достижение сохранены!');
     } catch (err: any) {
       console.error('Ошибка при сохранении:', err.message || err);
       setToastType('error');
@@ -155,22 +141,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     }
   };
 
-  const handleNextLesson = () => {
-    if (!course) return;
-    if (currentLessonIndex < course.lessons.length - 1) {
-      setCurrentLessonIndex((prev) => prev + 1);
-    } else {
-      setIsTestMode(true);
-    }
-  };
-
-  const handlePrevLesson = () => {
-    if (currentLessonIndex > 0) setCurrentLessonIndex((prev) => prev - 1);
-  };
-
-  const progressPercentage = course ? ((currentLessonIndex + 1) / course.lessons.length) * 100 : 0;
-
   if (!course) return null;
+  const lessons = course.lessons || [];
+  const progressPercentage = lessons.length ? ((currentLessonIndex + 1) / lessons.length) * 100 : 0;
 
   return (
     <>
@@ -179,9 +152,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
       )}
 
       <div
-        className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
+        className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition ${
           isOpen ? 'visible opacity-100' : 'invisible opacity-0'
-        } transition`}
+        }`}
       >
         <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 transform transition-all max-h-[90vh] overflow-y-auto">
           {isResultsMode ? (
@@ -203,43 +176,46 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
                 </button>
               </div>
 
-              {/* ✅ Прогрессбар */}
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
                 <div
                   className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${isTestMode ? 100 : progressPercentage}%` }}
-                ></div>
+                />
               </div>
 
               {isTestMode ? (
                 <TestComponent test={course.test} onSubmit={handleTestSubmit} />
               ) : (
-                <CourseContent lesson={course.lessons[currentLessonIndex]} />
+                <CourseContent lesson={lessons[currentLessonIndex]} />
               )}
 
-              <div className="mt-6 flex justify-between items-center">
-                {!isTestMode && (
+              {!isTestMode && (
+                <div className="mt-6 flex justify-between items-center">
                   <button
                     className={`flex items-center space-x-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition ${
                       currentLessonIndex === 0 ? 'invisible' : 'visible'
                     }`}
-                    onClick={handlePrevLesson}
+                    onClick={() => setCurrentLessonIndex((i) => i - 1)}
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Назад</span>
                   </button>
-                )}
 
-                {!isTestMode && (
                   <button
                     className="flex items-center space-x-1 ml-auto bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
-                    onClick={handleNextLesson}
+                    onClick={() => {
+                      if (currentLessonIndex < lessons.length - 1) {
+                        setCurrentLessonIndex((i) => i + 1);
+                      } else {
+                        setIsTestMode(true);
+                      }
+                    }}
                   >
-                    <span>{currentLessonIndex === course.lessons.length - 1 ? 'Начать тест' : 'Далее'}</span>
+                    <span>{currentLessonIndex === lessons.length - 1 ? 'Начать тест' : 'Далее'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           )}
         </div>
