@@ -44,7 +44,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [userId, setUserId] = useState<string | null>(null);
 
-  // ✅ Получаем текущего пользователя Supabase
+  // ✅ Получаем текущего пользователя
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -53,7 +53,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     getUser();
   }, []);
 
-  // ✅ Загружаем прогресс пользователя
+  // ✅ Загружаем последний прогресс по курсу
   useEffect(() => {
     if (course && userId) {
       const fetchProgress = async () => {
@@ -78,11 +78,11 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     }
   }, [course, userId]);
 
-  // ✅ Сохраняем результат и достижение
+  // ✅ Обработка завершения теста
   const handleTestSubmit = async (score: number, total: number) => {
     if (!course || !userId) {
       setToastType('error');
-      setToastMessage('❌ Пользователь не авторизован');
+      setToastMessage('❌ Войдите в аккаунт, чтобы сохранить результат');
       return;
     }
 
@@ -106,7 +106,6 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
         ],
         { onConflict: ['user_id', 'course_id'] }
       );
-
       if (progressError) throw progressError;
 
       // 2️⃣ Выдаём достижение
@@ -120,11 +119,10 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
         ],
         { onConflict: ['user_id', 'achievement_id'] }
       );
-
       if (achError) throw achError;
 
       setToastType('success');
-      setToastMessage('✅ Результат и достижение сохранены!');
+      setToastMessage('✅ Прогресс и достижение сохранены!');
     } catch (err) {
       console.error(err);
       setToastType('error');
@@ -177,6 +175,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
                 </button>
               </div>
 
+              {/* ✅ Прогрессбар */}
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
                 <div
                   className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
