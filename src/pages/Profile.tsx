@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import * as LucideIcons from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 
@@ -63,7 +64,7 @@ const Profile: React.FC = () => {
 
   const navigate = useNavigate();
 
-  // ---------- Загрузка данных ----------
+  // ---------- Загрузка профиля, достижений и прогресса ----------
   useEffect(() => {
     const fetchProfileData = async () => {
       const {
@@ -74,7 +75,7 @@ const Profile: React.FC = () => {
         return;
       }
 
-      // --- Профиль ---
+      // Профиль
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -85,20 +86,21 @@ const Profile: React.FC = () => {
         setToastType("error");
         setToastMessage("Ошибка загрузки профиля");
       } else if (!profileData) {
-        await supabase.from("profiles").upsert({
-          id: user.id,
-          first_name: "",
-          last_name: "",
-          class_num: 1,
-          class_range: "1-8",
-          avatar_url: null,
-          updated_at: new Date().toISOString(),
-        });
-      } else {
-        setProfile(profileData as ProfileData);
-      }
+        await supabase
+          .from("profiles")
+          .upsert({
+            id: user.id,
+            first_name: "",
+            last_name: "",
+            class_num: 1,
+            class_range: "1-8",
+            avatar_url: null,
+            updated_at: new Date().toISOString(),
+          })
+          .select();
+      } else setProfile(profileData as ProfileData);
 
-      // --- Прогресс ---
+      // Прогресс по курсам
       const { data: progressData } = await supabase
         .from("progress")
         .select("*")
@@ -106,17 +108,17 @@ const Profile: React.FC = () => {
         .order("updated_at", { ascending: false });
       if (progressData) setProgress(progressData);
 
-      // --- Достижения ---
+      // Достижения
       const { data: userAchievements, error: achError } = await supabase
         .from("user_achievements")
-        .select("*, achievements(id, title, description, icon)")
+        .select("*, achievements(title, description, icon)")
         .eq("user_id", user.id)
         .order("earned_at", { ascending: false });
 
       if (!achError && userAchievements) {
         setAchievements(
           userAchievements.map((a: any) => ({
-            id: a.achievements.id,
+            id: a.achievement_id,
             title: a.achievements.title,
             description: a.achievements.description,
             icon: a.achievements.icon,
@@ -180,30 +182,34 @@ const Profile: React.FC = () => {
     setAvatarLoading(true);
 
     try {
+      if (!file.type.startsWith("image/"))
+        throw new Error("Можно загружать только изображения");
+
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
-      if (!data?.publicUrl) throw new Error("Не удалось получить URL");
+      if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
 
       await supabase
         .from("profiles")
-        .update({ avatar_url: data.publicUrl })
-        .eq("id", user.id);
-
+        .upsert({ id: user.id, avatar_url: data.publicUrl }, { onConflict: "id" });
       setProfile((prev) =>
         prev ? { ...prev, avatar_url: data.publicUrl } : prev
       );
 
       setToastType("success");
-      setToastMessage("Аватар обновлён!");
+      setToastMessage("Аватар успешно обновлён");
     } catch (err: any) {
       setToastType("error");
-      setToastMessage("Ошибка загрузки: " + err.message);
+      setToastMessage(
+        "Ошибка загрузки аватара: " + (err.message || "неизвестная ошибка")
+      );
     } finally {
       setAvatarLoading(false);
     }
@@ -233,12 +239,28 @@ const Profile: React.FC = () => {
         {/* ---------- Аватар ---------- */}
         <div className="relative group">
           {avatarLoading ? (
-            <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse" />
+            <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
+              <svg
+                className="w-6 h-6 text-gray-400 animate-spin"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  strokeWidth="4"
+                  strokeDasharray="31.4"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
           ) : (
             <img
               src={profile.avatar_url || "https://via.placeholder.com/100"}
               alt="Avatar"
-              className="w-28 h-28 rounded-full object-cover shadow-md border-4 border-yellow-400"
+              className="w-28 h-28 rounded-full object-cover shadow-md border-4 border-yellow-400 group-hover:scale-105 transition-transform duration-300"
             />
           )}
           <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition transform hover:scale-110">
@@ -278,7 +300,7 @@ const Profile: React.FC = () => {
             onChange={(e) =>
               setProfile((p) => p && { ...p, first_name: e.target.value })
             }
-            className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-yellow-500"
+            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
           <input
             type="text"
@@ -287,47 +309,9 @@ const Profile: React.FC = () => {
             onChange={(e) =>
               setProfile((p) => p && { ...p, last_name: e.target.value })
             }
-            className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-yellow-500"
+            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
         </div>
-
-        {/* ---------- Класс ---------- */}
-        <div className="flex items-center gap-4 w-full justify-between">
-          <span>1–8</span>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={profile.class_range === "8-11"}
-              onChange={() =>
-                setProfile((p) =>
-                  p && {
-                    ...p,
-                    class_range: p.class_range === "1-8" ? "8-11" : "1-8",
-                    class_num: p.class_range === "1-8" ? 8 : 1,
-                  }
-                )
-              }
-            />
-            <div className="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:bg-yellow-500"></div>
-            <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition peer-checked:translate-x-full"></div>
-          </label>
-          <span>8–11</span>
-        </div>
-
-        <select
-          value={profile.class_num}
-          onChange={(e) =>
-            setProfile((p) => p && { ...p, class_num: Number(e.target.value) })
-          }
-          className="w-full border p-2 rounded-lg focus:ring-2 focus:ring-yellow-500"
-        >
-          {classOptions.map((num) => (
-            <option key={num} value={num}>
-              {num} класс
-            </option>
-          ))}
-        </select>
 
         {/* ---------- Кнопки ---------- */}
         <div className="flex gap-4 w-full">
@@ -348,10 +332,12 @@ const Profile: React.FC = () => {
 
         {/* ---------- Прогресс ---------- */}
         <div className="w-full mt-8 bg-gray-50 rounded-2xl p-4 border border-yellow-200">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">📘 Прогресс по курсам</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            📘 Прогресс по курсам
+          </h2>
           {progress.length === 0 ? (
             <p className="text-gray-500 text-sm text-center">
-              Пока нет данных о прохождении курсов 😅
+              Пока нет данных 😅
             </p>
           ) : (
             <div className="space-y-3">
@@ -367,7 +353,9 @@ const Profile: React.FC = () => {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-yellow-600">{p.percentage}%</p>
+                    <p className="font-bold text-yellow-600">
+                      {p.percentage}%
+                    </p>
                     <p className="text-xs text-gray-400">
                       {new Date(p.updated_at).toLocaleDateString()}
                     </p>
@@ -380,28 +368,38 @@ const Profile: React.FC = () => {
 
         {/* ---------- Достижения ---------- */}
         <div className="w-full mt-8 bg-gray-50 rounded-2xl p-4 border border-yellow-200">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3">🏆 Мои достижения</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
+            🏆 Мои достижения
+          </h2>
+
           {achievements.length === 0 ? (
             <p className="text-gray-500 text-sm text-center">
               Пока нет достижений 😅
             </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {achievements.map((a) => (
-                <div
-                  key={a.id}
-                  className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform"
-                >
-                  <span className="text-3xl mb-2">{a.icon}</span>
-                  <p className="text-sm font-bold text-gray-700 text-center">
-                    {a.title}
-                  </p>
-                  <p className="text-xs text-gray-500 text-center">{a.description}</p>
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    {new Date(a.earned_at).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
+              {achievements.map((a, index) => {
+                const IconComponent =
+                  (LucideIcons as any)[a.icon] || LucideIcons.Award;
+                return (
+                  <div
+                    key={a.id}
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform animate-fade-in-up"
+                  >
+                    <IconComponent className="w-10 h-10 text-yellow-500 mb-2" />
+                    <p className="text-sm font-bold text-gray-700 text-center">
+                      {a.title}
+                    </p>
+                    <p className="text-xs text-gray-500 text-center">
+                      {a.description}
+                    </p>
+                    <p className="text-[10px] text-gray-400 mt-1">
+                      {new Date(a.earned_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
