@@ -10,10 +10,10 @@ import CtaSection from "./components/CtaSection";
 import Footer from "./components/Footer";
 import AuthModals from "./components/AuthModals";
 import CourseModal from "./components/CourseModal";
-import Profile from "./pages/Profile";
+import Profile from "./pages/Profile"; // 👈 подключаем страницу профиля
 import coursesData from "./data/coursesData";
 
-import { Course } from "./types/course"; // ✅ использовать общий тип
+import { Course } from "./types/course";
 
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
@@ -29,25 +29,35 @@ function App() {
     }
   };
 
+  const handleLogin = () => {
+    setIsLoginModalOpen(true);
+  };
+
+  const handleRegister = () => {
+    setIsRegisterModalOpen(true);
+  };
+
   return (
     <Router>
       <Routes>
+        {/* Главная страница */}
         <Route
           path="/"
           element={
             <div className="min-h-screen flex flex-col">
-              <Header onLogin={() => setIsLoginModalOpen(true)} onRegister={() => setIsRegisterModalOpen(true)} />
+              <Header onLogin={handleLogin} onRegister={handleRegister} />
               <HeroSection />
               <CoursesSection onStartCourse={handleStartCourse} />
               <AboutSection />
               <AchievementsSection />
               <TestimonialsSection />
               <CtaSection
-                onLogin={() => setIsLoginModalOpen(true)}
-                onRegister={() => setIsRegisterModalOpen(true)}
+                onLogin={handleLogin}
+                onRegister={handleRegister}
               />
               <Footer />
 
+              {/* Модалки */}
               <AuthModals
                 isLoginOpen={isLoginModalOpen}
                 isRegisterOpen={isRegisterModalOpen}
@@ -66,11 +76,13 @@ function App() {
               <CourseModal
                 isOpen={isCourseModalOpen}
                 onClose={() => setIsCourseModalOpen(false)}
-                course={currentCourse} // ✅ совпадает по типу
+                course={currentCourse}
               />
             </div>
           }
         />
+
+        {/* Страница профиля */}
         <Route path="/profile" element={<Profile />} />
       </Routes>
     </Router>
