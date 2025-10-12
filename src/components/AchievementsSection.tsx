@@ -3,11 +3,11 @@ import { Star, Mountain, HardHat, Crown, Medal } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 const iconsMap: Record<string, any> = {
-  Star,
-  Mountain,
-  HardHat,
-  Crown,
-  Medal,
+  star: Star,
+  mountain: Mountain,
+  "hard-hat": HardHat,
+  crown: Crown,
+  medal: Medal,
 };
 
 interface Achievement {
@@ -15,6 +15,7 @@ interface Achievement {
   title: string;
   description: string;
   icon: string;
+  course_key: string | null;
 }
 
 const AchievementsSection: React.FC = () => {
@@ -23,30 +24,30 @@ const AchievementsSection: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Авторизация
+  // Получаем пользователя
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
       if (data?.user) setUserId(data.user.id);
-      else setLoading(false);
+      setLoading(false);
     };
     getUser();
   }, []);
 
-  // Загрузка достижений
+  // Загружаем список достижений
   useEffect(() => {
     const fetchAchievements = async () => {
       const { data, error } = await supabase
         .from("achievements")
         .select("*")
-        .order("order_index", { ascending: true });
+        .order("id", { ascending: true });
 
       if (!error && data) setAchievements(data);
     };
     fetchAchievements();
   }, []);
 
-  // Загрузка полученных
+  // Загружаем уже полученные пользователем достижения
   useEffect(() => {
     const fetchEarned = async () => {
       if (!userId) return;
@@ -55,8 +56,9 @@ const AchievementsSection: React.FC = () => {
         .select("achievement_id")
         .eq("user_id", userId);
 
-      if (!error && data) setEarned(data.map((a) => Number(a.achievement_id)));
-      setLoading(false);
+      if (!error && data) {
+        setEarned(data.map((a) => a.achievement_id));
+      }
     };
     fetchEarned();
   }, [userId]);
