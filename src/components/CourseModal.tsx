@@ -43,7 +43,6 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Получаем пользователя
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -53,7 +52,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     getUser();
   }, []);
 
-  // Загружаем прогресс
+  // 🟡 Загружаем предыдущие результаты, но не переводим сразу в resultsMode
   useEffect(() => {
     if (!course || !userId) return;
 
@@ -62,12 +61,12 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
         .from('progress')
         .select('*')
         .eq('user_id', userId)
-        .eq('course_id', course.id)
+        .eq('course_id', Number(course.id))
         .order('updated_at', { ascending: false })
         .limit(1);
 
       if (error) {
-        console.error('Ошибка загрузки прогресса:', error.message || error);
+        console.error('Ошибка загрузки прогресса:', error);
         return;
       }
 
@@ -77,7 +76,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
           total: data[0].total,
           percentage: data[0].percentage,
         });
-        setIsResultsMode(true);
+        // ❌ Убираем setIsResultsMode(true);
+      } else {
+        setTestResults(null);
       }
     };
 
@@ -105,7 +106,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     const payload = {
       user_id: userId,
       user_name: userName,
-      course_id: course.id,
+      course_id: Number(course.id),
       score,
       total,
       percentage,
@@ -113,37 +114,51 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     };
 
     try {
-      const { error: progressError } = await supabase
-        .from('progress')
-        .upsert([payload], { onConflict: 'user_id,course_id' });
+      await supabase.from('progress').upsert([payload], { onConflict: ['user_id', 'course_id'] });
 
-      if (progressError) throw progressError;
-
-      // 🟡 achievement_id теперь строка: "course1", "course2" и т.п.
       const achievementPayload = {
         user_id: userId,
-        achievement_id: `course${course.id}`,
+        achievement_id: String(course.id),
         earned_at: new Date().toISOString(),
       };
 
-      const { error: achError } = await supabase
+      await supabase
         .from('user_achievements')
-        .upsert([achievementPayload], { onConflict: 'user_id,achievement_id' });
-
-      if (achError) throw achError;
+        .upsert([achievementPayload], { onConflict: ['user_id', 'achievement_id'] });
 
       setToastType('success');
       setToastMessage('✅ Прогресс и достижение сохранены!');
     } catch (err: any) {
-      console.error('Ошибка при сохранении:', err.message || err);
+      console.error('Ошибка при сохранении:', err);
       setToastType('error');
       setToastMessage('❌ Ошибка при сохранении результата');
     }
   };
 
+  const handleRestart = () => {
+    // 🟡 Сброс курса, чтобы можно было пройти заново
+    setCurrentLessonIndex(0);
+    setIsTestMode(false);
+    setIsResultsMode(false);
+    setToastMessage(null);
+  };
+
+  const handleNextLesson = () => {
+    if (!course) return;
+    if (currentLessonIndex < course.lessons.length - 1) {
+      setCurrentLessonIndex((prev) => prev + 1);
+    } else {
+      setIsTestMode(true);
+    }
+  };
+
+  const handlePrevLesson = () => {
+    if (currentLessonIndex > 0) setCurrentLessonIndex((prev) => prev - 1);
+  };
+
+  const progressPercentage = course ? ((currentLessonIndex + 1) / course.lessons.length) * 100 : 0;
+
   if (!course) return null;
-  const lessons = course.lessons || [];
-  const progressPercentage = lessons.length ? ((currentLessonIndex + 1) / lessons.length) * 100 : 0;
 
   return (
     <>
@@ -152,9 +167,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
       )}
 
       <div
-        className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition ${
+        className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
           isOpen ? 'visible opacity-100' : 'invisible opacity-0'
-        }`}
+        } transition`}
       >
         <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 transform transition-all max-h-[90vh] overflow-y-auto">
           {isResultsMode ? (
@@ -162,6 +177,8 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
               results={testResults}
               courseName={course.title}
               onClose={onClose}
+              // 🟡 Добавили кнопку «Пройти снова»
+              onRestart={handleRestart}
               onDownloadCertificate={() => {
                 setToastType('success');
                 setToastMessage('🎓 Сертификат создан!');
@@ -180,42 +197,38 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
                 <div
                   className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
                   style={{ width: `${isTestMode ? 100 : progressPercentage}%` }}
-                />
+                ></div>
               </div>
 
               {isTestMode ? (
                 <TestComponent test={course.test} onSubmit={handleTestSubmit} />
               ) : (
-                <CourseContent lesson={lessons[currentLessonIndex]} />
+                <CourseContent lesson={course.lessons[currentLessonIndex]} />
               )}
 
-              {!isTestMode && (
-                <div className="mt-6 flex justify-between items-center">
+              <div className="mt-6 flex justify-between items-center">
+                {!isTestMode && (
                   <button
                     className={`flex items-center space-x-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition ${
                       currentLessonIndex === 0 ? 'invisible' : 'visible'
                     }`}
-                    onClick={() => setCurrentLessonIndex((i) => i - 1)}
+                    onClick={handlePrevLesson}
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Назад</span>
                   </button>
+                )}
 
+                {!isTestMode && (
                   <button
                     className="flex items-center space-x-1 ml-auto bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
-                    onClick={() => {
-                      if (currentLessonIndex < lessons.length - 1) {
-                        setCurrentLessonIndex((i) => i + 1);
-                      } else {
-                        setIsTestMode(true);
-                      }
-                    }}
+                    onClick={handleNextLesson}
                   >
-                    <span>{currentLessonIndex === lessons.length - 1 ? 'Начать тест' : 'Далее'}</span>
+                    <span>{currentLessonIndex === course.lessons.length - 1 ? 'Начать тест' : 'Далее'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>
