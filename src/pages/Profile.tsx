@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import * as LucideIcons from "lucide-react";
+
 
 // ---------- Типы ----------
 interface ProfileData {
