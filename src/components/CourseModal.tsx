@@ -44,7 +44,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [userId, setUserId] = useState<string | null>(null);
 
-  // ✅ Получаем текущего пользователя
+  // ✅ Получаем текущего пользователя (auth)
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -63,7 +63,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
         .from('progress')
         .select('*')
         .eq('user_id', userId)
-        .eq('course_id', course.id)
+        .eq('course_id', Number(course.id))
         .order('updated_at', { ascending: false })
         .limit(1);
 
@@ -106,7 +106,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
           [
             {
               user_id: userId,
-              course_id: course.id,
+              course_id: Number(course.id), // <=== важно! число
               score,
               total,
               percentage,
@@ -118,14 +118,14 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 
       if (progressError) throw progressError;
 
-      // ✅ 2. Выдаём достижение
+      // ✅ 2. Автоматическая выдача достижения
       const { error: achError } = await supabase
         .from('user_achievements')
         .upsert(
           [
             {
               user_id: userId,
-              achievement_id: course.id,
+              achievement_id: Number(course.id), // <=== число
               earned_at: new Date().toISOString(),
             },
           ],
