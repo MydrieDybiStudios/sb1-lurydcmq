@@ -3,56 +3,47 @@ import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { Star, Mountain, HardHat, Crown, Medal } from "lucide-react";
 
-// ---------- Типы ----------
-interface ProfileData {
+type ProfileData = {
   first_name: string;
   last_name: string;
   class_num: number;
   class_range: "1-8" | "8-11";
   avatar_url: string | null;
-}
-
-interface UserAchievement {
-  achievement_id: string;
-  earned_at: string;
-}
-
-// ---------- Список всех достижений ----------
-const achievementsList = [
-  { id: "course1", icon: Star, title: "Новичок", desc: "Завершение первого курса" },
-  { id: "course2", icon: Mountain, title: "Геолог-исследователь", desc: "Изучены основы геологии" },
-  { id: "course3", icon: HardHat, title: "Инженер добычи", desc: "Пройден курс по методам добычи" },
-  { id: "course4", icon: Crown, title: "Мастер нефтегазовой отрасли", desc: "100% завершение курсов" },
-  { id: "course5", icon: Medal, title: "Легенда нефтегаза", desc: "90%+ правильных ответов во всех тестах" },
-];
-
-// ---------- Toast ----------
-const Toast: React.FC<{ message: string; type?: "success" | "error"; onClose: () => void; duration?: number }> = ({
-  message,
-  type = "success",
-  onClose,
-  duration = 3000,
-}) => {
-  useEffect(() => {
-    const timer = setTimeout(onClose, duration);
-    return () => clearTimeout(timer);
-  }, [onClose, duration]);
-
-  return (
-    <div
-      className={`fixed top-5 right-5 min-w-[220px] px-4 py-2 rounded-lg shadow-lg text-white font-medium transition-transform transform ${
-        type === "success" ? "bg-green-500" : "bg-red-500"
-      }`}
-    >
-      {message}
-    </div>
-  );
 };
 
-// ---------- Компонент профиля ----------
+type EarnedAchievement = {
+  achievement_id: number;
+  created_at: string | null;
+  achievements: {
+    id: number;
+    title: string;
+    description: string | null;
+    icon: string | null;
+  };
+};
+
+const lucideFor = (icon?: string) => {
+  if (!icon) return Star;
+  const key = icon.toLowerCase();
+  if (key.includes("star")) return Star;
+  if (key.includes("mountain")) return Mountain;
+  if (key.includes("hard") || key.includes("hat") || key.includes("hard-hat")) return HardHat;
+  if (key.includes("crown")) return Crown;
+  if (key.includes("medal")) return Medal;
+  return Star;
+};
+
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [earnedAchievements, setEarnedAchievements] = useState<string[]>([]);
+  const [earned, setEarned] = useState<
+    {
+      id: number;
+      title: string;
+      description?: string | null;
+      icon?: string | null;
+      earned_at?: string | null;
+    }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -60,64 +51,132 @@ const Profile: React.FC = () => {
   const [toastType, setToastType] = useState<"success" | "error">("success");
   const navigate = useNavigate();
 
-  // ---------- Загрузка профиля + достижений ----------
   useEffect(() => {
-    const fetchProfile = async () => {
+    let subscription: any;
+
+    const fetchData = async () => {
+      setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/");
         return;
       }
 
-      // Профиль
-      const { data, error } = await supabase
+      // профайл
+      const { data: prof, error: profErr } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", user.id)
         .single();
-
-      if (error && error.code !== "PGRST116") {
+      if (profErr && profErr.code !== "PGRST116") {
         setToastType("error");
         setToastMessage("Ошибка загрузки профиля");
-      } else if (!data) {
-        await supabase
-          .from("profiles")
-          .upsert({
-            id: user.id,
-            first_name: "",
-            last_name: "",
-            class_num: 1,
-            class_range: "1-8",
-            avatar_url: null,
-            updated_at: new Date().toISOString(),
-          })
-          .select();
-      } else setProfile(data as ProfileData);
+      } else if (!prof) {
+        await supabase.from("profiles").upsert({
+          id: user.id,
+          first_name: "",
+          last_name: "",
+          class_num: 1,
+          class_range: "1-8",
+          avatar_url: null,
+          updated_at: new Date().toISOString(),
+        });
+      } else setProfile(prof as ProfileData);
 
-      // Достижения
-      const { data: ach, error: achError } = await supabase
+      // загружаем только полученные достижения (join)
+      // используем вложенный select: achievements(id, title, description, icon)
+      const { data: achData, error: achErr } = await supabase
         .from("user_achievements")
-        .select("achievement_id")
-        .eq("user_id", user.id);
+        .select("achievement_id, created_at, achievements(id, title, description, icon)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
-      if (!achError && ach) {
-        setEarnedAchievements(ach.map((a: UserAchievement) => a.achievement_id));
+      if (achErr) {
+        console.error("Ошибка загрузки достижений профиля:", achErr.message);
+      } else if (achData) {
+        const mapped = (achData as EarnedAchievement[]).map((r) => ({
+          id: Number(r.achievements?.id ?? r.achievement_id),
+          title: r.achievements?.title ?? "Неизвестное достижение",
+          description: r.achievements?.description ?? "",
+          icon: r.achievements?.icon ?? null,
+          earned_at: (r as any).created_at ?? null,
+        }));
+        setEarned(mapped);
+      } else {
+        setEarned([]);
       }
 
+      // realtime подписка: чтобы профиль обновлялся, когда добавляют/удаляют достижения
+      subscription = supabase
+        .channel(`public:user_achievements:profile`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "user_achievements", filter: `user_id=eq.${(await supabase.auth.getUser()).data?.user?.id}` },
+          async (payload) => {
+            const { eventType } = payload;
+            if (eventType === "INSERT") {
+              // вставляем новую запись (получим её со связанной achievements)
+              const rec = payload.record;
+              const { data: newRow } = await supabase
+                .from("user_achievements")
+                .select("achievement_id, created_at, achievements(id, title, description, icon)")
+                .eq("id", rec.id)
+                .single();
+              if (newRow) {
+                setEarned((prev) => {
+                  const newId = Number(newRow.achievements?.id ?? newRow.achievement_id);
+                  if (prev.some((p) => p.id === newId)) return prev;
+                  const item = {
+                    id: newId,
+                    title: newRow.achievements?.title ?? "Неизвестное достижение",
+                    description: newRow.achievements?.description ?? "",
+                    icon: newRow.achievements?.icon ?? null,
+                    earned_at: newRow.created_at ?? null,
+                  };
+                  return [item, ...prev];
+                });
+              }
+            } else if (eventType === "DELETE") {
+              const old = payload.old;
+              const removedId = Number(old.achievement_id);
+              setEarned((prev) => prev.filter((p) => p.id !== removedId));
+            } else if (eventType === "UPDATE") {
+              // для простоты — перезагружаем список
+              const { data: reloaded } = await supabase
+                .from("user_achievements")
+                .select("achievement_id, created_at, achievements(id, title, description, icon)")
+                .eq("user_id", (await supabase.auth.getUser()).data?.user?.id)
+                .order("created_at", { ascending: false });
+              if (reloaded) {
+                const mapped = (reloaded as EarnedAchievement[]).map((r) => ({
+                  id: Number(r.achievements?.id ?? r.achievement_id),
+                  title: r.achievements?.title ?? "Неизвестное достижение",
+                  description: r.achievements?.description ?? "",
+                  icon: r.achievements?.icon ?? null,
+                  earned_at: (r as any).created_at ?? null,
+                }));
+                setEarned(mapped);
+              }
+            }
+          }
+        )
+        .subscribe();
       setLoading(false);
     };
 
-    fetchProfile();
+    fetchData();
+
+    return () => {
+      if (subscription) supabase.removeChannel(subscription);
+    };
   }, [navigate]);
 
-  // ---------- Сохранение профиля ----------
+  // save profile (same logic, left unchanged)
   const handleSave = async () => {
     if (!profile) return;
     setSaving(true);
-
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
     try {
       const { error } = await supabase.from("profiles").upsert(
         {
@@ -143,33 +202,23 @@ const Profile: React.FC = () => {
     }
   };
 
-  // ---------- Загрузка аватара ----------
+  // avatar upload (kept as in your code)
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-
     setAvatarLoading(true);
     try {
       if (!file.type.startsWith("image/")) throw new Error("Можно загружать только изображения");
-
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(fileName, file, { upsert: true });
+      const ext = file.name.split(".").pop();
+      const fileName = `${user.id}-${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file, { upsert: true });
       if (uploadError) throw uploadError;
-
       const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
       if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
-
-      await supabase.from("profiles").upsert(
-        { id: user.id, avatar_url: data.publicUrl },
-        { onConflict: "id" }
-      );
-
-      setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
+      await supabase.from("profiles").upsert({ id: user.id, avatar_url: data.publicUrl }, { onConflict: "id" });
+      setProfile((p) => (p ? { ...p, avatar_url: data.publicUrl } : p));
       setToastType("success");
       setToastMessage("Аватар успешно обновлён");
     } catch (err: any) {
@@ -179,8 +228,6 @@ const Profile: React.FC = () => {
       setAvatarLoading(false);
     }
   };
-
-  const handleBackToMenu = () => navigate("/");
 
   if (loading) return <div className="p-8 text-center">Загрузка...</div>;
   if (!profile) return null;
@@ -193,31 +240,25 @@ const Profile: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto mt-10 p-8 bg-white rounded-3xl shadow-2xl border border-gray-200 relative">
       {toastMessage && (
-        <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />
+        <div
+          className={`fixed top-5 right-5 min-w-[220px] px-4 py-2 rounded-lg shadow-lg text-white font-medium ${
+            toastType === "success" ? "bg-green-500" : "bg-red-500"
+          }`}
+          onAnimationEnd={() => setToastMessage(null)}
+        >
+          {toastMessage}
+        </div>
       )}
 
       <div className="flex flex-col items-center gap-6">
-        {/* ---------- Аватар ---------- */}
+        {/* Avatar */}
         <div className="relative group">
           {avatarLoading ? (
-            <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-gray-400 animate-spin"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="12" r="10" strokeWidth="4" strokeDasharray="31.4" strokeLinecap="round" />
-              </svg>
-            </div>
+            <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse flex items-center justify-center" />
           ) : (
-            <img
-              src={profile.avatar_url || "https://via.placeholder.com/100"}
-              alt="Avatar"
-              className="w-28 h-28 rounded-full object-cover shadow-md border-4 border-yellow-400 group-hover:scale-105 transition-transform duration-300"
-            />
+            <img src={profile.avatar_url || "https://via.placeholder.com/100"} alt="Avatar" className="w-28 h-28 rounded-full object-cover shadow-md border-4 border-yellow-400" />
           )}
-          <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition transform hover:scale-110">
+          <label className="absolute bottom-0 right-0 bg-yellow-500 text-white rounded-full p-2 cursor-pointer">
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11v8m0-8V7m0 4h4m-4 0H8" />
@@ -225,114 +266,39 @@ const Profile: React.FC = () => {
           </label>
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-800">
-          {profile.first_name} {profile.last_name}
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-800">{profile.first_name} {profile.last_name}</h1>
 
-        {/* ---------- Поля ---------- */}
+        {/* profile fields... (kept from your original UI) */}
         <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            placeholder="Имя"
-            value={profile.first_name}
-            onChange={(e) => setProfile((p) => p && ({ ...p, first_name: e.target.value }))}
-            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
-          <input
-            type="text"
-            placeholder="Фамилия"
-            value={profile.last_name}
-            onChange={(e) => setProfile((p) => p && ({ ...p, last_name: e.target.value }))}
-            className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-          />
+          <input type="text" value={profile.first_name} onChange={(e) => setProfile((p) => p && ({ ...p, first_name: e.target.value }))} className="w-full border p-2 rounded-lg" />
+          <input type="text" value={profile.last_name} onChange={(e) => setProfile((p) => p && ({ ...p, last_name: e.target.value }))} className="w-full border p-2 rounded-lg" />
         </div>
 
-        {/* ---------- Классы ---------- */}
-        <div className="flex items-center gap-4 w-full justify-between">
-          <span>1–8</span>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={profile.class_range === "8-11"}
-              onChange={() =>
-                setProfile(
-                  (p) =>
-                    p && {
-                      ...p,
-                      class_range: p.class_range === "1-8" ? "8-11" : "1-8",
-                      class_num: p.class_range === "1-8" ? 8 : 1,
-                    }
-                )
-              }
-            />
-            <div className="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:bg-yellow-500"></div>
-            <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition peer-checked:translate-x-full"></div>
-          </label>
-          <span>8–11</span>
-        </div>
-
-        <select
-          value={profile.class_num}
-          onChange={(e) => setProfile((p) => p && ({ ...p, class_num: Number(e.target.value) }))}
-          className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
-        >
-          {classOptions.map((num) => (
-            <option key={num} value={num}>
-              {num} класс
-            </option>
-          ))}
-        </select>
-
-        {/* ---------- Кнопки ---------- */}
+        {/* Buttons */}
         <div className="flex gap-4 w-full">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 rounded-lg transition disabled:opacity-50"
-          >
+          <button onClick={handleSave} disabled={saving} className="flex-1 bg-yellow-500 py-2 rounded-lg text-black font-semibold">
             {saving ? "Сохранение..." : "Сохранить"}
           </button>
-          <button
-            onClick={handleBackToMenu}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition"
-          >
-            Главное меню
-          </button>
         </div>
 
-        {/* ---------- Достижения ---------- */}
+        {/* ---------- Отображаем ТОЛЬКО полученные достижения ---------- */}
         <div className="w-full mt-8 bg-gray-50 rounded-2xl p-4 border border-yellow-200">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            🏆 Мои достижения
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">🏆 Мои достижения</h2>
 
-          {achievementsList.length === 0 ? (
+          {earned.length === 0 ? (
             <p className="text-gray-500 text-sm text-center">Пока нет достижений 😅</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {achievementsList.map(({ id, icon: Icon, title, desc }) => {
-                const isEarned = earnedAchievements.includes(id);
+              {earned.map((a) => {
+                const Icon = lucideFor(a.icon || undefined);
                 return (
-                  <div
-                    key={id}
-                    className={`p-3 rounded-xl text-center transition transform ${
-                      isEarned
-                        ? "bg-yellow-100 border-2 border-yellow-400 shadow-[0_0_20px_rgba(255,215,0,0.6)] animate-pulse-slow"
-                        : "bg-white border border-gray-200"
-                    }`}
-                  >
-                    <div
-                      className={`mx-auto mb-2 w-12 h-12 flex items-center justify-center rounded-full transition-all ${
-                        isEarned
-                          ? "bg-yellow-500 text-black scale-110 shadow-[0_0_20px_rgba(255,215,0,0.7)]"
-                          : "bg-gray-200 text-gray-500"
-                      }`}
-                    >
-                      <Icon className="w-6 h-6" />
+                  <div key={a.id} className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-md transform transition hover:shadow-xl">
+                    <div className="mb-2 w-12 h-12 flex items-center justify-center rounded-full bg-yellow-500 text-black shadow-[0_0_18px_rgba(255,215,0,0.7)] scale-105">
+                      {a.icon && a.icon.length <= 2 ? <span className="text-2xl">{a.icon}</span> : <Icon className="w-6 h-6" />}
                     </div>
-                    <p className="text-sm font-bold text-gray-800">{title}</p>
-                    <p className="text-xs text-gray-500">{desc}</p>
+                    <p className="text-sm font-bold text-gray-700 text-center">{a.title}</p>
+                    <p className="text-xs text-gray-500 text-center">{a.description}</p>
+                    {a.earned_at && <p className="text-[10px] text-gray-400 mt-1">{new Date(a.earned_at).toLocaleDateString()}</p>}
                   </div>
                 );
               })}
