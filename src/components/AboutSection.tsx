@@ -9,7 +9,6 @@ const AboutSection: React.FC = () => {
         
         <div className="flex flex-col md:flex-row items-center mb-12">
           <div className="md:w-1/2 mb-8 md:mb-0">
-            
                  alt="Обучение" 
                  className="rounded-lg shadow-lg w-full transform hover:scale-105 transition duration-500" />
           </div>
