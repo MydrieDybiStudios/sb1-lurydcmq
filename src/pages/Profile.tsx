@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { Star, Mountain, HardHat, Crown, Medal } from "lucide-react";
 
 // ---------- Типы ----------
 interface ProfileData {
@@ -18,11 +19,11 @@ interface UserAchievement {
 
 // ---------- Список всех достижений ----------
 const achievementsList = [
-  { id: 'course1', title: 'Новичок', description: 'Завершение первого курса', icon: '⭐' },
-  { id: 'course2', title: 'Геолог-исследователь', description: 'Изучены основы геологии', icon: '⛰️' },
-  { id: 'course3', title: 'Инженер добычи', description: 'Пройден курс по методам добычи', icon: '⛏️' },
-  { id: 'course4', title: 'Мастер нефтегазовой отрасли', description: '100% завершение курсов', icon: '👑' },
-  { id: 'course5', title: 'Легенда нефтегаза', description: '90%+ правильных ответов во всех тестах', icon: '🏅' },
+  { id: "course1", icon: Star, title: "Новичок", desc: "Завершение первого курса" },
+  { id: "course2", icon: Mountain, title: "Геолог-исследователь", desc: "Изучены основы геологии" },
+  { id: "course3", icon: HardHat, title: "Инженер добычи", desc: "Пройден курс по методам добычи" },
+  { id: "course4", icon: Crown, title: "Мастер нефтегазовой отрасли", desc: "100% завершение курсов" },
+  { id: "course5", icon: Medal, title: "Легенда нефтегаза", desc: "90%+ правильных ответов во всех тестах" },
 ];
 
 // ---------- Toast ----------
@@ -51,7 +52,7 @@ const Toast: React.FC<{ message: string; type?: "success" | "error"; onClose: ()
 // ---------- Компонент профиля ----------
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [achievements, setAchievements] = useState<any[]>([]);
+  const [earnedAchievements, setEarnedAchievements] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
@@ -93,25 +94,14 @@ const Profile: React.FC = () => {
           .select();
       } else setProfile(data as ProfileData);
 
-      // Достижения пользователя
+      // Достижения
       const { data: ach, error: achError } = await supabase
         .from("user_achievements")
-        .select("achievement_id, earned_at")
-        .eq("user_id", user.id)
-        .order("earned_at", { ascending: false });
+        .select("achievement_id")
+        .eq("user_id", user.id);
 
       if (!achError && ach) {
-        const mapped = ach.map((a: UserAchievement) => {
-          const info = achievementsList.find((x) => x.id === a.achievement_id);
-          return {
-            id: a.achievement_id,
-            title: info?.title || "Неизвестное достижение",
-            description: info?.description || "",
-            icon: info?.icon || "🏅",
-            earned_at: a.earned_at,
-          };
-        });
-        setAchievements(mapped);
+        setEarnedAchievements(ach.map((a: UserAchievement) => a.achievement_id));
       }
 
       setLoading(false);
@@ -190,7 +180,6 @@ const Profile: React.FC = () => {
     }
   };
 
-  // ---------- Возврат в меню ----------
   const handleBackToMenu = () => navigate("/");
 
   if (loading) return <div className="p-8 text-center">Загрузка...</div>;
@@ -218,14 +207,7 @@ const Profile: React.FC = () => {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  strokeWidth="4"
-                  strokeDasharray="31.4"
-                  strokeLinecap="round"
-                />
+                <circle cx="12" cy="12" r="10" strokeWidth="4" strokeDasharray="31.4" strokeLinecap="round" />
               </svg>
             </div>
           ) : (
@@ -265,7 +247,7 @@ const Profile: React.FC = () => {
           />
         </div>
 
-        {/* ---------- Переключатель классов ---------- */}
+        {/* ---------- Классы ---------- */}
         <div className="flex items-center gap-4 w-full justify-between">
           <span>1–8</span>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -325,27 +307,35 @@ const Profile: React.FC = () => {
             🏆 Мои достижения
           </h2>
 
-          {achievements.length === 0 ? (
+          {achievementsList.length === 0 ? (
             <p className="text-gray-500 text-sm text-center">Пока нет достижений 😅</p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {achievements.map((a, index) => (
-                <div
-                  key={a.id}
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform animate-fade-in-up"
-                >
-                  <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-                    <div className="shine"></div>
+              {achievementsList.map(({ id, icon: Icon, title, desc }) => {
+                const isEarned = earnedAchievements.includes(id);
+                return (
+                  <div
+                    key={id}
+                    className={`p-3 rounded-xl text-center transition transform ${
+                      isEarned
+                        ? "bg-yellow-100 border-2 border-yellow-400 shadow-[0_0_20px_rgba(255,215,0,0.6)] animate-pulse-slow"
+                        : "bg-white border border-gray-200"
+                    }`}
+                  >
+                    <div
+                      className={`mx-auto mb-2 w-12 h-12 flex items-center justify-center rounded-full transition-all ${
+                        isEarned
+                          ? "bg-yellow-500 text-black scale-110 shadow-[0_0_20px_rgba(255,215,0,0.7)]"
+                          : "bg-gray-200 text-gray-500"
+                      }`}
+                    >
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-800">{title}</p>
+                    <p className="text-xs text-gray-500">{desc}</p>
                   </div>
-                  <span className="text-3xl mb-2 drop-shadow">{a.icon}</span>
-                  <p className="text-sm font-bold text-gray-700 text-center">{a.title}</p>
-                  <p className="text-xs text-gray-500 text-center">{a.description}</p>
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    {new Date(a.earned_at).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
