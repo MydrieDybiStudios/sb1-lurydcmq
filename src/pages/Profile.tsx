@@ -419,15 +419,10 @@ const Profile: React.FC = () => {
             </p>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {achievements.map((a, index) => (
-                <div
-                  key={a.id}
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform animate-fade-in-up"
-                >
-                  {
-  // Определяем иконку по названию из БД
-  const IconComponent = (LucideIcons as any)[a.icon] || LucideIcons.Award;
+            {achievements.map((a, index) => {
+  const IconComponent =
+    (LucideIcons as any)[a.icon] || LucideIcons.Award; // ← объявляем здесь
+
   return (
     <div
       key={a.id}
@@ -442,6 +437,8 @@ const Profile: React.FC = () => {
       </p>
     </div>
   );
+})}
+
 }
 
                   <p className="text-sm font-bold text-gray-700 text-center">
