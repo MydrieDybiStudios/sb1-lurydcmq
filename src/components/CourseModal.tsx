@@ -7,12 +7,12 @@ import { Course } from '../types/course';
 import { supabase } from '../lib/supabaseClient';
 
 // ✅ Toast уведомления
-const Toast: React.FC<{ message: string; type?: 'success' | 'error'; onClose: () => void; duration?: number }> = ({
-  message,
-  type = 'success',
-  onClose,
-  duration = 3000,
-}) => {
+const Toast: React.FC<{
+  message: string;
+  type?: 'success' | 'error';
+  onClose: () => void;
+  duration?: number;
+}> = ({ message, type = 'success', onClose, duration = 3000 }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);
@@ -44,7 +44,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [userId, setUserId] = useState<string | null>(null);
 
-  // ✅ Получаем текущего пользователя (auth)
+  // ✅ Получаем текущего пользователя
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
@@ -68,7 +68,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
         .limit(1);
 
       if (error) {
-        console.error('Ошибка загрузки прогресса:', error);
+        console.error('Ошибка загрузки прогресса:', error.message || error);
         return;
       }
 
@@ -98,46 +98,50 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     setIsTestMode(false);
     setIsResultsMode(true);
 
+    const payload = {
+      user_id: userId,
+      course_id: Number(course.id),
+      score,
+      total,
+      percentage,
+      updated_at: new Date().toISOString(),
+    };
+
+    console.log('📤 Отправляем в Supabase (progress):', payload);
+
     try {
-      // ✅ 1. Сохраняем прогресс
+      // ✅ Сохраняем прогресс
       const { error: progressError } = await supabase
         .from('progress')
-        .upsert(
-          [
-            {
-              user_id: userId,
-              course_id: Number(course.id), // <=== важно! число
-              score,
-              total,
-              percentage,
-              updated_at: new Date().toISOString(),
-            },
-          ],
-          { onConflict: ['user_id', 'course_id'] }
-        );
+        .upsert([payload], { onConflict: ['user_id', 'course_id'] });
 
-      if (progressError) throw progressError;
+      if (progressError) {
+        console.error('❌ Ошибка Supabase (progress):', progressError.message || progressError);
+        throw new Error(progressError.message);
+      }
 
-      // ✅ 2. Автоматическая выдача достижения
+      // ✅ Добавляем достижение
+      const achievementPayload = {
+        user_id: userId,
+        achievement_id: Number(course.id),
+        earned_at: new Date().toISOString(),
+      };
+
+      console.log('📤 Отправляем в Supabase (achievement):', achievementPayload);
+
       const { error: achError } = await supabase
         .from('user_achievements')
-        .upsert(
-          [
-            {
-              user_id: userId,
-              achievement_id: Number(course.id), // <=== число
-              earned_at: new Date().toISOString(),
-            },
-          ],
-          { onConflict: ['user_id', 'achievement_id'] }
-        );
+        .upsert([achievementPayload], { onConflict: ['user_id', 'achievement_id'] });
 
-      if (achError) throw achError;
+      if (achError) {
+        console.error('❌ Ошибка Supabase (achievement):', achError.message || achError);
+        throw new Error(achError.message);
+      }
 
       setToastType('success');
       setToastMessage('✅ Прогресс и достижение успешно сохранены!');
-    } catch (err) {
-      console.error('Ошибка при сохранении:', err);
+    } catch (err: any) {
+      console.error('Ошибка при сохранении:', err.message || err);
       setToastType('error');
       setToastMessage('❌ Ошибка при сохранении результата');
     }
@@ -162,7 +166,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
 
   return (
     <>
-      {toastMessage && <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />}
+      {toastMessage && (
+        <Toast message={toastMessage} type={toastType} onClose={() => setToastMessage(null)} />
+      )}
 
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
