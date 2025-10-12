@@ -9,7 +9,7 @@ const AboutSection: React.FC = () => {
         
         <div className="flex flex-col md:flex-row items-center mb-12">
           <div className="md:w-1/2 mb-8 md:mb-0">
-            <img src="https://images.unsplash.com/photo-1508503570184-d9c1e157d9a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80" 
+            
                  alt="Обучение" 
                  className="rounded-lg shadow-lg w-full transform hover:scale-105 transition duration-500" />
           </div>
