@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Star, Mountain, HardHat, Crown, Medal } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
-import '../index.css'; // ✅ убедись, что Tailwind подключён
+import '../index.css';
 
 const achievementsList = [
   { id: 'course1', icon: Star, title: 'Новичок', desc: 'Завершение первого курса' },
