@@ -92,10 +92,10 @@ const Profile: React.FC = () => {
 
       // Достижения
       const { data: ach, error: achError } = await supabase
-        .from("achievements")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("earned_at", { ascending: false });
+  .from("user_achievements")
+  .select("*")
+  .eq("user_id", user.id)
+  .order("earned_at", { ascending: false });
 
       if (!achError && ach) setAchievements(ach);
 
