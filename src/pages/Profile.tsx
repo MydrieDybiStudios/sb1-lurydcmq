@@ -312,6 +312,43 @@ const Profile: React.FC = () => {
             className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
           />
         </div>
+          {/* ---------- Переключатель классов ---------- */}
+        <div className="flex items-center gap-4 w-full justify-between">
+          <span>1–8</span>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={profile.class_range === "8-11"}
+              onChange={() =>
+                setProfile((p) =>
+                  p && {
+                    ...p,
+                    class_range: p.class_range === "1-8" ? "8-11" : "1-8",
+                    class_num: p.class_range === "1-8" ? 8 : 1,
+                  }
+                )
+              }
+            />
+            <div className="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:bg-yellow-500"></div>
+            <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full transition peer-checked:translate-x-full"></div>
+          </label>
+          <span>8–11</span>
+        </div>
+
+        <select
+          value={profile.class_num}
+          onChange={(e) =>
+            setProfile((p) => p && { ...p, class_num: Number(e.target.value) })
+          }
+          className="w-full border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500"
+        >
+          {classOptions.map((num) => (
+            <option key={num} value={num}>
+              {num} класс
+            </option>
+          ))}
+        </select>
 
         {/* ---------- Кнопки ---------- */}
         <div className="flex gap-4 w-full">
