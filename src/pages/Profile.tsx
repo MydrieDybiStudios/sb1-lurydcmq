@@ -11,21 +11,27 @@ interface ProfileData {
   avatar_url: string | null;
 }
 
-interface Achievement {
-  id: number;
-  title: string;
-  description: string;
-  icon: string;
+interface UserAchievement {
+  achievement_id: string;
   earned_at: string;
 }
 
+// ---------- Список всех достижений ----------
+const achievementsList = [
+  { id: 'course1', title: 'Новичок', description: 'Завершение первого курса', icon: '⭐' },
+  { id: 'course2', title: 'Геолог-исследователь', description: 'Изучены основы геологии', icon: '⛰️' },
+  { id: 'course3', title: 'Инженер добычи', description: 'Пройден курс по методам добычи', icon: '⛏️' },
+  { id: 'course4', title: 'Мастер нефтегазовой отрасли', description: '100% завершение курсов', icon: '👑' },
+  { id: 'course5', title: 'Легенда нефтегаза', description: '90%+ правильных ответов во всех тестах', icon: '🏅' },
+];
+
 // ---------- Toast ----------
-const Toast: React.FC<{
-  message: string;
-  type?: "success" | "error";
-  onClose: () => void;
-  duration?: number;
-}> = ({ message, type = "success", onClose, duration = 3000 }) => {
+const Toast: React.FC<{ message: string; type?: "success" | "error"; onClose: () => void; duration?: number }> = ({
+  message,
+  type = "success",
+  onClose,
+  duration = 3000,
+}) => {
   useEffect(() => {
     const timer = setTimeout(onClose, duration);
     return () => clearTimeout(timer);
@@ -45,21 +51,18 @@ const Toast: React.FC<{
 // ---------- Компонент профиля ----------
 const Profile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [achievements, setAchievements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<"success" | "error">("success");
-
   const navigate = useNavigate();
 
   // ---------- Загрузка профиля + достижений ----------
   useEffect(() => {
     const fetchProfile = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         navigate("/");
         return;
@@ -90,14 +93,26 @@ const Profile: React.FC = () => {
           .select();
       } else setProfile(data as ProfileData);
 
-      // Достижения
+      // Достижения пользователя
       const { data: ach, error: achError } = await supabase
-  .from("user_achievements")
-  .select("*")
-  .eq("user_id", user.id)
-  .order("earned_at", { ascending: false });
+        .from("user_achievements")
+        .select("achievement_id, earned_at")
+        .eq("user_id", user.id)
+        .order("earned_at", { ascending: false });
 
-      if (!achError && ach) setAchievements(ach);
+      if (!achError && ach) {
+        const mapped = ach.map((a: UserAchievement) => {
+          const info = achievementsList.find((x) => x.id === a.achievement_id);
+          return {
+            id: a.achievement_id,
+            title: info?.title || "Неизвестное достижение",
+            description: info?.description || "",
+            icon: info?.icon || "🏅",
+            earned_at: a.earned_at,
+          };
+        });
+        setAchievements(mapped);
+      }
 
       setLoading(false);
     };
@@ -110,9 +125,7 @@ const Profile: React.FC = () => {
     if (!profile) return;
     setSaving(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     try {
@@ -129,7 +142,6 @@ const Profile: React.FC = () => {
         { onConflict: "id" }
       );
       if (error) throw error;
-
       setToastType("success");
       setToastMessage("Профиль успешно сохранён!");
     } catch (err) {
@@ -145,20 +157,15 @@ const Profile: React.FC = () => {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     setAvatarLoading(true);
-
     try {
       if (!file.type.startsWith("image/")) throw new Error("Можно загружать только изображения");
 
       const fileExt = file.name.split(".").pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(fileName, file, { upsert: true });
@@ -167,9 +174,12 @@ const Profile: React.FC = () => {
       const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
       if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
 
-      await supabase.from("profiles").upsert({ id: user.id, avatar_url: data.publicUrl }, { onConflict: "id" });
-      setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
+      await supabase.from("profiles").upsert(
+        { id: user.id, avatar_url: data.publicUrl },
+        { onConflict: "id" }
+      );
 
+      setProfile((prev) => (prev ? { ...prev, avatar_url: data.publicUrl } : prev));
       setToastType("success");
       setToastMessage("Аватар успешно обновлён");
     } catch (err: any) {
@@ -202,8 +212,20 @@ const Profile: React.FC = () => {
         <div className="relative group">
           {avatarLoading ? (
             <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
-              <svg className="w-6 h-6 text-gray-400 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" strokeWidth="4" strokeDasharray="31.4" strokeLinecap="round" />
+              <svg
+                className="w-6 h-6 text-gray-400 animate-spin"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  strokeWidth="4"
+                  strokeDasharray="31.4"
+                  strokeLinecap="round"
+                />
               </svg>
             </div>
           ) : (
@@ -252,12 +274,13 @@ const Profile: React.FC = () => {
               className="sr-only peer"
               checked={profile.class_range === "8-11"}
               onChange={() =>
-                setProfile((p) =>
-                  p && {
-                    ...p,
-                    class_range: p.class_range === "1-8" ? "8-11" : "1-8",
-                    class_num: p.class_range === "1-8" ? 8 : 1,
-                  }
+                setProfile(
+                  (p) =>
+                    p && {
+                      ...p,
+                      class_range: p.class_range === "1-8" ? "8-11" : "1-8",
+                      class_num: p.class_range === "1-8" ? 8 : 1,
+                    }
                 )
               }
             />
@@ -291,46 +314,3 @@ const Profile: React.FC = () => {
           <button
             onClick={handleBackToMenu}
             className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 rounded-lg transition"
-          >
-            Главное меню
-          </button>
-        </div>
-
-        {/* ---------- Достижения ---------- */}
-        <div className="w-full mt-8 bg-gray-50 rounded-2xl p-4 border border-yellow-200">
-          <h2 className="text-xl font-semibold text-gray-800 mb-3 flex items-center gap-2">
-            🏆 Мои достижения
-          </h2>
-
-          {achievements.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center">Пока нет достижений 😅</p>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {achievements.map((a, index) => (
-                <div
-                  key={a.id}
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                  className="relative flex flex-col items-center bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition transform animate-fade-in-up"
-                >
-                  {/* Блик */}
-                  <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-                    <div className="shine"></div>
-                  </div>
-
-                  <span className="text-3xl mb-2 drop-shadow">{a.icon}</span>
-                  <p className="text-sm font-bold text-gray-700 text-center">{a.title}</p>
-                  <p className="text-xs text-gray-500 text-center">{a.description}</p>
-                  <p className="text-[10px] text-gray-400 mt-1">
-                    {new Date(a.earned_at).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default Profile;
