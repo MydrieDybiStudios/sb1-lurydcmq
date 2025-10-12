@@ -98,8 +98,16 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     setIsTestMode(false);
     setIsResultsMode(true);
 
+    // ✅ Получаем имя пользователя
+    const { data: userData } = await supabase.auth.getUser();
+    const userName =
+      userData?.user?.user_metadata?.full_name ||
+      userData?.user?.email ||
+      'Без имени';
+
     const payload = {
       user_id: userId,
+      user_name: userName, // 🟢 добавлено поле для исправления ошибки
       course_id: Number(course.id),
       score,
       total,
