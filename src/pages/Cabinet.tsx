@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
-import Header from "../components/Header";
 import Footer from "../components/Footer";
 import CoursesSection from "../components/CoursesSection";
 import AchievementsSection from "../components/AchievementsSection";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { Menu } from "lucide-react";
 
 const Cabinet: React.FC = () => {
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<{ first_name?: string; last_name?: string; avatar_url?: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Загружаем пользователя
   useEffect(() => {
     const fetchUser = async () => {
       const {
@@ -18,11 +21,19 @@ const Cabinet: React.FC = () => {
       } = await supabase.auth.getUser();
       setUser(user);
       setLoading(false);
+
+      if (user) {
+        const { data: profData } = await supabase
+          .from("profiles")
+          .select("first_name,last_name,avatar_url")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (profData) setProfile(profData);
+      }
     };
 
     fetchUser();
 
-    // обновление при изменении сессии
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -35,6 +46,11 @@ const Cabinet: React.FC = () => {
     };
   }, []);
 
+  // Кнопка “Выйти” — просто переход на главную
+  const handleExitToMain = () => {
+    navigate("/");
+  };
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -44,15 +60,73 @@ const Cabinet: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Header
-        onLogin={() => navigate("/")}
-        onRegister={() => navigate("/")}
-      />
+      {/* -------- Кастомный Header для кабинета -------- */}
+      <header className="bg-black text-white shadow-lg">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center space-x-3">
+            <div className="gradient-bg text-black font-bold rounded-full w-10 h-10 flex items-center justify-center">
+              UO
+            </div>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold">
+                Личный кабинет — Югра.Нефть
+              </h1>
+              <p className="text-xs text-gray-300 hidden md:block">
+                Ваши курсы и достижения
+              </p>
+            </div>
+          </div>
 
+          {/* Правый блок */}
+          <div className="flex items-center space-x-4">
+            {user && (
+              <>
+                <Link to="/profile" className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt="avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-black font-semibold">
+                        {(profile?.first_name?.[0] ?? user.email?.[0] ?? "U").toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-yellow-500 font-medium">
+                    {profile?.first_name || user.email || "Пользователь"}
+                  </span>
+                </Link>
+
+                {/* 🚪 Выйти на главную */}
+                <button
+                  onClick={handleExitToMain}
+                  className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
+                >
+                  Выйти в меню
+                </button>
+              </>
+            )}
+
+            {/* Мобильное меню */}
+            <button
+              className="md:hidden"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="menu"
+            >
+              <Menu className="text-xl" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* -------- Основной контент -------- */}
       <main className="flex-grow container mx-auto px-4 py-10">
         {user ? (
           <>
-            {/* ---- Раздел курсов ---- */}
+            {/* Курсы */}
             <section id="courses" className="mb-16">
               <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
                 🎓 Мои курсы
@@ -60,7 +134,7 @@ const Cabinet: React.FC = () => {
               <CoursesSection onStartCourse={() => {}} />
             </section>
 
-            {/* ---- Раздел достижений ---- */}
+            {/* Достижения */}
             <section id="achievements">
               <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
                 🏆 Мои достижения
