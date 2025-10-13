@@ -1,34 +1,15 @@
-// src/components/ResultsComponent.tsx
-import React, { useEffect, useState } from 'react';
-import { CheckCircle, Award, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle, Award } from 'lucide-react';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 interface ResultsComponentProps {
   results: { score: number; total: number; percentage: number } | null;
   courseName: string;
   onClose: () => void;
-  /**
-   * Функция, вызываемая при запросе сертификата.
-   * Должна вернуть Promise<string | null> — URL (созданный через URL.createObjectURL) на PDF blob для предпросмотра,
-   * или null при ошибке.
-   */
-  onDownloadCertificate: (courseTitle: string) => Promise<string | null>;
 }
 
-const ResultsComponent: React.FC<ResultsComponentProps> = ({
-  results,
-  courseName,
-  onClose,
-  onDownloadCertificate,
-}) => {
-  const [userName, setUserName] = useState<string>(''); // сюда загрузим имя (если хотите — подтяните через props)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  useEffect(() => {
-    // Если у вас в родителе/контексте есть имя — передавайте; здесь оставил заглушку.
-    // setUserName(propsFromParent?.name ?? '');
-  }, []);
+const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName, onClose }) => {
+  const [userName, setUserName] = useState<string>('Иван Иванов'); // 🔸 Здесь можно подставить своё имя
 
   if (!results) return null;
 
@@ -52,30 +33,81 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
     resultClass = 'bg-red-500';
   }
 
-  const handleGetCertificate = async () => {
-    setIsGenerating(true);
-    try {
-      const url = await onDownloadCertificate(courseName);
-      if (url) {
-        // Открываем предпросмотр
-        setPreviewUrl(url);
-        setIsPreviewOpen(true);
-      } else {
-        // можно показывать toaster/уведомление об ошибке
-        console.error('Не удалось получить сертификат');
-      }
-    } catch (err) {
-      console.error('Ошибка при генерации сертификата', err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
+  // === 🎓 Генерация сертификата PDF ===
+  const handleDownloadCertificate = async () => {
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([600, 400]);
+    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const { width, height } = page.getSize();
 
-  const handleClosePreview = () => {
-    setIsPreviewOpen(false);
-    // Браузерный URL удаляем в родителе, но если нужно — можно revoke здесь:
-    // URL.revokeObjectURL(previewUrl || '');
-    // setPreviewUrl(null);
+    const borderColor = rgb(0.9, 0.7, 0.1);
+    page.drawRectangle({
+      x: 10,
+      y: 10,
+      width: width - 20,
+      height: height - 20,
+      borderColor,
+      borderWidth: 3,
+    });
+
+    page.drawText('СЕРТИФИКАТ', {
+      x: 210,
+      y: height - 70,
+      size: 22,
+      font,
+      color: borderColor,
+    });
+
+    page.drawText(`Поздравляем, ${userName}!`, {
+      x: 100,
+      y: height - 140,
+      size: 16,
+      font,
+    });
+
+    page.drawText(`Вы успешно завершили курс:`, {
+      x: 100,
+      y: height - 170,
+      size: 14,
+      font,
+    });
+
+    page.drawText(`«${courseName}»`, {
+      x: 120,
+      y: height - 200,
+      size: 14,
+      font,
+    });
+
+    const date = new Date().toLocaleDateString('ru-RU');
+    page.drawText(`Дата выдачи: ${date}`, {
+      x: 100,
+      y: height - 260,
+      size: 12,
+      font,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+
+    page.drawText('Образовательная платформа "Югра.Нефть"', {
+      x: 100,
+      y: 40,
+      size: 10,
+      font,
+      color: rgb(0.5, 0.5, 0.5),
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+
+    // 🟡 Предпросмотр PDF
+    window.open(url);
+
+    // 💾 Скачивание
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Сертификат_${userName}_${courseName}.pdf`;
+    link.click();
   };
 
   return (
@@ -91,17 +123,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       </div>
 
       <h3 className="text-2xl font-bold mb-2">{resultTitle}</h3>
+      <p className="text-gray-700 mb-4">
+        {userName}, вы ответили правильно на {score} из {total} вопросов по курсу «{courseName}»
+      </p>
 
-      {userName ? (
-        <p className="text-lg text-gray-700 mb-4">
-          {userName}, вы ответили правильно на {score} из {total} вопросов по курсу «{courseName}»
-        </p>
-      ) : (
-        <p className="text-gray-700 mb-4">
-          Вы ответили правильно на {score} из {total} вопросов по курсу «{courseName}»
-        </p>
-      )}
-
+      {/* Прогрессбар */}
       <div className="mb-8">
         <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
           <div
@@ -115,15 +141,14 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       {percentage >= 70 && (
         <div className="mb-8">
           <p className="text-gray-700 mb-4">
-            Поздравляем, {userName || 'Участник'}! Вы можете получить именной сертификат, подтверждающий ваши знания.
+            Поздравляем, {userName}! Вы можете получить именной сертификат.
           </p>
           <button
+            onClick={handleDownloadCertificate}
             className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition flex items-center mx-auto"
-            onClick={handleGetCertificate}
-            disabled={isGenerating}
           >
             <Award className="mr-2 w-5 h-5" />
-            <span>{isGenerating ? 'Генерируем...' : 'Получить сертификат'}</span>
+            <span>Получить сертификат</span>
           </button>
         </div>
       )}
@@ -131,8 +156,8 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       <div className="mt-4 border-t border-gray-200 pt-4">
         <p className="text-gray-600 mb-4">
           {isPassed
-            ? 'Отличная работа! Продолжайте обучение, чтобы стать экспертом в нефтегазовой отрасли.'
-            : 'Рекомендуем повторить материал курса и пройти тест ещё раз для закрепления знаний.'}
+            ? 'Отличная работа! Продолжайте обучение.'
+            : 'Рекомендуем повторить материал и пройти тест снова.'}
         </p>
         <button
           className="bg-gray-800 hover:bg-black text-white font-medium py-2 px-6 rounded-lg transition"
@@ -141,43 +166,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
           Вернуться к курсам
         </button>
       </div>
-
-      {/* === Модальное окно предпросмотра PDF === */}
-      {isPreviewOpen && previewUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60" onClick={handleClosePreview} />
-          <div className="relative bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-3 border-b">
-              <h4 className="text-lg font-medium">Предпросмотр сертификата</h4>
-              <div className="flex gap-2">
-                <a
-                  href={previewUrl}
-                  download={`Certificate_${courseName}.pdf`}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-1 px-3 rounded"
-                >
-                  Скачать
-                </a>
-                <button
-                  className="p-2 rounded hover:bg-gray-100"
-                  onClick={handleClosePreview}
-                  aria-label="Close preview"
-                >
-                  <X />
-                </button>
-              </div>
-            </div>
-
-            <div className="w-full h-[75vh]">
-              {/* iframe для предпросмотра PDF */}
-              <iframe
-                src={previewUrl}
-                title="PDF preview"
-                className="w-full h-full border-0"
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
