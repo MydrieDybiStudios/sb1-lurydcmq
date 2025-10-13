@@ -4,33 +4,26 @@ import Footer from "../components/Footer";
 import CoursesSection from "../components/CoursesSection";
 import AchievementsSection from "../components/AchievementsSection";
 import CourseModal from "../components/CourseModal";
-import ResultsComponent from "../components/ResultsComponent";
 import { useNavigate, Link } from "react-router-dom";
 import { Menu } from "lucide-react";
 import coursesData from "../data/coursesData";
-
-interface ProgressItem {
-  course_id: string;
-  score: number;
-  total: number;
-  percentage: number;
-  updated_at: string;
-}
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 const Cabinet: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<{ first_name?: string; last_name?: string; avatar_url?: string } | null>(null);
-  const [progress, setProgress] = useState<ProgressItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [selectedCourseResult, setSelectedCourseResult] = useState<ProgressItem | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  // === Загрузка пользователя и прогресса ===
+  // === Загрузка пользователя ===
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      setLoading(false);
 
       if (user) {
         const { data: profData } = await supabase
@@ -39,22 +32,132 @@ const Cabinet: React.FC = () => {
           .eq("id", user.id)
           .maybeSingle();
         if (profData) setProfile(profData);
-
-        const { data: progressData } = await supabase
-          .from("progress")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("updated_at", { ascending: false });
-
-        setProgress(progressData || []);
       }
-      setLoading(false);
     };
 
     fetchUser();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      try {
+        (sub as any)?.subscription?.unsubscribe?.();
+        (sub as any)?.unsubscribe?.();
+      } catch {}
+    };
   }, []);
 
   const handleExitToMain = () => navigate("/");
+
+  // === 🟡 Открытие курса ===
+  const handleStartCourse = (courseId: number) => {
+    const course = coursesData.find((c) => c.id === courseId);
+    if (course) {
+      setSelectedCourse(course);
+      setIsCourseModalOpen(true);
+    }
+  };
+
+ // === 🎓 Генерация сертификата ===
+const handleGenerateCertificate = async (courseTitle: string) => {
+  const name =
+    profile?.first_name || user?.user_metadata?.full_name || user?.email || "Без имени";
+
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([600, 400]);
+  const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  const { width, height } = page.getSize();
+
+  // === 🟡 Рамка ===
+  const borderColor = rgb(0.9, 0.7, 0.1); // золотистый
+  const borderWidth = 4;
+  const innerOffset = 14;
+
+  // Внешняя рамка
+  page.drawRectangle({
+    x: borderWidth / 2,
+    y: borderWidth / 2,
+    width: width - borderWidth,
+    height: height - borderWidth,
+    borderColor,
+    borderWidth,
+  });
+
+  // Внутренняя рамка
+  page.drawRectangle({
+    x: innerOffset,
+    y: innerOffset,
+    width: width - innerOffset * 2,
+    height: height - innerOffset * 2,
+    borderColor: rgb(0.85, 0.65, 0.05),
+    borderWidth: 1.5,
+  });
+
+  // === 🟢 Заголовок ===
+  page.drawText("СЕРТИФИКАТ ДОСТИЖЕНИЙ", {
+    x: 120,
+    y: height - 90,
+    size: 22,
+    font,
+    color: borderColor,
+  });
+
+  // === Основной текст ===
+  page.drawText(`Поздравляем, ${name}!`, {
+    x: 100,
+    y: height - 160,
+    size: 16,
+    font,
+    color: rgb(0, 0, 0),
+  });
+
+  page.drawText(`Вы успешно завершили курс:`, {
+    x: 100,
+    y: height - 190,
+    size: 14,
+    font,
+    color: rgb(0, 0, 0),
+  });
+
+  page.drawText(`"${courseTitle}"`, {
+    x: 120,
+    y: height - 220,
+    size: 14,
+    font,
+    color: rgb(0.1, 0.1, 0.1),
+  });
+
+  // === Дата ===
+  const date = new Date().toLocaleDateString("ru-RU");
+  page.drawText(`Дата выдачи: ${date}`, {
+    x: 100,
+    y: height - 280,
+    size: 12,
+    font,
+    color: rgb(0.3, 0.3, 0.3),
+  });
+
+  // === Подпись внизу ===
+  page.drawText(`Образовательная платформа "Югра.Нефть"`, {
+    x: 100,
+    y: 40,
+    size: 10,
+    font,
+    color: rgb(0.4, 0.4, 0.4),
+  });
+
+  // === Сохранение PDF ===
+  const pdfBytes = await pdfDoc.save();
+  const blob = new Blob([pdfBytes], { type: "application/pdf" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `Сертификат_${name}_${courseTitle}.pdf`;
+  link.click();
+};
+
 
   if (loading)
     return (
@@ -65,7 +168,7 @@ const Cabinet: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* HEADER */}
+      {/* ===== HEADER ===== */}
       <header className="bg-black text-white shadow-lg">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-3">
@@ -116,44 +219,13 @@ const Cabinet: React.FC = () => {
         </div>
       </header>
 
-      {/* MAIN */}
+      {/* ===== MAIN ===== */}
       <main className="flex-grow container mx-auto px-4 py-10">
         {user ? (
           <>
             <section id="courses" className="mb-16">
               <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🎓 Мои курсы</h2>
-
-              {progress.length === 0 ? (
-                <p className="text-center text-gray-600">Вы ещё не проходили ни один курс.</p>
-              ) : (
-                <div className="space-y-3">
-                  {progress.map((p) => {
-                    const course = coursesData.find((c) => c.id === p.course_id);
-                    return (
-                      <div
-                        key={p.course_id}
-                        className="flex justify-between bg-white p-4 border rounded-lg shadow-sm"
-                      >
-                        <div>
-                          <p className="font-semibold">{course?.title || p.course_id}</p>
-                          <p className="text-sm text-gray-500">
-                            Баллы: {p.score}/{p.total}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <p className="font-bold text-yellow-600">{p.percentage}%</p>
-                          <button
-                            className="bg-yellow-500 hover:bg-yellow-600 text-black px-3 py-1 rounded-lg"
-                            onClick={() => setSelectedCourseResult(p)}
-                          >
-                            Посмотреть результат
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <CoursesSection onStartCourse={handleStartCourse} />
             </section>
 
             <section id="achievements">
@@ -188,32 +260,12 @@ const Cabinet: React.FC = () => {
 
       <Footer />
 
-      {/* Модальное окно курса */}
+      {/* ===== Модальное окно курса ===== */}
       <CourseModal
-        isOpen={false}
-        onClose={() => {}}
-        course={null}
+        isOpen={isCourseModalOpen}
+        onClose={() => setIsCourseModalOpen(false)}
+        course={selectedCourse}
       />
-
-      {/* Модальное окно результата */}
-      {selectedCourseResult && profile && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 relative">
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-              onClick={() => setSelectedCourseResult(null)}
-            >
-              ✕
-            </button>
-            <ResultsComponent
-              results={selectedCourseResult}
-              courseName={coursesData.find(c => c.id === selectedCourseResult.course_id)?.title || selectedCourseResult.course_id}
-              userName={`${profile.first_name || ""} ${profile.last_name || ""}`.trim()}
-              onClose={() => setSelectedCourseResult(null)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
