@@ -8,19 +8,14 @@ import CourseModal from "../components/CourseModal";
 import { useNavigate, Link } from "react-router-dom";
 import { Menu } from "lucide-react";
 import coursesData from "../data/coursesData";
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 const Cabinet: React.FC = () => {
   const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<{ first_name?: string; last_name?: string; avatar_url?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const navigate = useNavigate();
-
-  // Хранение последнего созданного URL, чтобы можно было его revoke при перегенерации/закрытии
-  const [lastCertificateUrl, setLastCertificateUrl] = useState<string | null>(null);
 
   // === Загрузка пользователя ===
   useEffect(() => {
@@ -28,15 +23,6 @@ const Cabinet: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       setLoading(false);
-
-      if (user) {
-        const { data: profData } = await supabase
-          .from("profiles")
-          .select("first_name,last_name,avatar_url")
-          .eq("id", user.id)
-          .maybeSingle();
-        if (profData) setProfile(profData);
-      }
     };
 
     fetchUser();
@@ -50,12 +36,7 @@ const Cabinet: React.FC = () => {
         (sub as any)?.subscription?.unsubscribe?.();
         (sub as any)?.unsubscribe?.();
       } catch {}
-      // Убираем последний URL при размонтировании
-      if (lastCertificateUrl) {
-        URL.revokeObjectURL(lastCertificateUrl);
-      }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleExitToMain = () => navigate("/");
@@ -69,11 +50,6 @@ const Cabinet: React.FC = () => {
     }
   };
 
-  /**
-   * Генерация сертификата PDF и возврат blob-URL для предпросмотра/скачивания.
-   * Возвращает Promise<string | null>
-   */
- 
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -92,7 +68,9 @@ const Cabinet: React.FC = () => {
             </div>
             <div>
               <h1 className="text-lg md:text-xl font-bold">Личный кабинет — Югра.Нефть</h1>
-              <p className="text-xs text-gray-300 hidden md:block">Ваши курсы и достижения</p>
+              <p className="text-xs text-gray-300 hidden md:block">
+                Ваши курсы и достижения
+              </p>
             </div>
           </div>
 
@@ -101,16 +79,12 @@ const Cabinet: React.FC = () => {
               <>
                 <Link to="/profile" className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
-                    {profile?.avatar_url ? (
-                      <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-black font-semibold">
-                        {(profile?.first_name?.[0] ?? user.email?.[0] ?? "U").toUpperCase()}
-                      </span>
-                    )}
+                    <span className="text-black font-semibold">
+                      {(user.email?.[0] ?? "U").toUpperCase()}
+                    </span>
                   </div>
                   <span className="text-yellow-500 font-medium">
-                    {profile?.first_name || user.email || "Пользователь"}
+                    {user.email || "Пользователь"}
                   </span>
                 </Link>
 
@@ -139,12 +113,16 @@ const Cabinet: React.FC = () => {
         {user ? (
           <>
             <section id="courses" className="mb-16">
-              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🎓 Мои курсы</h2>
+              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+                🎓 Мои курсы
+              </h2>
               <CoursesSection onStartCourse={handleStartCourse} />
             </section>
 
             <section id="achievements">
-              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🏆 Мои достижения</h2>
+              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+                🏆 Мои достижения
+              </h2>
               <AchievementsSection />
             </section>
           </>
@@ -152,8 +130,7 @@ const Cabinet: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl mx-auto p-10 text-center border border-yellow-300">
             <h2 className="text-2xl font-bold mb-4 text-gray-800">Доступ ограничен 🚫</h2>
             <p className="text-gray-700 mb-6">
-              Для того, чтобы получить доступ к курсам и сохранению результата,
-              войдите или зарегистрируйтесь на сайте.
+              Чтобы получить доступ к курсам и сертификатам, войдите или зарегистрируйтесь.
             </p>
             <div className="flex justify-center gap-4">
               <button
