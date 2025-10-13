@@ -60,65 +60,104 @@ const Cabinet: React.FC = () => {
     }
   };
 
-  // === 🎓 Генерация сертификата ===
-  const handleGenerateCertificate = async (courseTitle: string) => {
-    const name =
-      profile?.first_name || user?.user_metadata?.full_name || user?.email || "Без имени";
+ // === 🎓 Генерация сертификата ===
+const handleGenerateCertificate = async (courseTitle: string) => {
+  const name =
+    profile?.first_name || user?.user_metadata?.full_name || user?.email || "Без имени";
 
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([600, 400]);
-    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([600, 400]);
+  const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    const { height } = page.getSize();
+  const { width, height } = page.getSize();
 
-    page.drawText("СЕРТИФИКАТ ДОСТИЖЕНИЙ", {
-      x: 100,
-      y: height - 80,
-      size: 20,
-      font,
-      color: rgb(0.9, 0.7, 0.1),
-    });
+  // === 🟡 Рамка ===
+  const borderColor = rgb(0.9, 0.7, 0.1); // золотистый
+  const borderWidth = 4;
+  const innerOffset = 14;
 
-    page.drawText(`Поздравляем, ${name}!`, {
-      x: 80,
-      y: height - 150,
-      size: 16,
-      font,
-      color: rgb(0, 0, 0),
-    });
+  // Внешняя рамка
+  page.drawRectangle({
+    x: borderWidth / 2,
+    y: borderWidth / 2,
+    width: width - borderWidth,
+    height: height - borderWidth,
+    borderColor,
+    borderWidth,
+  });
 
-    page.drawText(`Вы успешно завершили курс "${courseTitle}"`, {
-      x: 80,
-      y: height - 190,
-      size: 14,
-      font,
-      color: rgb(0, 0, 0),
-    });
+  // Внутренняя рамка
+  page.drawRectangle({
+    x: innerOffset,
+    y: innerOffset,
+    width: width - innerOffset * 2,
+    height: height - innerOffset * 2,
+    borderColor: rgb(0.85, 0.65, 0.05),
+    borderWidth: 1.5,
+  });
 
-    const date = new Date().toLocaleDateString("ru-RU");
-    page.drawText(`Дата выдачи: ${date}`, {
-      x: 80,
-      y: height - 250,
-      size: 12,
-      font,
-      color: rgb(0.2, 0.2, 0.2),
-    });
+  // === 🟢 Заголовок ===
+  page.drawText("СЕРТИФИКАТ ДОСТИЖЕНИЙ", {
+    x: 120,
+    y: height - 90,
+    size: 22,
+    font,
+    color: borderColor,
+  });
 
-    page.drawText("Югра.Нефть — образовательная платформа", {
-      x: 80,
-      y: height - 320,
-      size: 10,
-      font,
-      color: rgb(0.4, 0.4, 0.4),
-    });
+  // === Основной текст ===
+  page.drawText(`Поздравляем, ${name}!`, {
+    x: 100,
+    y: height - 160,
+    size: 16,
+    font,
+    color: rgb(0, 0, 0),
+  });
 
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `Сертификат_${name}_${courseTitle}.pdf`;
-    link.click();
-  };
+  page.drawText(`Вы успешно завершили курс:`, {
+    x: 100,
+    y: height - 190,
+    size: 14,
+    font,
+    color: rgb(0, 0, 0),
+  });
+
+  page.drawText(`"${courseTitle}"`, {
+    x: 120,
+    y: height - 220,
+    size: 14,
+    font,
+    color: rgb(0.1, 0.1, 0.1),
+  });
+
+  // === Дата ===
+  const date = new Date().toLocaleDateString("ru-RU");
+  page.drawText(`Дата выдачи: ${date}`, {
+    x: 100,
+    y: height - 280,
+    size: 12,
+    font,
+    color: rgb(0.3, 0.3, 0.3),
+  });
+
+  // === Подпись внизу ===
+  page.drawText(`Образовательная платформа "Югра.Нефть"`, {
+    x: 100,
+    y: 40,
+    size: 10,
+    font,
+    color: rgb(0.4, 0.4, 0.4),
+  });
+
+  // === Сохранение PDF ===
+  const pdfBytes = await pdfDoc.save();
+  const blob = new Blob([pdfBytes], { type: "application/pdf" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `Сертификат_${name}_${courseTitle}.pdf`;
+  link.click();
+};
+
 
   if (loading)
     return (
