@@ -63,57 +63,48 @@ const Cabinet: React.FC = () => {
   };
 
   // === Генерация сертификата ===
-  const handleDownloadCertificate = async (courseTitle: string) => {
-    const name = `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || user?.email || "Участник";
+ // === Генерация сертификата ===
+const handleDownloadCertificate = async (courseTitle: string) => {
+  const name = `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || user?.email || "Участник";
 
+  try {
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([600, 400]);
     const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const { width, height } = page.getSize();
 
-    const borderColor = rgb(0.9, 0.7, 0.1);
-    const borderWidth = 4;
-    const innerOffset = 14;
-
     // Внешняя рамка
     page.drawRectangle({
-      x: borderWidth / 2,
-      y: borderWidth / 2,
-      width: width - borderWidth,
-      height: height - borderWidth,
-      borderColor,
-      borderWidth,
+      x: 10,
+      y: 10,
+      width: width - 20,
+      height: height - 20,
+      borderColor: rgb(0.9, 0.7, 0.1),
+      borderWidth: 4,
     });
 
-    // Внутренняя рамка
-    page.drawRectangle({
-      x: innerOffset,
-      y: innerOffset,
-      width: width - innerOffset * 2,
-      height: height - innerOffset * 2,
-      borderColor: rgb(0.85, 0.65, 0.05),
-      borderWidth: 1.5,
-    });
-
+    // Заголовок
     page.drawText("СЕРТИФИКАТ ДОСТИЖЕНИЙ", {
       x: 120,
-      y: height - 90,
+      y: height - 80,
       size: 22,
       font,
-      color: borderColor,
+      color: rgb(0.9, 0.7, 0.1),
     });
 
+    // Имя
     page.drawText(`Поздравляем, ${name}!`, {
       x: 100,
-      y: height - 160,
+      y: height - 140,
       size: 16,
       font,
       color: rgb(0, 0, 0),
     });
 
+    // Название курса
     page.drawText(`Вы успешно завершили курс:`, {
       x: 100,
-      y: height - 190,
+      y: height - 170,
       size: 14,
       font,
       color: rgb(0, 0, 0),
@@ -121,21 +112,23 @@ const Cabinet: React.FC = () => {
 
     page.drawText(`"${courseTitle}"`, {
       x: 120,
-      y: height - 220,
+      y: height - 200,
       size: 14,
       font,
       color: rgb(0.1, 0.1, 0.1),
     });
 
+    // Дата
     const date = new Date().toLocaleDateString("ru-RU");
     page.drawText(`Дата выдачи: ${date}`, {
       x: 100,
-      y: height - 280,
+      y: height - 250,
       size: 12,
       font,
       color: rgb(0.3, 0.3, 0.3),
     });
 
+    // Подпись платформы
     page.drawText(`Образовательная платформа "Югра.Нефть"`, {
       x: 100,
       y: 40,
@@ -150,7 +143,11 @@ const Cabinet: React.FC = () => {
     link.href = URL.createObjectURL(blob);
     link.download = `Сертификат_${name}_${courseTitle}.pdf`;
     link.click();
-  };
+  } catch (error) {
+    console.error("Ошибка при создании сертификата:", error);
+  }
+};
+
 
   if (loading)
     return (
