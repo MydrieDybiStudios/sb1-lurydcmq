@@ -3,22 +3,25 @@ import { supabase } from "../lib/supabaseClient";
 import Footer from "../components/Footer";
 import CoursesSection from "../components/CoursesSection";
 import AchievementsSection from "../components/AchievementsSection";
+import CourseModal from "../components/CourseModal";
 import { useNavigate, Link } from "react-router-dom";
 import { Menu } from "lucide-react";
+import coursesData from "../data/coursesData";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 
 const Cabinet: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<{ first_name?: string; last_name?: string; avatar_url?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Загружаем пользователя
+  // === Загрузка пользователя ===
   useEffect(() => {
     const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       setLoading(false);
 
@@ -46,9 +49,75 @@ const Cabinet: React.FC = () => {
     };
   }, []);
 
-  // Кнопка “Выйти” — просто переход на главную
-  const handleExitToMain = () => {
-    navigate("/");
+  const handleExitToMain = () => navigate("/");
+
+  // === 🟡 Открытие курса ===
+  const handleStartCourse = (courseId: number) => {
+    const course = coursesData.find((c) => c.id === courseId);
+    if (course) {
+      setSelectedCourse(course);
+      setIsCourseModalOpen(true);
+    }
+  };
+
+  // === 🎓 Генерация сертификата ===
+  const handleGenerateCertificate = async (courseTitle: string) => {
+    const name =
+      profile?.first_name || user?.user_metadata?.full_name || user?.email || "Без имени";
+
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([600, 400]);
+    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    const { height } = page.getSize();
+
+    page.drawText("СЕРТИФИКАТ ДОСТИЖЕНИЙ", {
+      x: 100,
+      y: height - 80,
+      size: 20,
+      font,
+      color: rgb(0.9, 0.7, 0.1),
+    });
+
+    page.drawText(`Поздравляем, ${name}!`, {
+      x: 80,
+      y: height - 150,
+      size: 16,
+      font,
+      color: rgb(0, 0, 0),
+    });
+
+    page.drawText(`Вы успешно завершили курс "${courseTitle}"`, {
+      x: 80,
+      y: height - 190,
+      size: 14,
+      font,
+      color: rgb(0, 0, 0),
+    });
+
+    const date = new Date().toLocaleDateString("ru-RU");
+    page.drawText(`Дата выдачи: ${date}`, {
+      x: 80,
+      y: height - 250,
+      size: 12,
+      font,
+      color: rgb(0.2, 0.2, 0.2),
+    });
+
+    page.drawText("Югра.Нефть — образовательная платформа", {
+      x: 80,
+      y: height - 320,
+      size: 10,
+      font,
+      color: rgb(0.4, 0.4, 0.4),
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: "application/pdf" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `Сертификат_${name}_${courseTitle}.pdf`;
+    link.click();
   };
 
   if (loading)
@@ -60,7 +129,7 @@ const Cabinet: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* -------- Кастомный Header для кабинета -------- */}
+      {/* ===== HEADER ===== */}
       <header className="bg-black text-white shadow-lg">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-3">
@@ -68,27 +137,18 @@ const Cabinet: React.FC = () => {
               UO
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold">
-                Личный кабинет — Югра.Нефть
-              </h1>
-              <p className="text-xs text-gray-300 hidden md:block">
-                Ваши курсы и достижения
-              </p>
+              <h1 className="text-lg md:text-xl font-bold">Личный кабинет — Югра.Нефть</h1>
+              <p className="text-xs text-gray-300 hidden md:block">Ваши курсы и достижения</p>
             </div>
           </div>
 
-          {/* Правый блок */}
           <div className="flex items-center space-x-4">
             {user && (
               <>
                 <Link to="/profile" className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
                     {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt="avatar"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                     ) : (
                       <span className="text-black font-semibold">
                         {(profile?.first_name?.[0] ?? user.email?.[0] ?? "U").toUpperCase()}
@@ -100,7 +160,6 @@ const Cabinet: React.FC = () => {
                   </span>
                 </Link>
 
-                {/* 🚪 Выйти на главную */}
                 <button
                   onClick={handleExitToMain}
                   className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
@@ -110,7 +169,6 @@ const Cabinet: React.FC = () => {
               </>
             )}
 
-            {/* Мобильное меню */}
             <button
               className="md:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -122,31 +180,23 @@ const Cabinet: React.FC = () => {
         </div>
       </header>
 
-      {/* -------- Основной контент -------- */}
+      {/* ===== MAIN ===== */}
       <main className="flex-grow container mx-auto px-4 py-10">
         {user ? (
           <>
-            {/* Курсы */}
             <section id="courses" className="mb-16">
-              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
-                🎓 Мои курсы
-              </h2>
-              <CoursesSection onStartCourse={() => {}} />
+              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🎓 Мои курсы</h2>
+              <CoursesSection onStartCourse={handleStartCourse} />
             </section>
 
-            {/* Достижения */}
             <section id="achievements">
-              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
-                🏆 Мои достижения
-              </h2>
+              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🏆 Мои достижения</h2>
               <AchievementsSection />
             </section>
           </>
         ) : (
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl mx-auto p-10 text-center border border-yellow-300">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">
-              Доступ ограничен 🚫
-            </h2>
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Доступ ограничен 🚫</h2>
             <p className="text-gray-700 mb-6">
               Для того, чтобы получить доступ к курсам и сохранению результата,
               войдите или зарегистрируйтесь на сайте.
@@ -170,6 +220,13 @@ const Cabinet: React.FC = () => {
       </main>
 
       <Footer />
+
+      {/* ===== Модальное окно курса ===== */}
+      <CourseModal
+        isOpen={isCourseModalOpen}
+        onClose={() => setIsCourseModalOpen(false)}
+        course={selectedCourse}
+      />
     </div>
   );
 };
