@@ -1,10 +1,10 @@
+// src/pages/Cabinet.tsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Footer from "../components/Footer";
 import CoursesSection from "../components/CoursesSection";
 import AchievementsSection from "../components/AchievementsSection";
 import CourseModal from "../components/CourseModal";
-import ResultsComponent from "../components/ResultsComponent";
 import { useNavigate, Link } from "react-router-dom";
 import { Menu } from "lucide-react";
 import coursesData from "../data/coursesData";
@@ -16,11 +16,13 @@ const Cabinet: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
-  const [selectedCourseResult, setSelectedCourseResult] = useState<any | null>(null);
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  // === Загрузка пользователя и профиля ===
+  // Хранение последнего созданного URL, чтобы можно было его revoke при перегенерации/закрытии
+  const [lastCertificateUrl, setLastCertificateUrl] = useState<string | null>(null);
+
+  // === Загрузка пользователя ===
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -48,7 +50,12 @@ const Cabinet: React.FC = () => {
         (sub as any)?.subscription?.unsubscribe?.();
         (sub as any)?.unsubscribe?.();
       } catch {}
+      // Убираем последний URL при размонтировании
+      if (lastCertificateUrl) {
+        URL.revokeObjectURL(lastCertificateUrl);
+      }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleExitToMain = () => navigate("/");
@@ -62,92 +69,201 @@ const Cabinet: React.FC = () => {
     }
   };
 
-  // === Генерация сертификата ===
- // === Генерация сертификата ===
-const handleDownloadCertificate = async (courseTitle: string) => {
-  const name = `${profile?.first_name || ""} ${profile?.last_name || ""}`.trim() || user?.email || "Участник";
+  /**
+   * Генерация сертификата PDF и возврат blob-URL для предпросмотра/скачивания.
+   * Возвращает Promise<string | null>
+   */
+  const generateCertificateBlobUrl = async (courseTitle: string): Promise<string | null> => {
+    try {
+      // Имя пользователя
+      const name = `${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`.trim() || user?.user_metadata?.full_name || user?.email || "Участник";
 
-  try {
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([600, 400]);
-    const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    const { width, height } = page.getSize();
+      // Создаём PDF (страница A4 ориентир. но для встраивания в iframe можно взять 1122x794 ~ A4 landscape)
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([1122, 794]); // landscape
+      const { width, height } = page.getSize();
 
-    // Внешняя рамка
-    page.drawRectangle({
-      x: 10,
-      y: 10,
-      width: width - 20,
-      height: height - 20,
-      borderColor: rgb(0.9, 0.7, 0.1),
-      borderWidth: 4,
-    });
+      // Встраиваем шрифты
+      const fontNormal = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    // Заголовок
-    page.drawText("СЕРТИФИКАТ ДОСТИЖЕНИЙ", {
-      x: 120,
-      y: height - 80,
-      size: 22,
-      font,
-      color: rgb(0.9, 0.7, 0.1),
-    });
+      // Фон/рамка
+      const gold = rgb(0.85, 0.66, 0.14);
+      const darkGray = rgb(0.12, 0.12, 0.12);
 
-    // Имя
-    page.drawText(`Поздравляем, ${name}!`, {
-      x: 100,
-      y: height - 140,
-      size: 16,
-      font,
-      color: rgb(0, 0, 0),
-    });
+      // Белая заливка
+      page.drawRectangle({
+        x: 0,
+        y: 0,
+        width,
+        height,
+        color: rgb(1, 1, 1),
+      });
 
-    // Название курса
-    page.drawText(`Вы успешно завершили курс:`, {
-      x: 100,
-      y: height - 170,
-      size: 14,
-      font,
-      color: rgb(0, 0, 0),
-    });
+      // Рамка - тонкая внешняя
+      const outerPadding = 28;
+      page.drawRectangle({
+        x: outerPadding,
+        y: outerPadding,
+        width: width - outerPadding * 2,
+        height: height - outerPadding * 2,
+        borderColor: gold,
+        borderWidth: 6,
+        color: undefined,
+      });
 
-    page.drawText(`"${courseTitle}"`, {
-      x: 120,
-      y: height - 200,
-      size: 14,
-      font,
-      color: rgb(0.1, 0.1, 0.1),
-    });
+      // Внутренняя рамка
+      page.drawRectangle({
+        x: outerPadding + 14,
+        y: outerPadding + 14,
+        width: width - (outerPadding + 14) * 2,
+        height: height - (outerPadding + 14) * 2,
+        borderColor: rgb(0.95, 0.93, 0.9),
+        borderWidth: 1.5,
+      });
 
-    // Дата
-    const date = new Date().toLocaleDateString("ru-RU");
-    page.drawText(`Дата выдачи: ${date}`, {
-      x: 100,
-      y: height - 250,
-      size: 12,
-      font,
-      color: rgb(0.3, 0.3, 0.3),
-    });
+      // Логотип/заголовок слева
+      const headerX = outerPadding + 36;
+      page.drawText('Югра.Нефть', {
+        x: headerX,
+        y: height - 110,
+        size: 28,
+        font: fontBold,
+        color: darkGray,
+      });
 
-    // Подпись платформы
-    page.drawText(`Образовательная платформа "Югра.Нефть"`, {
-      x: 100,
-      y: 40,
-      size: 10,
-      font,
-      color: rgb(0.4, 0.4, 0.4),
-    });
+      // Большой заголовок сертификата (по центру)
+      const title = 'СЕРТИФИКАТ О ЗАВЕРШЕНИИ КУРСА';
+      const titleSize = 28;
+      const titleWidth = fontBold.widthOfTextAtSize(title, titleSize);
+      page.drawText(title, {
+        x: (width - titleWidth) / 2,
+        y: height - 160,
+        size: titleSize,
+        font: fontBold,
+        color: gold,
+      });
 
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: "application/pdf" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `Сертификат_${name}_${courseTitle}.pdf`;
-    link.click();
-  } catch (error) {
-    console.error("Ошибка при создании сертификата:", error);
-  }
-};
+      // Текст: имя
+      const nameText = `${name}`;
+      const nameSize = 26;
+      const nameWidth = fontBold.widthOfTextAtSize(nameText, nameSize);
+      page.drawText(nameText, {
+        x: (width - nameWidth) / 2,
+        y: height - 240,
+        size: nameSize,
+        font: fontBold,
+        color: darkGray,
+      });
 
+      // Подпись: что завершил
+      const completedText = `успешно завершил(а) курс`;
+      const completedSize = 14;
+      const completedWidth = fontNormal.widthOfTextAtSize(completedText, completedSize);
+      page.drawText(completedText, {
+        x: (width - completedWidth) / 2,
+        y: height - 270,
+        size: completedSize,
+        font: fontNormal,
+        color: darkGray,
+      });
+
+      // Название курса
+      const courseText = `"${courseTitle}"`;
+      const courseSize = 18;
+      const courseWidth = fontBold.widthOfTextAtSize(courseText, courseSize);
+      page.drawText(courseText, {
+        x: (width - courseWidth) / 2,
+        y: height - 300,
+        size: courseSize,
+        font: fontBold,
+        color: darkGray,
+      });
+
+      // Дополнительный текст / описание
+      const description = `Вы продемонстрировали знания и навыки по темам курса.`;
+      const descSize = 12;
+      const descWidth = fontNormal.widthOfTextAtSize(description, descSize);
+      page.drawText(description, {
+        x: (width - descWidth) / 2,
+        y: height - 340,
+        size: descSize,
+        font: fontNormal,
+        color: rgb(0.25, 0.25, 0.25),
+      });
+
+      // Дата выдачи
+      const date = new Date().toLocaleDateString('ru-RU');
+      const dateText = `Дата выдачи: ${date}`;
+      page.drawText(dateText, {
+        x: outerPadding + 36,
+        y: outerPadding + 40,
+        size: 12,
+        font: fontNormal,
+        color: rgb(0.35, 0.35, 0.35),
+      });
+
+      // Подпись организации справа
+      const orgText = `Образовательная платформа «Югра.Нефть»`;
+      const orgSize = 12;
+      const orgWidth = fontNormal.widthOfTextAtSize(orgText, orgSize);
+      page.drawText(orgText, {
+        x: width - outerPadding - 36 - orgWidth,
+        y: outerPadding + 40,
+        size: orgSize,
+        font: fontNormal,
+        color: rgb(0.35, 0.35, 0.35),
+      });
+
+      // Имитация печати: круглая печать справа
+      const sealRadius = 60;
+      const sealCenterX = width - outerPadding - 140;
+      const sealCenterY = outerPadding + 120;
+
+      // Нарисуем круг (контур) печати
+      page.drawCircle({
+        x: sealCenterX,
+        y: sealCenterY,
+        size: sealRadius,
+        borderColor: gold,
+        borderWidth: 4,
+      });
+
+      // Внутри печати — текст
+      const sealText = 'Югра.Нефть';
+      const sealSize = 10;
+      const sealTextWidth = fontNormal.widthOfTextAtSize(sealText, sealSize);
+      page.drawText(sealText, {
+        x: sealCenterX - sealTextWidth / 2,
+        y: sealCenterY - sealSize / 2,
+        size: sealSize,
+        font: fontNormal,
+        color: gold,
+      });
+
+      // Сохранение PDF
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+      // Ревок предыдущего URL (чтобы не утекала память)
+      if (lastCertificateUrl) {
+        try { URL.revokeObjectURL(lastCertificateUrl); } catch {}
+      }
+
+      const blobUrl = URL.createObjectURL(blob);
+      setLastCertificateUrl(blobUrl);
+
+      return blobUrl;
+    } catch (error) {
+      console.error('Ошибка генерации сертификата:', error);
+      return null;
+    }
+  };
+
+  // Функция-обёртка для передачи в ResultsComponent
+  const handleGenerateCertificate = async (courseTitle: string) => {
+    return await generateCertificateBlobUrl(courseTitle);
+  };
 
   if (loading)
     return (
@@ -158,7 +274,7 @@ const handleDownloadCertificate = async (courseTitle: string) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* HEADER */}
+      {/* ===== HEADER ===== */}
       <header className="bg-black text-white shadow-lg">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-3">
@@ -209,7 +325,7 @@ const handleDownloadCertificate = async (courseTitle: string) => {
         </div>
       </header>
 
-      {/* MAIN */}
+      {/* ===== MAIN ===== */}
       <main className="flex-grow container mx-auto px-4 py-10">
         {user ? (
           <>
@@ -250,34 +366,12 @@ const handleDownloadCertificate = async (courseTitle: string) => {
 
       <Footer />
 
-      {/* Модальное окно курса */}
+      {/* ===== Модальное окно курса ===== */}
       <CourseModal
         isOpen={isCourseModalOpen}
         onClose={() => setIsCourseModalOpen(false)}
         course={selectedCourse}
       />
-
-      {/* Результат с сертификатом */}
-      {selectedCourseResult && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 relative">
-            <button
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-800"
-              onClick={() => setSelectedCourseResult(null)}
-            >
-              ✕
-            </button>
-            <ResultsComponent
-              results={selectedCourseResult}
-              courseName={coursesData.find(c => c.id === selectedCourseResult.course_id)?.title || selectedCourseResult.course_id}
-              onClose={() => setSelectedCourseResult(null)}
-              onDownloadCertificate={() => handleDownloadCertificate(
-                coursesData.find(c => c.id === selectedCourseResult.course_id)?.title || selectedCourseResult.course_id
-              )}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
