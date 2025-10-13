@@ -17,12 +17,17 @@ const Cabinet: React.FC = () => {
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const navigate = useNavigate();
 
-  // === Загрузка пользователя ===
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      setLoading(false);
+      try {
+        const { data } = await supabase.auth.getUser();
+        setUser(data?.user ?? null);
+      } catch (err) {
+        console.error("Ошибка получения user из Supabase:", err);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchUser();
@@ -41,7 +46,6 @@ const Cabinet: React.FC = () => {
 
   const handleExitToMain = () => navigate("/");
 
-  // === Открытие курса ===
   const handleStartCourse = (courseId: number) => {
     const course = coursesData.find((c) => c.id === courseId);
     if (course) {
@@ -57,6 +61,13 @@ const Cabinet: React.FC = () => {
       </div>
     );
 
+  // displayName — удобная человеческая подстановка: full_name > name > локальная часть email > "Пользователь"
+  const displayName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    (user?.email ? user.email.split("@")[0] : null) ||
+    "Пользователь";
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* ===== HEADER ===== */}
@@ -68,9 +79,7 @@ const Cabinet: React.FC = () => {
             </div>
             <div>
               <h1 className="text-lg md:text-xl font-bold">Личный кабинет — Югра.Нефть</h1>
-              <p className="text-xs text-gray-300 hidden md:block">
-                Ваши курсы и достижения
-              </p>
+              <p className="text-xs text-gray-300 hidden md:block">Ваши курсы и достижения</p>
             </div>
           </div>
 
@@ -80,11 +89,11 @@ const Cabinet: React.FC = () => {
                 <Link to="/profile" className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
                     <span className="text-black font-semibold">
-                      {(user.email?.[0] ?? "U").toUpperCase()}
+                      {String(displayName?.[0] ?? "U").toUpperCase()}
                     </span>
                   </div>
                   <span className="text-yellow-500 font-medium">
-                    {user.email || "Пользователь"}
+                    {displayName}
                   </span>
                 </Link>
 
@@ -113,16 +122,12 @@ const Cabinet: React.FC = () => {
         {user ? (
           <>
             <section id="courses" className="mb-16">
-              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
-                🎓 Мои курсы
-              </h2>
+              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🎓 Мои курсы</h2>
               <CoursesSection onStartCourse={handleStartCourse} />
             </section>
 
             <section id="achievements">
-              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
-                🏆 Мои достижения
-              </h2>
+              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🏆 Мои достижения</h2>
               <AchievementsSection />
             </section>
           </>
@@ -130,7 +135,8 @@ const Cabinet: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl mx-auto p-10 text-center border border-yellow-300">
             <h2 className="text-2xl font-bold mb-4 text-gray-800">Доступ ограничен 🚫</h2>
             <p className="text-gray-700 mb-6">
-              Чтобы получить доступ к курсам и сертификатам, войдите или зарегистрируйтесь.
+              Для того, чтобы получить доступ к курсам и сертификатам,
+              войдите или зарегистрируйтесь на сайте.
             </p>
             <div className="flex justify-center gap-4">
               <button
@@ -152,7 +158,6 @@ const Cabinet: React.FC = () => {
 
       <Footer />
 
-      {/* ===== Модальное окно курса ===== */}
       <CourseModal
         isOpen={isCourseModalOpen}
         onClose={() => setIsCourseModalOpen(false)}
