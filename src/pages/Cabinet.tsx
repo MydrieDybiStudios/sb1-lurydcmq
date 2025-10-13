@@ -61,7 +61,7 @@ const Cabinet: React.FC = () => {
       </div>
     );
 
-  // displayName — удобная человеческая подстановка: full_name > name > локальная часть email > "Пользователь"
+  // displayName — human readable: full_name > name > local-part of email > "Пользователь"
   const displayName =
     user?.user_metadata?.full_name ||
     user?.user_metadata?.name ||
@@ -92,9 +92,7 @@ const Cabinet: React.FC = () => {
                       {String(displayName?.[0] ?? "U").toUpperCase()}
                     </span>
                   </div>
-                  <span className="text-yellow-500 font-medium">
-                    {displayName}
-                  </span>
+                  <span className="text-yellow-500 font-medium">{displayName}</span>
                 </Link>
 
                 <button
@@ -158,11 +156,7 @@ const Cabinet: React.FC = () => {
 
       <Footer />
 
-      <CourseModal
-        isOpen={isCourseModalOpen}
-        onClose={() => setIsCourseModalOpen(false)}
-        course={selectedCourse}
-      />
+      <CourseModal isOpen={isCourseModalOpen} onClose={() => setIsCourseModalOpen(false)} course={selectedCourse} />
     </div>
   );
 };
