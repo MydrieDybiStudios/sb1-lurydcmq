@@ -64,10 +64,15 @@ const AchievementsSection: React.FC = () => {
   }, [userId]);
 
   if (loading)
-    return <p className="text-center text-gray-500 py-16">Загрузка достижений...</p>;
+    return (
+      <p className="text-center text-gray-500 py-16">
+        Загрузка достижений...
+      </p>
+    );
 
   return (
-
+    <section id="achievements" className="py-12 bg-gray-50">
+      <div className="container mx-auto px-4">
         {!userId ? (
           <p className="text-center text-gray-500">
             🔐 Войдите в аккаунт, чтобы увидеть свои достижения.
