@@ -86,6 +86,10 @@ const Cabinet: React.FC = () => {
     }
   };
 
+  const handleGoToProfile = () => {
+    setActiveSection("profile");
+  };
+
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -157,7 +161,12 @@ const Cabinet: React.FC = () => {
                   </button>
                 </nav>
 
-                <div className="flex items-center gap-3">
+                {/* Кликабельные аватар и никнейм */}
+                <div 
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={handleGoToProfile}
+                  title="Перейти в профиль"
+                >
                   <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
                     {profile?.avatar_url ? (
                       <img
