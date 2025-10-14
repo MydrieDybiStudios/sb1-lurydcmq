@@ -102,12 +102,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 860);
       ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 920);
 
-      // === НИЖНИЙ ЗОЛОТОЙ ДЕКОР ===
-      ctx.fillStyle = "#FFD700";
-      ctx.fillRect(0, canvasHeight - 100, canvasWidth, 12);
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(0, canvasHeight - 88, canvasWidth, 8);
-
       // === ПОДПИСЬ / ДАТА ===
       const dateStr = new Date().toLocaleDateString("ru-RU");
       ctx.font = "400 36px Arial";
