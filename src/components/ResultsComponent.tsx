@@ -1,7 +1,7 @@
 // src/components/ResultsComponent.tsx
 import React, { useEffect, useState } from "react";
-import { CheckCircle, Award, X } from "lucide-react";
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { CheckCircle, Award } from "lucide-react";
+import { PDFDocument } from "pdf-lib";
 import { supabase } from "../lib/supabaseClient";
 
 interface ResultsComponentProps {
@@ -13,16 +13,18 @@ interface ResultsComponentProps {
 const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName, onClose }) => {
   const [userName, setUserName] = useState<string>("Участник");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
+  // Загружаем актуальное имя из таблицы profiles (first_name + last_name)
   useEffect(() => {
     const loadProfileName = async () => {
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          setUserName("Участник");
+          return;
+        }
 
         const { data: profile } = await supabase
           .from("profiles")
@@ -31,15 +33,17 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
           .maybeSingle();
 
         if (profile) {
-          const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
-          setUserName(fullName || "Участник");
+          const full = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+          setUserName(full || user.email?.split("@")[0] || "Участник");
         } else {
           setUserName(user.email?.split("@")[0] || "Участник");
         }
       } catch (err) {
-        console.warn("Ошибка при загрузке профиля:", err);
+        console.warn("Не удалось загрузить профиль:", err);
+        setUserName("Участник");
       }
     };
+
     loadProfileName();
   }, []);
 
@@ -68,88 +72,131 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
 
+  // Генерация сертификата: рисуем на canvas (поддерживается кириллица), затем встраиваем PNG в PDF (pdf-lib)
   const handleDownloadCertificate = async () => {
     setIsGenerating(true);
     try {
-      const pdfDoc = await PDFDocument.create();
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      const page = pdfDoc.addPage([1122, 794]); // A4 landscape
-      const { width, height } = page.getSize();
+      // Обновим имя из профиля перед генерацией (на всякий случай)
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("first_name, last_name")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (profile) {
+            const full = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+            if (full) setUserName(full);
+          }
+        }
+      } catch (err) {
+        console.warn("Не удалось обновить имя перед генерацией:", err);
+      }
 
-      const gold = rgb(0.82, 0.64, 0.12);
-      const dark = rgb(0.1, 0.1, 0.1);
+      // Параметры canvas (A4-like landscape for good quality)
+      const canvasWidth = 2480; // ~A4 300dpi width landscape
+      const canvasHeight = 1754; // ~A4 300dpi height
+      const padding = 120;
 
-      page.drawRectangle({
-        x: 40,
-        y: 40,
-        width: width - 80,
-        height: height - 80,
-        borderColor: gold,
-        borderWidth: 6,
-      });
+      const canvas = document.createElement("canvas");
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Canvas не поддерживается в этом окружении");
 
-      const title = "СЕРТИФИКАТ О ЗАВЕРШЕНИИ КУРСА";
-      const titleSize = 28;
-      const titleWidth = font.widthOfTextAtSize(title, titleSize);
-      page.drawText(title, {
-        x: (width - titleWidth) / 2,
-        y: height - 140,
-        size: titleSize,
-        font,
-        color: gold,
-      });
+      // Фон
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      const nameSize = 26;
-      const nameWidth = font.widthOfTextAtSize(userName, nameSize);
-      page.drawText(userName, {
-        x: (width - nameWidth) / 2,
-        y: height - 200,
-        size: nameSize,
-        font,
-        color: dark,
-      });
+      // Рамка — толстая золотая
+      ctx.strokeStyle = "#D4AF37"; // золотой
+      ctx.lineWidth = 40;
+      roundRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 30, false, true);
 
+      // Внутренняя тонкая рамка
+      ctx.strokeStyle = "#E6C87E";
+      ctx.lineWidth = 8;
+      roundRect(ctx, padding, padding, canvasWidth - padding * 2, canvasHeight - padding * 2, 20, false, true);
+
+      // Заголовок
+      ctx.fillStyle = "#333333";
+      ctx.font = "bold 72px Arial, Helvetica, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#D4AF37";
+      ctx.fillText("СЕРТИФИКАТ О ЗАВЕРШЕНИИ КУРСА", canvasWidth / 2, padding + 140);
+
+      // Имя
+      ctx.fillStyle = "#111111";
+      ctx.font = "bold 64px Arial, Helvetica, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(userName, canvasWidth / 2, padding + 300);
+
+      // Курс
+      ctx.font = "400 40px Arial, Helvetica, sans-serif";
       const courseLine = `успешно завершил(а) курс «${courseName}»`;
-      const courseWidth = font.widthOfTextAtSize(courseLine, 16);
-      page.drawText(courseLine, {
-        x: (width - courseWidth) / 2,
-        y: height - 240,
-        size: 16,
-        font,
-        color: dark,
-      });
+      ctx.fillStyle = "#111111";
+      wrapTextCentered(ctx, courseLine, canvasWidth / 2, padding + 360, canvasWidth - padding * 4, 42);
 
-      const date = new Date().toLocaleDateString("ru-RU");
-      page.drawText(`Дата выдачи: ${date}`, {
-        x: 60,
-        y: 70,
-        size: 12,
-        font,
-        color: rgb(0.35, 0.35, 0.35),
-      });
+      // Дата и подпись
+      const dateStr = new Date().toLocaleDateString("ru-RU");
+      ctx.font = "400 28px Arial, Helvetica, sans-serif";
+      ctx.fillStyle = "#555555";
+      ctx.textAlign = "left";
+      ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 40);
 
       const org = 'Образовательная платформа "Югра.Нефть"';
-      const orgWidth = font.widthOfTextAtSize(org, 12);
-      page.drawText(org, {
-        x: width - 60 - orgWidth,
-        y: 70,
-        size: 12,
-        font,
-        color: rgb(0.35, 0.35, 0.35),
+      ctx.textAlign = "right";
+      ctx.fillText(org, canvasWidth - padding - 40, canvasHeight - padding - 40);
+
+      // Небольшой декоративный элемент (полоса снизу)
+      ctx.fillStyle = "#111111";
+      ctx.fillRect(padding + 40, canvasHeight - padding - 100, canvasWidth - padding * 2 - 80, 6);
+
+      // Конвертируем canvas -> blob (PNG)
+      const pngBlob: Blob | null = await new Promise((res) =>
+        canvas.toBlob((b) => res(b), "image/png", 1)
+      );
+
+      if (!pngBlob) throw new Error("Не удалось создать изображение сертификата");
+
+      // Вставляем PNG в PDF (pdf-lib) — не нужен fontkit
+      const pdfDoc = await PDFDocument.create();
+      const pngBytes = await pngBlob.arrayBuffer();
+      const pngImage = await pdfDoc.embedPng(pngBytes);
+
+      // Создаём страницу под размер изображения
+      const page = pdfDoc.addPage([pngImage.width, pngImage.height]);
+      page.drawImage(pngImage, {
+        x: 0,
+        y: 0,
+        width: pngImage.width,
+        height: pngImage.height,
       });
 
       const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: "application/pdf" });
-      const url = URL.createObjectURL(blob);
+      const finalBlob = new Blob([pdfBytes], { type: "application/pdf" });
 
+      // Скачивание
+      const url = URL.createObjectURL(finalBlob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `Сертификат_${safeFileName(userName)}_${safeFileName(courseName)}.pdf`;
+      document.body.appendChild(a);
       a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Ошибка генерации сертификата:", err);
-      alert("Ошибка при создании PDF. Подробности — в консоли.");
+      a.remove();
+
+      // Очистка
+      setTimeout(() => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {}
+      }, 60_000);
+    } catch (err: any) {
+      console.error("Ошибка при генерации сертификата:", err);
+      alert(err?.message ? `Ошибка: ${err.message}` : "Не удалось сгенерировать сертификат — см. консоль.");
     } finally {
       setIsGenerating(false);
     }
@@ -206,3 +253,46 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 };
 
 export default ResultsComponent;
+
+/* ======= ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ======= */
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill = false, stroke = true) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+  if (fill) ctx.fill();
+  if (stroke) ctx.stroke();
+}
+
+// Центрированный перенос текста по ширине (wrap)
+function wrapTextCentered(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  centerX: number,
+  startY: number,
+  maxWidth: number,
+  lineHeight: number
+) {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let current = "";
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const test = current ? current + " " + word : word;
+    const w = ctx.measureText(test).width;
+    if (w > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], centerX, startY + i * lineHeight);
+  }
+}
