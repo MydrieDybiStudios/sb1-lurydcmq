@@ -12,6 +12,17 @@ interface ResultsComponentProps {
   onRestart: () => void;
 }
 
+// Маппинг courseId на course_key для достижений
+const courseKeyMapping: Record<number, string> = {
+  1: 'course_1',
+  2: 'course_2', 
+  3: 'course_3',
+  4: 'course_4',
+  5: 'course_5',
+  6: 'course_6',
+  7: 'course_7'
+};
+
 const ResultsComponent: React.FC<ResultsComponentProps> = ({ 
   results, 
   courseName, 
@@ -22,12 +33,15 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
   const [userName, setUserName] = useState<string>("Участник");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCourseCompleted, setIsCourseCompleted] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProfileAndCompletion = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+        
+        setUserId(user.id);
 
         // Загрузка профиля пользователя
         const { data: profile } = await supabase
@@ -59,38 +73,158 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
     loadProfileAndCompletion();
   }, [results, courseId]);
 
-  const saveCourseCompletion = async () => {
-    if (!results || results.percentage < 70) return;
+  // Функция автоматической выдачи достижения за курс
+  const awardCourseAchievement = async () => {
+    if (!userId || !results || results.percentage < 70) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const courseKey = courseKeyMapping[courseId];
+      if (!courseKey) {
+        console.error(`Не найден course_key для courseId: ${courseId}`);
+        return;
+      }
 
+      // Находим achievement_id для этого курса
+      const { data: achievement, error: achievementError } = await supabase
+        .from('achievements')
+        .select('id')
+        .eq('course_key', courseKey)
+        .single();
+
+      if (achievementError) {
+        console.error('Ошибка поиска достижения:', achievementError);
+        return;
+      }
+
+      if (achievement) {
+        // Проверяем, не получено ли уже это достижение
+        const { data: existingAchievement } = await supabase
+          .from('user_achievements')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('achievement_id', achievement.id)
+          .single();
+
+        if (!existingAchievement) {
+          // Добавляем достижение пользователю
+          const { error: insertError } = await supabase
+            .from('user_achievements')
+            .insert({
+              user_id: userId,
+              achievement_id: achievement.id,
+              earned_at: new Date().toISOString()
+            });
+
+          if (insertError) {
+            console.error('Ошибка выдачи достижения:', insertError);
+          } else {
+            console.log(`Достижение за курс ${courseKey} выдано пользователю ${userId}`);
+          }
+        }
+      }
+
+      // Проверяем, все ли курсы пройдены для выдачи общего достижения
+      await checkAllCoursesCompleted();
+    } catch (error) {
+      console.error('Ошибка в awardCourseAchievement:', error);
+    }
+  };
+
+  // Функция проверки завершения всех курсов
+  const checkAllCoursesCompleted = async () => {
+    if (!userId) return;
+
+    try {
+      // Получаем все завершенные курсы пользователя
+      const { data: completedCourses, error } = await supabase
+        .from('completed_courses')
+        .select('course_id')
+        .eq('user_id', userId);
+
+      if (error) {
+        console.error('Ошибка получения завершенных курсов:', error);
+        return;
+      }
+
+      // Если пройдено 7 курсов
+      if (completedCourses && completedCourses.length >= 7) {
+        // Находим achievement_id для общего достижения
+        const { data: allAchievement, error: allError } = await supabase
+          .from('achievements')
+          .select('id')
+          .eq('course_key', 'all_courses')
+          .single();
+
+        if (allError) {
+          console.error('Ошибка поиска общего достижения:', allError);
+          return;
+        }
+
+        if (allAchievement) {
+          // Проверяем, не получено ли уже это достижение
+          const { data: existingAllAchievement } = await supabase
+            .from('user_achievements')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('achievement_id', allAchievement.id)
+            .single();
+
+          if (!existingAllAchievement) {
+            // Выдаем общее достижение
+            const { error: insertAllError } = await supabase
+              .from('user_achievements')
+              .insert({
+                user_id: userId,
+                achievement_id: allAchievement.id,
+                earned_at: new Date().toISOString()
+              });
+
+            if (insertAllError) {
+              console.error('Ошибка выдачи общего достижения:', insertAllError);
+            } else {
+              console.log(`Общее достижение выдано пользователю ${userId}`);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка в checkAllCoursesCompleted:', error);
+    }
+  };
+
+  const saveCourseCompletion = async () => {
+    if (!results || results.percentage < 70 || !userId) return;
+
+    try {
       const { error } = await supabase
         .from("completed_courses")
         .upsert({
-          user_id: user.id,
+          user_id: userId,
           course_id: courseId,
           course_name: courseName,
           score: results.score,
           total: results.total,
-          percentage: results.percentage
+          percentage: results.percentage,
+          completed_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,course_id'
         });
 
       if (error) throw error;
       setIsCourseCompleted(true);
+      
+      // Выдаем достижение за курс
+      await awardCourseAchievement();
     } catch (error) {
       console.error("Ошибка сохранения курса:", error);
     }
   };
 
   useEffect(() => {
-    if (results && results.percentage >= 70 && !isCourseCompleted) {
+    if (results && results.percentage >= 70 && !isCourseCompleted && userId) {
       saveCourseCompletion();
     }
-  }, [results, isCourseCompleted]);
+  }, [results, isCourseCompleted, userId]);
 
   const checkCertificateEligibility = async (): Promise<boolean> => {
     try {
