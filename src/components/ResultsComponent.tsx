@@ -120,7 +120,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
       ctx.fillStyle = "#1E3A8A";
       ctx.font = "italic 36px Arial";
-      ctx.fillText("Р. Кузоваткин", canvasWidth - padding - 80, canvasHeight - padding - 80);
+      ctx.fillText("Р.И. Кузоваткин", canvasWidth - padding - 80, canvasHeight - padding - 80);
 
       ctx.fillStyle = "#000";
       ctx.font = "400 30px Arial";
