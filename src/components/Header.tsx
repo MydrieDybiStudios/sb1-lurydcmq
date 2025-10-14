@@ -100,22 +100,21 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
 
         {/* Навигация — десктоп */}
         <nav className="hidden md:flex space-x-6">
-          <a href="#courses" className="hover:text-yellow-400 transition">
-            Курсы
-          </a>
-          <a href="#about" className="hover:text-yellow-400 transition">
-            О платформе
-          </a>
-          <a href="#achievements" className="hover:text-yellow-400 transition">
-            Достижения
-          </a>
+          <Link to="/about" className="hover:text-yellow-400 transition">
+            О проекте
+          </Link>
+          {user && (
+            <Link to="/cabinet" className="hover:text-yellow-400 transition">
+              Мои курсы
+            </Link>
+          )}
         </nav>
 
         {/* Блок справа */}
         <div className="flex items-center space-x-4">
           {user ? (
             <>
-              <Link to="/profile" className="flex items-center gap-3">
+              <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
                   {profile?.avatar_url ? (
                     <img
@@ -129,12 +128,11 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
                     </span>
                   )}
                 </div>
-                <span className="text-yellow-500 hover:text-yellow-400 font-medium">
+                <span className="text-yellow-500 hover:text-yellow-400 font-medium hidden sm:block">
                   {profile?.first_name || user.email || "Пользователь"}
                 </span>
-              </Link>
+              </div>
 
-              {/* 🔥 Новая кнопка — Личный кабинет */}
               <Link
                 to="/cabinet"
                 className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
@@ -182,23 +180,35 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
         className={`md:hidden bg-black py-2 px-4 ${isMobileMenuOpen ? "block" : "hidden"}`}
       >
         <div className="flex flex-col space-y-3">
-          <a href="#courses" className="hover:text-yellow-400 transition">
-            Курсы
-          </a>
-          <a href="#about" className="hover:text-yellow-400 transition">
-            О платформе
-          </a>
-          <a href="#achievements" className="hover:text-yellow-400 transition">
-            Достижения
-          </a>
-          {user && (
+          <Link to="/about" className="hover:text-yellow-400 transition">
+            О проекте
+          </Link>
+          {user ? (
             <>
-              <Link to="/profile" className="text-yellow-500 hover:text-yellow-400 transition">
-                Профиль
-              </Link>
               <Link to="/cabinet" className="text-yellow-500 hover:text-yellow-400 transition">
                 Личный кабинет
               </Link>
+              <button 
+                onClick={handleLogout}
+                className="text-yellow-500 hover:text-yellow-400 transition text-left"
+              >
+                Выйти
+              </button>
+            </>
+          ) : (
+            <>
+              <button 
+                onClick={onLogin}
+                className="text-yellow-500 hover:text-yellow-400 transition text-left"
+              >
+                Войти
+              </button>
+              <button 
+                onClick={onRegister}
+                className="text-yellow-500 hover:text-yellow-400 transition text-left"
+              >
+                Регистрация
+              </button>
             </>
           )}
         </div>
