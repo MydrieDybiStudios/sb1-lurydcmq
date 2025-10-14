@@ -60,27 +60,21 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas не поддерживается");
 
-      // === ФОН ===
+      // === ФОН (градиент в фирменных тонах Роснефти) ===
       const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-      gradient.addColorStop(0, "#fff8e1");
-      gradient.addColorStop(1, "#fffde7");
+      gradient.addColorStop(0, "#fffef5");
+      gradient.addColorStop(1, "#fff9e5");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      // === РАМКА ===
+      // === РАМКА золотистая ===
       ctx.strokeStyle = "#D4AF37";
       ctx.lineWidth = 40;
       roundRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 50, false, true);
 
-      // === ВЕРХНИЙ БАР В ЦВЕТАХ РОСНЕФТИ ===
-      ctx.fillStyle = "#000000";
-      ctx.fillRect(0, 0, canvasWidth, 140);
-      ctx.fillStyle = "#FFD700";
-      ctx.fillRect(0, 140, canvasWidth, 15);
-
-      // === ТИТУЛ ===
+      // === ЗАГОЛОВОК ===
       ctx.fillStyle = "#D4AF37";
-      ctx.font = "bold 100px Arial";
+      ctx.font = "bold 110px Arial";
       ctx.textAlign = "center";
       ctx.fillText("СЕРТИФИКАТ", canvasWidth / 2, padding + 200);
 
@@ -91,32 +85,39 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       // === ИМЯ ===
       ctx.fillStyle = "#000";
       ctx.font = "bold 90px Arial";
-      ctx.fillText(userName, canvasWidth / 2, padding + 480);
+      ctx.fillText(userName, canvasWidth / 2, padding + 460);
 
       // === КУРС ===
       ctx.font = "400 50px Arial";
-      ctx.fillText(`успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 560);
+      ctx.fillText(`успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 550);
 
       // === РЕЗУЛЬТАТЫ ===
       ctx.fillStyle = "#D4AF37";
       ctx.font = "bold 60px Arial";
-      ctx.fillText("РЕЗУЛЬТАТЫ ТЕСТА", canvasWidth / 2, padding + 740);
+      ctx.fillText("РЕЗУЛЬТАТЫ ТЕСТА", canvasWidth / 2, padding + 720);
 
       ctx.fillStyle = "#000";
       ctx.font = "400 48px Arial";
-      ctx.fillText(`Правильных ответов: ${score} из ${total}`, canvasWidth / 2, padding + 820);
-      ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 880);
-      ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 940);
+      ctx.fillText(`Правильных ответов: ${score} из ${total}`, canvasWidth / 2, padding + 800);
+      ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 860);
+      ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 920);
+
+      // === НИЖНИЙ ЗОЛОТОЙ ДЕКОР ===
+      ctx.fillStyle = "#FFD700";
+      ctx.fillRect(0, canvasHeight - 100, canvasWidth, 12);
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(0, canvasHeight - 88, canvasWidth, 8);
 
       // === ПОДПИСЬ / ДАТА ===
       const dateStr = new Date().toLocaleDateString("ru-RU");
       ctx.font = "400 36px Arial";
       ctx.textAlign = "left";
+      ctx.fillStyle = "#000";
       ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 160);
 
-      // Подпись с имитацией "ручкой"
+      // Подпись
       ctx.textAlign = "right";
-      ctx.strokeStyle = "#1E3A8A"; // насыщенный синий
+      ctx.strokeStyle = "#1E3A8A";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(canvasWidth - padding - 420, canvasHeight - padding - 150);
@@ -131,11 +132,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       ctx.font = "400 30px Arial";
       ctx.fillText("Подпись", canvasWidth - padding - 230, canvasHeight - padding - 40);
 
-      // === ПОДПИСЬ ОРГАНИЗАЦИИ ===
+      // === ОРГАНИЗАЦИЯ ===
       ctx.textAlign = "center";
-      ctx.fillStyle = "#555";
-      ctx.font = "italic 34px Arial";
-      ctx.fillText("«Цифровая образовательная среда “Югра.Нефть”»", canvasWidth / 2, canvasHeight - padding + 20);
+      ctx.fillStyle = "#444";
+      ctx.font = "italic 36px Arial";
+      ctx.fillText("Цифровая образовательная среда «Югра.Нефть»", canvasWidth / 2, canvasHeight - padding + 10);
 
       // === СОХРАНЕНИЕ PDF ===
       const pngBlob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png", 1));
@@ -207,7 +208,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
 export default ResultsComponent;
 
-/* === ВСПОМОГАТЕЛЬНАЯ === */
+/* === ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ === */
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill = false, stroke = true) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
