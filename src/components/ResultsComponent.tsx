@@ -8,20 +8,17 @@ import { useNavigate } from "react-router-dom";
 interface ResultsComponentProps {
   results: { score: number; total: number; percentage: number } | null;
   courseName: string;
-  onClose?: () => void;
 }
 
-const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName, onClose }) => {
+const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName }) => {
   const navigate = useNavigate();
 
   const [userName, setUserName] = useState<string>("Участник");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCertificateAvailable, setIsCertificateAvailable] = useState(false);
-  const [isCourseCompleted, setIsCourseCompleted] = useState(false);
 
   // загрузка имени пользователя
   useEffect(() => {
-    let mounted = true;
     const loadProfileName = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
@@ -31,36 +28,25 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
           .select("first_name, last_name")
           .eq("id", user.id)
           .maybeSingle();
-        if (!mounted) return;
         if (profile) {
           const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
           setUserName(fullName || "Участник");
         }
       } catch {
-        if (mounted) setUserName("Участник");
+        setUserName("Участник");
       }
     };
     loadProfileName();
-    return () => { mounted = false; };
   }, []);
 
   if (!results) return null;
 
-  const { score = 0, total = 0, percentage = 0 } = results;
+  const { score, total, percentage } = results;
   const incorrect = total - score;
   const isPassed = percentage >= 50;
 
-  const resultTitle = isPassed ? "Поздравляем!" : "Попробуйте снова!";
-  const resultClass = isPassed ? "bg-yellow-500" : "bg-red-500";
-
   useEffect(() => {
-    if (percentage >= 70) {
-      setIsCertificateAvailable(true);
-      setIsCourseCompleted(true);
-    } else {
-      setIsCertificateAvailable(false);
-      setIsCourseCompleted(false);
-    }
+    setIsCertificateAvailable(percentage >= 70);
   }, [percentage]);
 
   const safeFileName = (s: string) =>
@@ -154,7 +140,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
       setTimeout(() => URL.revokeObjectURL(url), 60000);
 
-      // помечаем, что сертификат сгенерирован
+      // сохраняем факт генерации сертификата локально
       localStorage.setItem("certificateGenerated", "1");
     } catch (err: any) {
       console.error("Ошибка генерации сертификата:", err);
@@ -164,16 +150,14 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     }
   };
 
-  // возврат к курсам
+  // Сброс прогресса и возврат к курсам
   const handleReturnToCourses = () => {
     setIsCertificateAvailable(false);
-    setIsCourseCompleted(false);
     localStorage.removeItem("currentCourseResults");
     localStorage.removeItem("certificateGenerated");
 
+    // мягкий переход на страницу курсов без перезагрузки
     navigate("/cabinet", { replace: true });
-
-    if (onClose) onClose();
   };
 
   return (
@@ -200,7 +184,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
         <p className="text-sm text-gray-600">{percentage}% правильных ответов</p>
       </div>
 
-      {isCertificateAvailable && isCourseCompleted && (
+      {isCertificateAvailable && (
         <div className="mb-8">
           <p className="text-gray-700 mb-4">Поздравляем, {userName}! Вы можете получить именной сертификат.</p>
           <button
@@ -231,7 +215,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
 export default ResultsComponent;
 
-// вспомогательная функция
 function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number,
