@@ -81,6 +81,10 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
     navigate("/");
   };
 
+  const handleProfileClick = () => {
+    navigate("/cabinet");
+  };
+
   return (
     <header className="bg-black text-white shadow-lg">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -114,8 +118,13 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
         <div className="flex items-center space-x-4">
           {user ? (
             <>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
+              {/* Кликабельные аватар и имя пользователя */}
+              <div 
+                className="flex items-center gap-3 cursor-pointer group"
+                onClick={handleProfileClick}
+                title="Перейти в профиль"
+              >
+                <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400 group-hover:border-yellow-300 transition-colors">
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
@@ -128,7 +137,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
                     </span>
                   )}
                 </div>
-                <span className="text-yellow-500 hover:text-yellow-400 font-medium hidden sm:block">
+                <span className="text-yellow-500 hover:text-yellow-400 font-medium hidden sm:block group-hover:text-yellow-300 transition-colors">
                   {profile?.first_name || user.email || "Пользователь"}
                 </span>
               </div>
@@ -185,11 +194,44 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
           </Link>
           {user ? (
             <>
-              <Link to="/cabinet" className="text-yellow-500 hover:text-yellow-400 transition">
+              {/* В мобильном меню также делаем профиль кликабельным */}
+              <div 
+                className="flex items-center gap-3 cursor-pointer py-2"
+                onClick={() => {
+                  handleProfileClick();
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt="avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-black font-semibold text-sm">
+                      {(profile?.first_name?.[0] ?? user.email?.[0] ?? "U").toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <span className="text-yellow-500 font-medium">
+                  {profile?.first_name || user.email || "Пользователь"}
+                </span>
+              </div>
+
+              <Link 
+                to="/cabinet" 
+                className="text-yellow-500 hover:text-yellow-400 transition"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
                 Личный кабинет
               </Link>
               <button 
-                onClick={handleLogout}
+                onClick={() => {
+                  handleLogout();
+                  setIsMobileMenuOpen(false);
+                }}
                 className="text-yellow-500 hover:text-yellow-400 transition text-left"
               >
                 Выйти
@@ -198,13 +240,19 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
           ) : (
             <>
               <button 
-                onClick={onLogin}
+                onClick={() => {
+                  onLogin();
+                  setIsMobileMenuOpen(false);
+                }}
                 className="text-yellow-500 hover:text-yellow-400 transition text-left"
               >
                 Войти
               </button>
               <button 
-                onClick={onRegister}
+                onClick={() => {
+                  onRegister();
+                  setIsMobileMenuOpen(false);
+                }}
                 className="text-yellow-500 hover:text-yellow-400 transition text-left"
               >
                 Регистрация
