@@ -9,17 +9,18 @@ import Footer from "./components/Footer";
 import AuthModals from "./components/AuthModals";
 import CourseModal from "./components/CourseModal";
 import Profile from "./pages/Profile";
-import Cabinet from "./pages/Cabinet"; // 👈 новая страница личного кабинета
+import Cabinet from "./pages/Cabinet";
+import AboutProject from "./pages/AboutProject";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
-import Cabinet from "./pages/Cabinet";
 
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false); // 👈 имитация авторизации
 
   const handleStartCourse = (courseId: number) => {
     const course = coursesData.find((course) => course.id === courseId);
@@ -32,9 +33,7 @@ function App() {
   const handleLogin = () => setIsLoginModalOpen(true);
   const handleRegister = () => setIsRegisterModalOpen(true);
 
-  // При успешной авторизации
   const handleAuthSuccess = () => {
-    setIsAuthenticated(true);
     setIsLoginModalOpen(false);
     setIsRegisterModalOpen(false);
   };
@@ -50,7 +49,6 @@ function App() {
               <Header
                 onLogin={handleLogin}
                 onRegister={handleRegister}
-                isAuthenticated={isAuthenticated}
               />
 
               <HeroSection />
@@ -73,7 +71,7 @@ function App() {
                   setIsLoginModalOpen(false);
                   setIsRegisterModalOpen(true);
                 }}
-                onAuthSuccess={handleAuthSuccess} // 👈 вызывается после входа
+                onAuthSuccess={handleAuthSuccess}
               />
 
               <CourseModal
@@ -85,18 +83,23 @@ function App() {
           }
         />
 
-        {/* Профиль (если был ранее) */}
+        {/* Профиль */}
         <Route path="/profile" element={<Profile />} />
 
-        {/* Новый личный кабинет */}
-        
+        {/* Личный кабинет */}
+        <Route path="/cabinet" element={<Cabinet />} />
 
-<Route path="/cabinet" element={<Cabinet />} />
+        {/* О проекте */}
+        <Route path="/about" element={<AboutProject />} />
 
+        {/* Политика конфиденциальности */}
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+        {/* Условия использования */}
+        <Route path="/terms-of-service" element={<TermsOfService />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
