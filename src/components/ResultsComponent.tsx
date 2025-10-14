@@ -1,8 +1,6 @@
-// src/components/ResultsComponent.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { CheckCircle, Award } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
-import { supabase } from "../lib/supabaseClient";
 
 interface ResultsComponentProps {
   results: { score: number; total: number; percentage: number } | null;
@@ -11,41 +9,8 @@ interface ResultsComponentProps {
 }
 
 const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName, onClose }) => {
-  const [userName, setUserName] = useState<string>("Участник");
   const [isGenerating, setIsGenerating] = useState(false);
-
-  // Загружаем актуальное имя из таблицы profiles (first_name + last_name)
-  useEffect(() => {
-    const loadProfileName = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          setUserName("Участник");
-          return;
-        }
-
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("first_name, last_name")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (profile) {
-          const full = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
-          setUserName(full || user.email?.split("@")[0] || "Участник");
-        } else {
-          setUserName(user.email?.split("@")[0] || "Участник");
-        }
-      } catch (err) {
-        console.warn("Не удалось загрузить профиль:", err);
-        setUserName("Участник");
-      }
-    };
-
-    loadProfileName();
-  }, []);
+  const [userName] = useState("Участник"); // Без загрузки из БД, просто Участник
 
   if (!results) return null;
 
@@ -72,102 +37,93 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
 
-  // Генерация сертификата: рисуем на canvas (поддерживается кириллица), затем встраиваем PNG в PDF (pdf-lib)
+  // Генерация красивого сертификата
   const handleDownloadCertificate = async () => {
     setIsGenerating(true);
     try {
-      // Обновим имя из профиля перед генерацией (на всякий случай)
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("first_name, last_name")
-            .eq("id", user.id)
-            .maybeSingle();
-          if (profile) {
-            const full = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
-            if (full) setUserName(full);
-          }
-        }
-      } catch (err) {
-        console.warn("Не удалось обновить имя перед генерацией:", err);
-      }
-
-      // Параметры canvas (A4-like landscape for good quality)
-      const canvasWidth = 2480; // ~A4 300dpi width landscape
-      const canvasHeight = 1754; // ~A4 300dpi height
+      const canvasWidth = 2480; // A4 landscape
+      const canvasHeight = 1754;
       const padding = 120;
 
       const canvas = document.createElement("canvas");
       canvas.width = canvasWidth;
       canvas.height = canvasHeight;
       const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas не поддерживается в этом окружении");
+      if (!ctx) throw new Error("Canvas не поддерживается");
 
-      // Фон
-      ctx.fillStyle = "#ffffff";
+      // === ФОН ===
+      const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
+      gradient.addColorStop(0, "#fffefc");
+      gradient.addColorStop(1, "#f5f2e8");
+      ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      // Рамка — толстая золотая
-      ctx.strokeStyle = "#D4AF37"; // золотой
+      // === ВНЕШНЯЯ РАМКА ===
+      ctx.strokeStyle = "#000000";
       ctx.lineWidth = 40;
-      roundRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 30, false, true);
+      roundRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 40, false, true);
 
-      // Внутренняя тонкая рамка
-      ctx.strokeStyle = "#E6C87E";
-      ctx.lineWidth = 8;
-      roundRect(ctx, padding, padding, canvasWidth - padding * 2, canvasHeight - padding * 2, 20, false, true);
+      // === ВНУТРЕННЯЯ РАМКА (золотистая) ===
+      ctx.strokeStyle = "#D4AF37";
+      ctx.lineWidth = 12;
+      roundRect(ctx, padding, padding, canvasWidth - padding * 2, canvasHeight - padding * 2, 25, false, true);
 
-      // Заголовок
-      ctx.fillStyle = "#333333";
-      ctx.font = "bold 72px Arial, Helvetica, sans-serif";
+      // === ЗАГОЛОВОК ===
       ctx.textAlign = "center";
-      ctx.fillStyle = "#D4AF37";
-      ctx.fillText("СЕРТИФИКАТ О ЗАВЕРШЕНИИ КУРСА", canvasWidth / 2, padding + 140);
+      ctx.fillStyle = "#000000";
+      ctx.font = "bold 72px Arial, Helvetica, sans-serif";
+      ctx.fillText("СЕРТИФИКАТ", canvasWidth / 2, padding + 150);
 
-      // Имя
+      ctx.fillStyle = "#D4AF37";
+      ctx.font = "bold 48px Arial, Helvetica, sans-serif";
+      ctx.fillText("О ЗАВЕРШЕНИИ КУРСА", canvasWidth / 2, padding + 220);
+
+      // === ИМЯ ===
       ctx.fillStyle = "#111111";
       ctx.font = "bold 64px Arial, Helvetica, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(userName, canvasWidth / 2, padding + 300);
+      ctx.fillText(userName, canvasWidth / 2, padding + 400);
 
-      // Курс
+      // === КУРС ===
       ctx.font = "400 40px Arial, Helvetica, sans-serif";
       const courseLine = `успешно завершил(а) курс «${courseName}»`;
-      ctx.fillStyle = "#111111";
-      wrapTextCentered(ctx, courseLine, canvasWidth / 2, padding + 360, canvasWidth - padding * 4, 42);
+      ctx.fillStyle = "#333333";
+      wrapTextCentered(ctx, courseLine, canvasWidth / 2, padding + 470, canvasWidth - padding * 4, 50);
 
-      // Дата и подпись
+      // === ДЕКОРАТИВНАЯ ПОЛОСА ===
+      ctx.fillStyle = "#000000";
+      ctx.fillRect(padding * 2, padding + 550, canvasWidth - padding * 4, 6);
+      ctx.fillStyle = "#D4AF37";
+      ctx.fillRect(padding * 2, padding + 556, canvasWidth - padding * 4, 6);
+
+      // === ДАТА И ОРГАНИЗАЦИЯ ===
       const dateStr = new Date().toLocaleDateString("ru-RU");
-      ctx.font = "400 28px Arial, Helvetica, sans-serif";
-      ctx.fillStyle = "#555555";
+      ctx.font = "400 30px Arial, Helvetica, sans-serif";
+      ctx.fillStyle = "#333333";
       ctx.textAlign = "left";
-      ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 40);
+      ctx.fillText(`Дата: ${dateStr}`, padding + 50, canvasHeight - padding - 50);
 
-      const org = 'Образовательная платформа "Югра.Нефть"';
       ctx.textAlign = "right";
-      ctx.fillText(org, canvasWidth - padding - 40, canvasHeight - padding - 40);
+      ctx.fillText("Образовательная платформа «Югра.Нефть»", canvasWidth - padding - 50, canvasHeight - padding - 50);
 
-      // Небольшой декоративный элемент (полоса снизу)
-      ctx.fillStyle = "#111111";
-      ctx.fillRect(padding + 40, canvasHeight - padding - 100, canvasWidth - padding * 2 - 80, 6);
+      // === ЭМБЛЕМА / СИМВОЛ (имитация лого) ===
+      ctx.save();
+      ctx.translate(canvasWidth / 2, padding + 280);
+      ctx.fillStyle = "#000000";
+      ctx.beginPath();
+      ctx.moveTo(0, -40);
+      ctx.lineTo(20, 0);
+      ctx.lineTo(-20, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
 
-      // Конвертируем canvas -> blob (PNG)
-      const pngBlob: Blob | null = await new Promise((res) =>
-        canvas.toBlob((b) => res(b), "image/png", 1)
-      );
+      // === КОНВЕРТАЦИЯ В PDF ===
+      const pngBlob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png", 1));
+      if (!pngBlob) throw new Error("Ошибка при создании изображения");
 
-      if (!pngBlob) throw new Error("Не удалось создать изображение сертификата");
-
-      // Вставляем PNG в PDF (pdf-lib) — не нужен fontkit
       const pdfDoc = await PDFDocument.create();
       const pngBytes = await pngBlob.arrayBuffer();
       const pngImage = await pdfDoc.embedPng(pngBytes);
-
-      // Создаём страницу под размер изображения
       const page = pdfDoc.addPage([pngImage.width, pngImage.height]);
       page.drawImage(pngImage, {
         x: 0,
@@ -177,26 +133,17 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       });
 
       const pdfBytes = await pdfDoc.save();
-      const finalBlob = new Blob([pdfBytes], { type: "application/pdf" });
-
-      // Скачивание
-      const url = URL.createObjectURL(finalBlob);
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = `Сертификат_${safeFileName(userName)}_${safeFileName(courseName)}.pdf`;
-      document.body.appendChild(a);
       a.click();
       a.remove();
-
-      // Очистка
-      setTimeout(() => {
-        try {
-          URL.revokeObjectURL(url);
-        } catch {}
-      }, 60_000);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch (err: any) {
-      console.error("Ошибка при генерации сертификата:", err);
-      alert(err?.message ? `Ошибка: ${err.message}` : "Не удалось сгенерировать сертификат — см. консоль.");
+      console.error(err);
+      alert("Ошибка при генерации сертификата: " + err.message);
     } finally {
       setIsGenerating(false);
     }
@@ -205,7 +152,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   return (
     <div className="p-6 text-center">
       <div className="flex justify-center mb-6">
-        <div className={`${isPassed ? "bg-green-100" : "bg-red-100"} rounded-full w-20 h-20 flex items-center justify-center`}>
+        <div
+          className={`${isPassed ? "bg-green-100" : "bg-red-100"} rounded-full w-20 h-20 flex items-center justify-center`}
+        >
           {isPassed ? (
             <CheckCircle className={`${percentage >= 90 ? "text-green-600" : "text-yellow-600"} w-10 h-10`} />
           ) : (
@@ -228,7 +177,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
       {percentage >= 70 && (
         <div className="mb-8">
-          <p className="text-gray-700 mb-4">Поздравляем, {userName}! Вы можете получить именной сертификат.</p>
+          <p className="text-gray-700 mb-4">
+            Поздравляем, {userName}! Вы можете получить именной сертификат.
+          </p>
           <button
             onClick={handleDownloadCertificate}
             disabled={isGenerating}
@@ -242,9 +193,14 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
       <div className="mt-4 border-t border-gray-200 pt-4">
         <p className="text-gray-600 mb-4">
-          {isPassed ? "Отличная работа! Продолжайте обучение." : "Рекомендуем повторить материал и пройти тест снова."}
+          {isPassed
+            ? "Отличная работа! Продолжайте обучение."
+            : "Рекомендуем повторить материал и пройти тест снова."}
         </p>
-        <button className="bg-gray-800 hover:bg-black text-white font-medium py-2 px-6 rounded-lg transition" onClick={onClose}>
+        <button
+          className="bg-gray-800 hover:bg-black text-white font-medium py-2 px-6 rounded-lg transition"
+          onClick={onClose}
+        >
           Вернуться к курсам
         </button>
       </div>
@@ -255,7 +211,16 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 export default ResultsComponent;
 
 /* ======= ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ======= */
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill = false, stroke = true) {
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  fill = false,
+  stroke = true
+) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -267,7 +232,6 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   if (stroke) ctx.stroke();
 }
 
-// Центрированный перенос текста по ширине (wrap)
 function wrapTextCentered(
   ctx: CanvasRenderingContext2D,
   text: string,
