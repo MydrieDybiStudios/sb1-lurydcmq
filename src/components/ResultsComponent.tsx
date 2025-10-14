@@ -8,21 +8,28 @@ import { useNavigate } from "react-router-dom";
 interface ResultsComponentProps {
   results: { score: number; total: number; percentage: number } | null;
   courseName: string;
-  onClose: () => void;
+  onClose: () => void; // используется для закрытия результата и возврата к курсам
 }
 
-const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName, onClose }) => {
+const ResultsComponent: React.FC<ResultsComponentProps> = ({
+  results,
+  courseName,
+  onClose,
+}) => {
   const navigate = useNavigate();
 
   const [userName, setUserName] = useState<string>("Участник");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCertificateAvailable, setIsCertificateAvailable] = useState(false);
   const [isCourseCompleted, setIsCourseCompleted] = useState(false);
+  const [isCleared, setIsCleared] = useState(false); // 👈 новое состояние для сброса
 
   useEffect(() => {
     const loadProfileName = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) return;
 
         const { data: profile } = await supabase
@@ -32,7 +39,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
           .maybeSingle();
 
         if (profile) {
-          const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+          const fullName = [profile.first_name, profile.last_name]
+            .filter(Boolean)
+            .join(" ");
           setUserName(fullName || "Участник");
         }
       } catch {
@@ -42,7 +51,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     loadProfileName();
   }, []);
 
-  if (!results) return null;
+  if (!results || isCleared) return null; // 👈 не показываем ничего, если курс сброшен
 
   const { score, total, percentage } = results;
   const incorrect = total - score;
@@ -58,9 +67,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     }
   }, [percentage]);
 
-  // === Генерация сертификата ===
   const safeFileName = (s: string) =>
-    s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
+    s
+      ? s
+          .replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "")
+          .replace(/\s+/g, "_")
+      : "unknown";
 
   const handleDownloadCertificate = async () => {
     if (!isCertificateAvailable) {
@@ -80,19 +92,25 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas не поддерживается");
 
-      // === Фон ===
       const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
       gradient.addColorStop(0, "#fffef5");
       gradient.addColorStop(1, "#fff9e5");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      // === Рамка ===
       ctx.strokeStyle = "#D4AF37";
       ctx.lineWidth = 40;
-      roundRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 50, false, true);
+      roundRect(
+        ctx,
+        padding / 2,
+        padding / 2,
+        canvasWidth - padding,
+        canvasHeight - padding,
+        50,
+        false,
+        true
+      );
 
-      // === Текст ===
       ctx.fillStyle = "#D4AF37";
       ctx.font = "bold 110px Arial";
       ctx.textAlign = "center";
@@ -107,7 +125,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       ctx.fillText(userName, canvasWidth / 2, padding + 460);
 
       ctx.font = "400 50px Arial";
-      ctx.fillText(`успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 550);
+      ctx.fillText(
+        `успешно завершил(а) курс «${courseName}»`,
+        canvasWidth / 2,
+        padding + 550
+      );
 
       ctx.fillStyle = "#D4AF37";
       ctx.font = "bold 60px Arial";
@@ -115,7 +137,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
       ctx.fillStyle = "#000";
       ctx.font = "400 48px Arial";
-      ctx.fillText(`Правильных ответов: ${score} из ${total}`, canvasWidth / 2, padding + 800);
+      ctx.fillText(
+        `Правильных ответов: ${score} из ${total}`,
+        canvasWidth / 2,
+        padding + 800
+      );
       ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 860);
       ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 920);
 
@@ -123,21 +149,37 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       ctx.font = "400 36px Arial";
       ctx.textAlign = "left";
       ctx.fillStyle = "#000";
-      ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 160);
+      ctx.fillText(
+        `Дата выдачи: ${dateStr}`,
+        padding + 40,
+        canvasHeight - padding - 160
+      );
 
       ctx.textAlign = "center";
       ctx.fillStyle = "#444";
       ctx.font = "italic 36px Arial";
-      ctx.fillText("Цифровая образовательная среда «Югра.Нефть»", canvasWidth / 2, canvasHeight - padding + 10);
+      ctx.fillText(
+        "Цифровая образовательная среда «Югра.Нефть»",
+        canvasWidth / 2,
+        canvasHeight - padding + 10
+      );
 
-      const pngBlob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png", 1));
-      if (!pngBlob) throw new Error("Ошибка при создании изображения сертификата");
+      const pngBlob: Blob | null = await new Promise((res) =>
+        canvas.toBlob((b) => res(b), "image/png", 1)
+      );
+      if (!pngBlob)
+        throw new Error("Ошибка при создании изображения сертификата");
 
       const pdfDoc = await PDFDocument.create();
       const pngBytes = await pngBlob.arrayBuffer();
       const pngImage = await pdfDoc.embedPng(pngBytes);
       const page = pdfDoc.addPage([pngImage.width, pngImage.height]);
-      page.drawImage(pngImage, { x: 0, y: 0, width: pngImage.width, height: pngImage.height });
+      page.drawImage(pngImage, {
+        x: 0,
+        y: 0,
+        width: pngImage.width,
+        height: pngImage.height,
+      });
 
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
@@ -145,7 +187,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Сертификат_${safeFileName(userName)}_${safeFileName(courseName)}.pdf`;
+      a.download = `Сертификат_${safeFileName(
+        userName
+      )}_${safeFileName(courseName)}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -159,26 +203,36 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     }
   };
 
-  // === Сброс курса и переход на /cabinet ===
+  // === Сброс курса и возврат ===
   const handleReturnToCourses = () => {
+    // сбрасываем всё локальное состояние
     setIsCertificateAvailable(false);
     setIsCourseCompleted(false);
+    setIsCleared(true);
+
     localStorage.removeItem("currentCourseResults");
     localStorage.removeItem("certificateGenerated");
 
-    // переход без перезагрузки
-    navigate("/cabinet");
+    // вызываем onClose (например, скрыть ResultsComponent)
+    if (onClose) onClose();
+
+    // навигация без перезагрузки
+    navigate("/cabinet", { replace: true });
   };
 
   return (
     <div className="p-6 text-center">
       <div className="flex justify-center mb-6">
         <div
-          className={`${isPassed ? "bg-yellow-100" : "bg-red-100"} rounded-full w-20 h-20 flex items-center justify-center`}
+          className={`${
+            isPassed ? "bg-yellow-100" : "bg-red-100"
+          } rounded-full w-20 h-20 flex items-center justify-center`}
         >
           {isPassed ? (
             <CheckCircle
-              className={`${percentage >= 90 ? "text-yellow-600" : "text-yellow-500"} w-10 h-10`}
+              className={`${
+                percentage >= 90 ? "text-yellow-600" : "text-yellow-500"
+              } w-10 h-10`}
             />
           ) : (
             <div className="text-red-600 text-3xl">!</div>
@@ -188,12 +242,16 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
       <h3 className="text-2xl font-bold mb-2">{resultTitle}</h3>
       <p className="text-lg text-gray-700 mb-4">
-        {userName}, вы ответили правильно на {score} из {total} вопросов по курсу «{courseName}».
+        {userName}, вы ответили правильно на {score} из {total} вопросов по курсу
+        «{courseName}».
       </p>
 
       <div className="mb-8">
         <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
-          <div className={`${resultClass} h-4 rounded-full`} style={{ width: `${percentage}%` }}></div>
+          <div
+            className={`${resultClass} h-4 rounded-full`}
+            style={{ width: `${percentage}%` }}
+          ></div>
         </div>
         <p className="text-sm text-gray-600">{percentage}% правильных ответов</p>
       </div>
@@ -209,7 +267,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
             className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-60 text-black font-medium py-2 px-6 rounded-lg transition flex items-center mx-auto"
           >
             <Award className="mr-2 w-5 h-5" />
-            <span>{isGenerating ? "Генерация..." : "Получить сертификат"}</span>
+            <span>
+              {isGenerating ? "Генерация..." : "Получить сертификат"}
+            </span>
           </button>
         </div>
       )}
