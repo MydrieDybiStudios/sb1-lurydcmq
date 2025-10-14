@@ -7,9 +7,9 @@ import { supabase } from "../lib/supabaseClient";
 interface ResultsComponentProps {
   results: { score: number; total: number; percentage: number } | null;
   courseName: string;
-  courseId: number; // Добавьте courseId
+  courseId: number;
   onClose: () => void;
-  onRestart: () => void; // Добавьте onRestart
+  onRestart: () => void;
 }
 
 const ResultsComponent: React.FC<ResultsComponentProps> = ({ 
@@ -59,7 +59,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
     loadProfileAndCompletion();
   }, [results, courseId]);
 
-  // Функция для сохранения пройденного курса
   const saveCourseCompletion = async () => {
     if (!results || results.percentage < 70) return;
 
@@ -87,14 +86,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
     }
   };
 
-  // Сохраняем курс при успешном прохождении
   useEffect(() => {
     if (results && results.percentage >= 70 && !isCourseCompleted) {
       saveCourseCompletion();
     }
   }, [results, isCourseCompleted]);
 
-  // Функция проверки прав на сертификат
   const checkCertificateEligibility = async (): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -113,11 +110,21 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
     }
   };
 
+  // Функция для безопасного имени файла
+  const safeFileName = (s: string) =>
+    s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
+
+  // === ПОЛНАЯ ФУНКЦИЯ ГЕНЕРАЦИИ PDF СЕРТИФИКАТА ===
   const handleDownloadCertificate = async () => {
     // Проверяем право на сертификат
     const isEligible = await checkCertificateEligibility();
     if (!isEligible) {
       alert("Для получения сертификата необходимо успешно пройти курс с результатом не менее 70%");
+      return;
+    }
+
+    if (!results) {
+      alert("Нет данных результатов для генерации сертификата");
       return;
     }
 
@@ -133,9 +140,135 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas не поддерживается");
 
-      // ... (весь ваш существующий код генерации PDF) ...
-      // Оставьте без изменений всю функцию генерации сертификата
+      // === ФОН (градиент в фирменных тонах) ===
+      const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
+      gradient.addColorStop(0, "#fffef5");
+      gradient.addColorStop(1, "#fff9e5");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
+      // === РАМКА золотистая ===
+      ctx.strokeStyle = "#D4AF37";
+      ctx.lineWidth = 40;
+      roundRect(
+        ctx,
+        padding / 2,
+        padding / 2,
+        canvasWidth - padding,
+        canvasHeight - padding,
+        50,
+        false,
+        true
+      );
+
+      // === ЗАГОЛОВОК ===
+      ctx.fillStyle = "#D4AF37";
+      ctx.font = "bold 110px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("СЕРТИФИКАТ", canvasWidth / 2, padding + 200);
+
+      ctx.fillStyle = "#000";
+      ctx.font = "600 60px Arial";
+      ctx.fillText("о завершении курса", canvasWidth / 2, padding + 280);
+
+      // === ИМЯ ===
+      ctx.fillStyle = "#000";
+      ctx.font = "bold 90px Arial";
+      ctx.fillText(userName, canvasWidth / 2, padding + 460);
+
+      // === КУРС ===
+      ctx.font = "400 50px Arial";
+      ctx.fillText(
+        `успешно завершил(а) курс «${courseName}»`,
+        canvasWidth / 2,
+        padding + 550
+      );
+
+      // === РЕЗУЛЬТАТЫ ===
+      const { score, total, percentage } = results;
+      const incorrect = total - score;
+
+      ctx.fillStyle = "#D4AF37";
+      ctx.font = "bold 60px Arial";
+      ctx.fillText("РЕЗУЛЬТАТЫ ТЕСТА", canvasWidth / 2, padding + 720);
+
+      ctx.fillStyle = "#000";
+      ctx.font = "400 48px Arial";
+      ctx.fillText(`Правильных ответов: ${score} из ${total}`, canvasWidth / 2, padding + 800);
+      ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 860);
+      ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 920);
+
+      // === ПОДПИСЬ / ДАТА ===
+      const dateStr = new Date().toLocaleDateString("ru-RU");
+      ctx.font = "400 36px Arial";
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#000";
+      ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 160);
+
+      // Подпись
+      ctx.textAlign = "right";
+      ctx.strokeStyle = "#1E3A8A";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(canvasWidth - padding - 420, canvasHeight - padding - 150);
+      ctx.bezierCurveTo(
+        canvasWidth - padding - 350,
+        canvasHeight - padding - 180,
+        canvasWidth - padding - 100,
+        canvasHeight - padding - 80,
+        canvasWidth - padding - 40,
+        canvasHeight - padding - 120
+      );
+      ctx.stroke();
+
+      ctx.fillStyle = "#1E3A8A";
+      ctx.font = "italic 36px Arial";
+      ctx.fillText("Р.И. Кузоваткин", canvasWidth - padding - 80, canvasHeight - padding - 80);
+
+      ctx.fillStyle = "#000";
+      ctx.font = "400 30px Arial";
+      ctx.fillText("Подпись", canvasWidth - padding - 230, canvasHeight - padding - 40);
+
+      // === ОРГАНИЗАЦИЯ ===
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#444";
+      ctx.font = "italic 36px Arial";
+      ctx.fillText(
+        "Цифровая образовательная среда «Югра.Нефть»",
+        canvasWidth / 2,
+        canvasHeight - padding + 10
+      );
+
+      // === СОХРАНЕНИЕ PDF ===
+      const pngBlob: Blob | null = await new Promise((res) =>
+        canvas.toBlob((b) => res(b), "image/png", 1)
+      );
+      if (!pngBlob) throw new Error("Ошибка при создании изображения сертификата");
+
+      const pdfDoc = await PDFDocument.create();
+      const pngBytes = await pngBlob.arrayBuffer();
+      const pngImage = await pdfDoc.embedPng(pngBytes);
+
+      const page = pdfDoc.addPage([pngImage.width, pngImage.height]);
+      page.drawImage(pngImage, { 
+        x: 0, 
+        y: 0, 
+        width: pngImage.width, 
+        height: pngImage.height 
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Сертификат_${safeFileName(userName)}_${safeFileName(courseName)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (err: any) {
       console.error("Ошибка генерации сертификата:", err);
       alert(`Ошибка: ${err.message}`);
@@ -216,10 +349,17 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
   );
 };
 
-export default ResultsComponent;
-
-// Вспомогательная функция (оставьте без изменений)
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill = false, stroke = true) {
+// Вспомогательная функция для скругленных прямоугольников
+function roundRect(
+  ctx: CanvasRenderingContext2D, 
+  x: number, 
+  y: number, 
+  w: number, 
+  h: number, 
+  r: number, 
+  fill = false, 
+  stroke = true
+) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -230,3 +370,5 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
 }
+
+export default ResultsComponent;
