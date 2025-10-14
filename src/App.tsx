@@ -14,6 +14,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import Partners from "./pages/Partners";
+import About from "./pages/About";
 import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
 
@@ -101,6 +102,8 @@ function App() {
 
         {/* Условия использования */}
         <Route path="/terms-of-service" element={<TermsOfService />} />
+        
+         <Route path="/About" element={<About />} />
       </Routes>
     </Router>
   );
