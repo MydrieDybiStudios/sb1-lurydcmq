@@ -42,7 +42,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         
         setUserId(user.id);
 
-        // Загрузка профиля пользователя
         const { data: profile } = await supabase
           .from("profiles")
           .select("first_name, last_name")
@@ -54,7 +53,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
           setUserName(fullName || "Участник");
         }
 
-        // Проверка, пройден ли курс
         if (results && results.percentage >= 70) {
           const { data: completion } = await supabase
             .from("completed_courses")
@@ -73,9 +71,8 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
     loadProfileAndCompletion();
   }, [results, courseId]);
 
-  // Функция проверки завершения всех курсов
-  const checkAllCoursesCompleted = async () => {
-    if (!userId) return;
+  const checkAllCoursesCompleted = async (): Promise<boolean> => {
+    if (!userId) return false;
 
     try {
       const { data: completedCourses, error } = await supabase
@@ -88,9 +85,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         return false;
       }
 
-      // Если пройдено 7 курсов
       if (completedCourses && completedCourses.length >= 7) {
-        // Находим achievement_id для общего достижения
         const { data: allAchievement, error: allError } = await supabase
           .from('achievements')
           .select('id')
@@ -103,7 +98,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         }
 
         if (allAchievement) {
-          // Проверяем, не получено ли уже это достижение
           const { data: existingAllAchievement } = await supabase
             .from('user_achievements')
             .select('id')
@@ -112,7 +106,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
             .single();
 
           if (!existingAllAchievement) {
-            // Выдаем общее достижение
             const { error: insertAllError } = await supabase
               .from('user_achievements')
               .insert({
@@ -137,7 +130,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
     }
   };
 
-  // Функция автоматической выдачи достижения за курс
   const awardCourseAchievement = async (): Promise<boolean> => {
     if (!userId || !results || results.percentage < 70) return false;
 
@@ -148,7 +140,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         return false;
       }
 
-      // Находим achievement_id для этого курса
       const { data: achievement, error: achievementError } = await supabase
         .from('achievements')
         .select('id')
@@ -156,13 +147,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         .single();
 
       if (achievementError) {
-        // Если достижение не найдено, просто продолжаем без ошибки
         console.log(`Достижение для курса ${courseKey} не найдено, пропускаем`);
         return false;
       }
 
       if (achievement) {
-        // Проверяем, не получено ли уже это достижение
         const { data: existingAchievement } = await supabase
           .from('user_achievements')
           .select('id')
@@ -171,7 +160,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
           .single();
 
         if (!existingAchievement) {
-          // Добавляем достижение пользователю
           const { error: insertError } = await supabase
             .from('user_achievements')
             .insert({
@@ -222,14 +210,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       
       setIsCourseCompleted(true);
       
-      // Пытаемся выдать достижение за курс (игнорируем ошибки)
       try {
         await awardCourseAchievement();
       } catch (achievementError) {
         console.log("Не удалось выдать достижение, но курс сохранен:", achievementError);
       }
 
-      // Проверяем все курсы для общего достижения
       try {
         await checkAllCoursesCompleted();
       } catch (allCoursesError) {
@@ -264,29 +250,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
     }
   };
 
-  // Функция для безопасного имени файла
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
 
-  // Остальной код генерации сертификата остается без изменений
+  // ИСПРАВЛЕННАЯ ФУНКЦИЯ - убедитесь, что try-catch-finally завершены правильно
   const handleDownloadCertificate = async () => {
-    const isEligible = await checkCertificateEligibility();
-    if (!isEligible) {
-      alert("Для получения сертификата необходимо успешно пройти курс с результатом не менее 70%");
-      return;
-    }
-
-    if (!results) {
-      alert("Нет данных результатов для генерации сертификата");
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-
-  // === ПОЛНАЯ ФУНКЦИЯ ГЕНЕРАЦИИ PDF СЕРТИФИКАТА ===
-  const handleDownloadCertificate = async () => {
-    // Проверяем право на сертификат
     const isEligible = await checkCertificateEligibility();
     if (!isEligible) {
       alert("Для получения сертификата необходимо успешно пройти курс с результатом не менее 70%");
@@ -310,14 +278,14 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas не поддерживается");
 
-      // === ФОН (градиент в фирменных тонах) ===
+      // Фон
       const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
       gradient.addColorStop(0, "#fffef5");
       gradient.addColorStop(1, "#fff9e5");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      // === РАМКА золотистая ===
+      // Рамка
       ctx.strokeStyle = "#D4AF37";
       ctx.lineWidth = 40;
       roundRect(
@@ -331,7 +299,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         true
       );
 
-      // === ЗАГОЛОВОК ===
+      // Заголовок
       ctx.fillStyle = "#D4AF37";
       ctx.font = "bold 110px Arial";
       ctx.textAlign = "center";
@@ -341,12 +309,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       ctx.font = "600 60px Arial";
       ctx.fillText("о завершении курса", canvasWidth / 2, padding + 280);
 
-      // === ИМЯ ===
+      // Имя
       ctx.fillStyle = "#000";
       ctx.font = "bold 90px Arial";
       ctx.fillText(userName, canvasWidth / 2, padding + 460);
 
-      // === КУРС ===
+      // Курс
       ctx.font = "400 50px Arial";
       ctx.fillText(
         `успешно завершил(а) курс «${courseName}»`,
@@ -354,7 +322,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         padding + 550
       );
 
-      // === РЕЗУЛЬТАТЫ ===
+      // Результаты
       const { score, total, percentage } = results;
       const incorrect = total - score;
 
@@ -368,7 +336,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 860);
       ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 920);
 
-      // === ПОДПИСЬ / ДАТА ===
+      // Подпись и дата
       const dateStr = new Date().toLocaleDateString("ru-RU");
       ctx.font = "400 36px Arial";
       ctx.textAlign = "left";
@@ -399,7 +367,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       ctx.font = "400 30px Arial";
       ctx.fillText("Подпись", canvasWidth - padding - 230, canvasHeight - padding - 40);
 
-      // === ОРГАНИЗАЦИЯ ===
+      // Организация
       ctx.textAlign = "center";
       ctx.fillStyle = "#444";
       ctx.font = "italic 36px Arial";
@@ -409,7 +377,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         canvasHeight - padding + 10
       );
 
-      // === СОХРАНЕНИЕ PDF ===
+      // Сохранение PDF
       const pngBlob: Blob | null = await new Promise((res) =>
         canvas.toBlob((b) => res(b), "image/png", 1)
       );
