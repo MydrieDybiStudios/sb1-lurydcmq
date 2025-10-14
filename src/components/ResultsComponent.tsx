@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 interface ResultsComponentProps {
   results: { score: number; total: number; percentage: number } | null;
   courseName: string;
-  onClose?: () => void; // если родитель хочет услышать закрытие
+  onClose?: () => void;
 }
 
 const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName, onClose }) => {
@@ -18,10 +18,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCertificateAvailable, setIsCertificateAvailable] = useState(false);
   const [isCourseCompleted, setIsCourseCompleted] = useState(false);
-
-  // UI states for smooth transition + embedded fallback cabinet
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [showEmbeddedCabinet, setShowEmbeddedCabinet] = useState(false);
 
   // загрузка имени пользователя
   useEffect(() => {
@@ -48,10 +44,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     return () => { mounted = false; };
   }, []);
 
-  // если результатов нет — ничего не показываем (значит компонент не нужен)
-  if (!results && !showEmbeddedCabinet) return null;
+  if (!results) return null;
 
-  const { score = 0, total = 0, percentage = 0 } = results || { score: 0, total: 0, percentage: 0 };
+  const { score = 0, total = 0, percentage = 0 } = results;
   const incorrect = total - score;
   const isPassed = percentage >= 50;
 
@@ -71,7 +66,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
 
-  // генерация PDF (без изменений логики)
   const handleDownloadCertificate = async () => {
     if (!isCertificateAvailable) {
       alert("Чтобы получить сертификат, пройдите курс заново.");
@@ -159,95 +153,31 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       a.remove();
 
       setTimeout(() => URL.revokeObjectURL(url), 60000);
+
+      // помечаем, что сертификат сгенерирован
+      localStorage.setItem("certificateGenerated", "1");
     } catch (err: any) {
       console.error("Ошибка генерации сертификата:", err);
       alert(`Ошибка: ${err.message}`);
     } finally {
       setIsGenerating(false);
-      // после успешной генерации пометить, что сертификат был сгенерирован (локально)
-      // это же предотвратит повторное получение после перехода назад без прохождения
-      try { localStorage.setItem("certificateGenerated", "1"); } catch {}
     }
   };
 
-  // мягкий возврат: анимация -> навигация -> встроенный кабинет (fallback)
+  // возврат к курсам
   const handleReturnToCourses = () => {
-    if (isTransitioning) return; // защита от multiple clicks
-    setIsTransitioning(true);
+    setIsCertificateAvailable(false);
+    setIsCourseCompleted(false);
+    localStorage.removeItem("currentCourseResults");
+    localStorage.removeItem("certificateGenerated");
 
-    // запускаем плавную анимацию (CSS класс ниже использует transition)
-    // через короткую паузу выполняем реальный сброс и навигацию
-    setTimeout(() => {
-      // очистка локального состояния
-      try {
-        localStorage.removeItem("currentCourseResults");
-        localStorage.removeItem("certificateGenerated");
-      } catch {}
-      setIsCertificateAvailable(false);
-      setIsCourseCompleted(false);
+    navigate("/cabinet", { replace: true });
 
-      // пометим, что показываем встроенный кабинет (fallback), чтобы не получить белый экран
-      setShowEmbeddedCabinet(true);
-
-      // уведомляем родителя, если нужно (опционально)
-      if (onClose) {
-        try { onClose(); } catch {}
-
-        // даём шанс родителю скрыть/переключить UI, но не ждем
-      }
-
-      // попытка навигации без перезагрузки
-      try {
-        navigate("/cabinet", { replace: true });
-      } catch (e) {
-        // если navigate упал — ничего страшного, у нас есть встроенный кабинет
-        console.warn("navigate error:", e);
-      } finally {
-        // завершаем анимацию (встроенный кабинет видим)
-        setIsTransitioning(false);
-      }
-    }, 260); // 260ms — короткая задержка для плавности (можно уменьшить)
+    if (onClose) onClose();
   };
 
-  // Если showEmbeddedCabinet включён — показываем минимальную панель кабинета
-  // Это предотвращает белый экран в случаях, когда роут /cabinet не отрисовывается сразу.
-  const EmbeddedCabinet: React.FC = () => (
-    <div className="p-6 max-w-3xl mx-auto">
-      <div className="mb-6 text-left">
-        <h2 className="text-2xl font-bold">Кабинет</h2>
-        <p className="text-sm text-gray-600">Вы перешли в кабинет — прогресс этого курса был сброшен.</p>
-      </div>
-
-      <div className="grid gap-4">
-        <button
-          onClick={() => navigate("/cabinet", { replace: true })}
-          className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
-        >
-          Открыть кабинет (полная страница)
-        </button>
-
-        <div className="p-4 border rounded">
-          <p className="font-medium mb-2">Доступные курсы</p>
-          <ul className="list-disc pl-5 text-sm text-gray-700">
-            <li>Курс A</li>
-            <li>Курс B</li>
-            <li>Курс C</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-
-  // визуальный wrapper с плавностью (fade out при переходе)
-  const wrapperClass = `p-6 text-center transition-opacity duration-250 ${isTransitioning ? "opacity-0" : "opacity-100"}`;
-
-  // Если показываем встроенный кабинет — рендерим его вместо результатов
-  if (showEmbeddedCabinet) {
-    return <EmbeddedCabinet />;
-  }
-
   return (
-    <div className={wrapperClass}>
+    <div className="p-6 text-center">
       <div className="flex justify-center mb-6">
         <div className={`${isPassed ? "bg-yellow-100" : "bg-red-100"} rounded-full w-20 h-20 flex items-center justify-center`}>
           {isPassed ? (
@@ -301,7 +231,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
 export default ResultsComponent;
 
-// === Вспомогательная функция ===
+// вспомогательная функция
 function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number,
