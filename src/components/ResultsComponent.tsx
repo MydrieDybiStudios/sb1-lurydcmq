@@ -161,40 +161,55 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   };
 
   // === JSX ===
-  return (
-    <div className="p-8 text-center">
-      <h3 className="text-2xl font-bold mb-4">
-        {percentage >= 90 ? "Превосходный результат!" : percentage >= 70 ? "Хороший результат!" : isPassed ? "Тест пройден!" : "Стоит повторить материал"}
-      </h3>
+ return (
+    <div className="p-6 text-center">
+      <div className="flex justify-center mb-6">
+        <div className={`${isPassed ? "bg-green-100" : "bg-red-100"} rounded-full w-20 h-20 flex items-center justify-center`}>
+          {isPassed ? (
+            <CheckCircle className={`${percentage >= 90 ? "text-green-600" : "text-yellow-600"} w-10 h-10`} />
+          ) : (
+            <div className="text-red-600 text-3xl">!</div>
+          )}
+        </div>
+      </div>
 
-      <div className="text-lg text-gray-800 mb-6 leading-relaxed">
-        <p>{userName}, вы ответили правильно на {score} из {total} вопросов.</p>
-        <p>Ошибок: {incorrect}. Успешность: {percentage}%.</p>
+      <h3 className="text-2xl font-bold mb-2">{resultTitle}</h3>
+      <p className="text-lg text-gray-700 mb-4">
+        {userName}, вы ответили правильно на {score} из {total} вопросов по курсу «{courseName}».
+      </p>
+
+      <div className="mb-8">
+        <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+          <div className={`${resultClass} h-4 rounded-full`} style={{ width: `${percentage}%` }}></div>
+        </div>
+        <p className="text-sm text-gray-600">{percentage}% правильных ответов</p>
       </div>
 
       {percentage >= 70 && (
-        <button
-          onClick={handleDownloadCertificate}
-          disabled={isGenerating}
-          className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-60 text-black font-medium py-3 px-8 rounded-lg transition flex items-center mx-auto text-lg shadow-md"
-        >
-          <Award className="mr-2 w-6 h-6" />
-          {isGenerating ? "Генерация..." : "Скачать сертификат"}
-        </button>
+        <div className="mb-8">
+          <p className="text-gray-700 mb-4">Поздравляем, {userName}! Вы можете получить именной сертификат.</p>
+          <button
+            onClick={handleDownloadCertificate}
+            disabled={isGenerating}
+            className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-60 text-black font-medium py-2 px-6 rounded-lg transition flex items-center mx-auto"
+          >
+            <Award className="mr-2 w-5 h-5" />
+            <span>{isGenerating ? "Генерация..." : "Получить сертификат"}</span>
+          </button>
+        </div>
       )}
 
-      <div className="mt-8 border-t border-gray-300 pt-4">
-        <button
-          className="bg-gray-800 hover:bg-black text-white font-medium py-2 px-6 rounded-lg transition"
-          onClick={onClose}
-        >
+      <div className="mt-4 border-t border-gray-200 pt-4">
+        <p className="text-gray-600 mb-4">
+          {isPassed ? "Отличная работа! Продолжайте обучение." : "Рекомендуем повторить материал и пройти тест снова."}
+        </p>
+        <button className="bg-gray-800 hover:bg-black text-white font-medium py-2 px-6 rounded-lg transition" onClick={onClose}>
           Вернуться к курсам
         </button>
       </div>
     </div>
   );
 };
-
 export default ResultsComponent;
 
 /* === ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ === */
