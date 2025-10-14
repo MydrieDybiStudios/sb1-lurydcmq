@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { Link } from 'react-router-dom';
 
 interface AuthModalsProps {
   isLoginOpen: boolean;
@@ -9,6 +10,7 @@ interface AuthModalsProps {
   onCloseRegister: () => void;
   onSwitchToLogin: () => void;
   onSwitchToRegister: () => void;
+  onAuthSuccess: () => void;
 }
 
 const AuthModals: React.FC<AuthModalsProps> = ({
@@ -18,19 +20,16 @@ const AuthModals: React.FC<AuthModalsProps> = ({
   onCloseRegister,
   onSwitchToLogin,
   onSwitchToRegister,
+  onAuthSuccess,
 }) => {
-  // ----------------------------
   // Состояния для логина
-  // ----------------------------
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [loginSuccess, setLoginSuccess] = useState('');
 
-  // ----------------------------
   // Состояния для регистрации
-  // ----------------------------
   const [registerName, setRegisterName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
@@ -39,31 +38,35 @@ const AuthModals: React.FC<AuthModalsProps> = ({
   const [registerError, setRegisterError] = useState('');
   const [registerSuccess, setRegisterSuccess] = useState('');
 
-  // ----------------------------
-  // Вход
-  // ----------------------------
+  // Вход через email/password
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
     setLoginSuccess('');
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword,
+      });
 
-    if (error) {
-      setLoginError(error.message);
-    } else if (data.user) {
+      if (error) {
+        throw error;
+      }
+
       setLoginSuccess('Вход выполнен успешно!');
-      onCloseLogin();
-      window.location.reload();
+      onAuthSuccess();
+      setTimeout(() => {
+        onCloseLogin();
+        window.location.href = '/cabinet';
+      }, 1000);
+
+    } catch (error: any) {
+      setLoginError(error.message);
     }
   };
 
-  // ----------------------------
   // Регистрация
-  // ----------------------------
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setRegisterError('');
@@ -79,29 +82,37 @@ const AuthModals: React.FC<AuthModalsProps> = ({
       return;
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email: registerEmail,
-      password: registerPassword,
-      options: {
-        data: { name: registerName },
-      },
-    });
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: registerEmail,
+        password: registerPassword,
+        options: {
+          data: { name: registerName },
+        },
+      });
 
-    if (error) {
-      setRegisterError(error.message);
-    } else {
+      if (error) {
+        throw error;
+      }
+
       setRegisterSuccess('Регистрация прошла успешно! Проверьте почту для подтверждения.');
-      onCloseRegister();
+      onAuthSuccess();
+      setTimeout(() => {
+        onCloseRegister();
+      }, 3000);
+
+    } catch (error: any) {
+      setRegisterError(error.message);
     }
   };
 
   return (
     <>
-      {/* ---------------- LOGIN MODAL ---------------- */}
+      {/* Login Modal */}
       <div
-        className={`modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
+        className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
           isLoginOpen ? 'visible opacity-100' : 'invisible opacity-0'
-        } transition`}
+        } transition-all duration-300`}
       >
         <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
           <div className="p-6">
@@ -117,7 +128,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
                   type="email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   required
@@ -128,7 +139,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
                 <input
                   type="password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
@@ -140,7 +151,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                   <input
                     type="checkbox"
                     id="rememberMe"
-                    className="h-4 w-4 text-yellow-600 border-gray-300 rounded"
+                    className="h-4 w-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
                     checked={rememberMe}
                     onChange={() => setRememberMe(!rememberMe)}
                   />
@@ -155,7 +166,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
 
               <button
                 type="submit"
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 rounded-lg transition"
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 rounded-lg transition duration-200"
               >
                 Войти
               </button>
@@ -175,11 +186,11 @@ const AuthModals: React.FC<AuthModalsProps> = ({
         </div>
       </div>
 
-      {/* ---------------- REGISTER MODAL ---------------- */}
+      {/* Register Modal */}
       <div
-        className={`modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
+        className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
           isRegisterOpen ? 'visible opacity-100' : 'invisible opacity-0'
-        } transition`}
+        } transition-all duration-300`}
       >
         <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
           <div className="p-6">
@@ -195,7 +206,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Имя</label>
                 <input
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   value={registerName}
                   onChange={(e) => setRegisterName(e.target.value)}
                   required
@@ -206,7 +217,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                 <input
                   type="email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   value={registerEmail}
                   onChange={(e) => setRegisterEmail(e.target.value)}
                   required
@@ -217,7 +228,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
                 <input
                   type="password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   value={registerPassword}
                   onChange={(e) => setRegisterPassword(e.target.value)}
                   required
@@ -228,7 +239,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">Подтвердите пароль</label>
                 <input
                   type="password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
@@ -239,13 +250,13 @@ const AuthModals: React.FC<AuthModalsProps> = ({
                 <input
                   type="checkbox"
                   id="acceptTerms"
-                  className="h-4 w-4 text-yellow-600 border-gray-300 rounded"
+                  className="h-4 w-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
                   checked={acceptTerms}
                   onChange={() => setAcceptTerms(!acceptTerms)}
                   required
                 />
                 <label htmlFor="acceptTerms" className="ml-2 text-sm text-gray-700">
-                  Я принимаю <a href="#" className="text-yellow-600 hover:text-yellow-700">условия использования</a>
+                  Я принимаю <Link to="/terms-of-service" className="text-yellow-600 hover:text-yellow-700">условия использования</Link>
                 </label>
               </div>
 
@@ -254,7 +265,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
 
               <button
                 type="submit"
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 rounded-lg transition"
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 rounded-lg transition duration-200"
               >
                 Зарегистрироваться
               </button>
@@ -278,4 +289,3 @@ const AuthModals: React.FC<AuthModalsProps> = ({
 };
 
 export default AuthModals;
-
