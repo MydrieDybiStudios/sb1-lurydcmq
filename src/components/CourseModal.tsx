@@ -42,7 +42,6 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [userId, setUserId] = useState<string | null>(null);
-  const [hasCompletedCourse, setHasCompletedCourse] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -52,26 +51,6 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     };
     getUser();
   }, []);
-
-  // Проверяем, был ли курс уже пройден
-  useEffect(() => {
-    if (!course || !userId) return;
-
-    const checkCourseCompletion = async () => {
-      const { data, error } = await supabase
-        .from('completed_courses')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('course_id', Number(course.id))
-        .single();
-
-      if (!error && data) {
-        setHasCompletedCourse(true);
-      }
-    };
-
-    checkCourseCompletion();
-  }, [course, userId]);
 
   const handleTestSubmit = async (score: number, total: number) => {
     if (!course || !userId) {
@@ -182,9 +161,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
             <ResultsComponent
               results={testResults}
               courseName={course.title}
-              courseId={course.id} // Передаем ID курса
+              courseId={course.id}
               onClose={onClose}
-              onRestart={handleRestart} // Передаем функцию перезапуска
+              onRestart={handleRestart}
             />
           ) : (
             <div className="p-6">
@@ -195,14 +174,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
                 </button>
               </div>
 
-              {/* Показываем статус завершения курса */}
-              {hasCompletedCourse && (
-                <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded-lg">
-                  <p className="text-green-700 text-sm">
-                    ✅ Вы уже прошли этот курс ранее
-                  </p>
-                </div>
-              )}
+              {/* Убрано сообщение о пройденном курсе */}
 
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
                 <div
