@@ -12,9 +12,9 @@ import Profile from "./pages/Profile";
 import Cabinet from "./pages/Cabinet";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import About from "./pages/About";
 import HowItWorksPage from "./pages/HowItWorksPage";
 import Partners from "./pages/Partners";
-import About from "./pages/About";
 import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
 
@@ -91,6 +91,9 @@ function App() {
         {/* Личный кабинет */}
         <Route path="/cabinet" element={<Cabinet />} />
 
+        {/* О проекте */}
+        <Route path="/about" element={<About />} />
+
         {/* Как работает сайт */}
         <Route path="/how-it-works" element={<HowItWorksPage />} />
 
@@ -102,8 +105,6 @@ function App() {
 
         {/* Условия использования */}
         <Route path="/terms-of-service" element={<TermsOfService />} />
-        
-         <Route path="/About" element={<About />} />
       </Routes>
     </Router>
   );
