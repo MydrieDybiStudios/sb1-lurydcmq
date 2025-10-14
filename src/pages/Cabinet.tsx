@@ -5,35 +5,70 @@ import Footer from "../components/Footer";
 import CoursesSection from "../components/CoursesSection";
 import AchievementsSection from "../components/AchievementsSection";
 import CourseModal from "../components/CourseModal";
+import Profile from "../components/Profile";
 import { useNavigate, Link } from "react-router-dom";
 import { Menu } from "lucide-react";
 import coursesData from "../data/coursesData";
 
+interface ProfileData {
+  first_name: string;
+  last_name: string;
+  class_num: number;
+  class_range: "1-8" | "8-11";
+  avatar_url: string | null;
+}
+
 const Cabinet: React.FC = () => {
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<"courses" | "profile">("courses");
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndProfile = async () => {
       try {
-        const { data } = await supabase.auth.getUser();
-        setUser(data?.user ?? null);
+        const { data: userData } = await supabase.auth.getUser();
+        setUser(userData?.user ?? null);
+
+        if (userData?.user) {
+          // Загружаем профиль пользователя
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", userData.user.id)
+            .single();
+
+          setProfile(profileData);
+        }
       } catch (err) {
-        console.error("Ошибка получения user из Supabase:", err);
+        console.error("Ошибка получения данных:", err);
         setUser(null);
+        setProfile(null);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUser();
+    fetchUserAndProfile();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        // Обновляем профиль при изменении состояния аутентификации
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+        setProfile(profileData);
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => {
@@ -61,12 +96,27 @@ const Cabinet: React.FC = () => {
       </div>
     );
 
-  // displayName — human readable: full_name > name > local-part of email > "Пользователь"
-  const displayName =
-    user?.user_metadata?.full_name ||
-    user?.user_metadata?.name ||
-    (user?.email ? user.email.split("@")[0] : null) ||
-    "Пользователь";
+  // Полное имя из профиля: first_name + last_name
+  const displayName = profile
+    ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || 
+      (user?.email ? user.email.split("@")[0] : "Пользователь")
+    : user?.email 
+      ? user.email.split("@")[0] 
+      : "Пользователь";
+
+  // Инициалы для аватара
+  const getInitials = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
+    }
+    if (profile?.first_name) {
+      return profile.first_name[0].toUpperCase();
+    }
+    if (profile?.last_name) {
+      return profile.last_name[0].toUpperCase();
+    }
+    return String(displayName?.[0] ?? "U").toUpperCase();
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -86,21 +136,64 @@ const Cabinet: React.FC = () => {
           <div className="flex items-center space-x-4">
             {user && (
               <>
-                <Link to="/profile" className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
-                    <span className="text-black font-semibold">
-                      {String(displayName?.[0] ?? "U").toUpperCase()}
-                    </span>
-                  </div>
-                  <span className="text-yellow-500 font-medium">{displayName}</span>
-                </Link>
+                <div className="flex items-center gap-4">
+                  {/* Навигация между разделами */}
+                  <nav className="hidden md:flex items-center space-x-4">
+                    <button
+                      onClick={() => setActiveSection("courses")}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${
+                        activeSection === "courses"
+                          ? "bg-yellow-500 text-black"
+                          : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                      }`}
+                    >
+                      Курсы
+                    </button>
+                    <button
+                      onClick={() => setActiveSection("profile")}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${
+                        activeSection === "profile"
+                          ? "bg-yellow-500 text-black"
+                          : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                      }`}
+                    >
+                      Профиль
+                    </button>
+                  </nav>
 
-                <button
-                  onClick={handleExitToMain}
-                  className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
-                >
-                  Выйти в меню
-                </button>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
+                      {profile?.avatar_url ? (
+                        <img
+                          src={profile.avatar_url}
+                          alt="Avatar"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-black font-semibold">
+                          {getInitials()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="hidden sm:block">
+                      <span className="text-yellow-500 font-medium block">
+                        {displayName}
+                      </span>
+                      {profile?.class_num && (
+                        <span className="text-gray-300 text-xs block">
+                          {profile.class_num} класс
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleExitToMain}
+                    className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
+                  >
+                    Выйти в меню
+                  </button>
+                </div>
               </>
             )}
 
@@ -113,21 +206,61 @@ const Cabinet: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Мобильная навигация */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-black border-t border-gray-700 px-4 py-2">
+            <nav className="flex flex-col space-y-2">
+              <button
+                onClick={() => {
+                  setActiveSection("courses");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`px-4 py-2 rounded-lg font-medium text-left transition ${
+                  activeSection === "courses"
+                    ? "bg-yellow-500 text-black"
+                    : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                }`}
+              >
+                Курсы
+              </button>
+              <button
+                onClick={() => {
+                  setActiveSection("profile");
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`px-4 py-2 rounded-lg font-medium text-left transition ${
+                  activeSection === "profile"
+                    ? "bg-yellow-500 text-black"
+                    : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                }`}
+              >
+                Профиль
+              </button>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* ===== MAIN ===== */}
       <main className="flex-grow container mx-auto px-4 py-10">
         {user ? (
           <>
-            <section id="courses" className="mb-16">
-              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🎓 Мои курсы</h2>
-              <CoursesSection onStartCourse={handleStartCourse} />
-            </section>
+            {activeSection === "courses" ? (
+              <>
+                <section id="courses" className="mb-16">
+                  <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🎓 Мои курсы</h2>
+                  <CoursesSection onStartCourse={handleStartCourse} />
+                </section>
 
-            <section id="achievements">
-              <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🏆 Мои достижения</h2>
-              <AchievementsSection />
-            </section>
+                <section id="achievements">
+                  <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🏆 Мои достижения</h2>
+                  <AchievementsSection />
+                </section>
+              </>
+            ) : (
+              <Profile />
+            )}
           </>
         ) : (
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl mx-auto p-10 text-center border border-yellow-300">
