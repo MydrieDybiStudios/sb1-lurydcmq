@@ -9,7 +9,7 @@ import {
   Search, 
   Drill, 
   Leaf, 
-  Flask, 
+  FlaskConical, 
   Compass 
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
@@ -24,7 +24,7 @@ const iconsMap: Record<string, any> = {
   'search': Search,
   'drill': Drill,
   'leaf': Leaf,
-  'flask': Flask,
+  'flask': FlaskConical,
   'compass': Compass
 };
 
