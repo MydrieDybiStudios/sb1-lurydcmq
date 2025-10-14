@@ -1,13 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { Star, Mountain, HardHat, Crown, Medal } from "lucide-react";
+import { 
+  Star, 
+  Mountain, 
+  HardHat, 
+  Crown, 
+  Medal, 
+  GraduationCap, 
+  Search, 
+  Drill, 
+  Leaf, 
+  Flask, 
+  Compass 
+} from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 const iconsMap: Record<string, any> = {
-  star: Star,
-  mountain: Mountain,
-  "hard-hat": HardHat,
-  crown: Crown,
-  medal: Medal,
+  'star': Star,
+  'mountain': Mountain,
+  'hard-hat': HardHat,
+  'crown': Crown,
+  'medal': Medal,
+  'graduation-cap': GraduationCap,
+  'search': Search,
+  'drill': Drill,
+  'leaf': Leaf,
+  'flask': Flask,
+  'compass': Compass
 };
 
 interface Achievement {
@@ -16,6 +34,8 @@ interface Achievement {
   description: string;
   icon: string;
   course_key: string | null;
+  name: string;
+  created_at: string;
 }
 
 const AchievementsSection: React.FC = () => {
@@ -73,35 +93,44 @@ const AchievementsSection: React.FC = () => {
   return (
     <section id="achievements" className="py-12 bg-gray-50">
       <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center mb-8">🏆 Мои достижения</h2>
+        
         {!userId ? (
           <p className="text-center text-gray-500">
             🔐 Войдите в аккаунт, чтобы увидеть свои достижения.
           </p>
+        ) : achievements.length === 0 ? (
+          <p className="text-center text-gray-500">
+            Пока нет достижений. Начните проходить курсы!
+          </p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {achievements.map(({ id, title, description, icon }) => {
               const earnedNow = earned.includes(id);
-              const Icon = iconsMap[icon] || Star;
+              const Icon = iconsMap[icon] || Crown;
               return (
                 <div
                   key={id}
-                  className={`p-4 rounded-lg text-center transition transform hover:-translate-y-1 ${
+                  className={`p-6 rounded-xl text-center transition-all duration-300 transform hover:scale-105 ${
                     earnedNow
-                      ? "bg-yellow-100 border-2 border-yellow-400 shadow-[0_0_20px_rgba(255,215,0,0.6)]"
-                      : "bg-gray-100 border border-gray-200"
+                      ? "bg-gradient-to-br from-yellow-100 to-yellow-200 border-2 border-yellow-400 shadow-lg shadow-yellow-200"
+                      : "bg-white border border-gray-200 opacity-70"
                   }`}
                 >
                   <div
-                    className={`rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3 ${
+                    className={`rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 transition-all ${
                       earnedNow
-                        ? "bg-yellow-500 text-black shadow-[0_0_20px_rgba(255,215,0,0.7)] scale-110"
-                        : "bg-gray-300 text-gray-600"
+                        ? "bg-gradient-to-br from-yellow-400 to-yellow-600 text-white shadow-lg shadow-yellow-400 scale-110"
+                        : "bg-gray-200 text-gray-400"
                     }`}
                   >
-                    <Icon className="w-8 h-8" />
+                    <Icon className="w-10 h-10" />
                   </div>
-                  <h3 className="font-bold mb-1">{title}</h3>
-                  <p className="text-sm text-gray-600">{description}</p>
+                  <h3 className="font-bold text-lg mb-2">{title}</h3>
+                  <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
+                  <div className={`mt-3 text-xs font-medium ${earnedNow ? 'text-yellow-600' : 'text-gray-400'}`}>
+                    {earnedNow ? '✅ Получено' : '🔒 Не получено'}
+                  </div>
                 </div>
               );
             })}
