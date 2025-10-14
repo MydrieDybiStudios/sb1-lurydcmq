@@ -12,7 +12,6 @@ interface ResultsComponentProps {
   onRestart: () => void;
 }
 
-// Маппинг courseId на course_key для достижений
 const courseKeyMapping: Record<number, string> = {
   1: 'course_1',
   2: 'course_2', 
@@ -66,76 +65,19 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
 
           setIsCourseCompleted(!!completion);
         }
-      } catch {
+      } catch (error) {
+        console.log("Профиль не загружен, используем стандартное имя");
         setUserName("Участник");
       }
     };
     loadProfileAndCompletion();
   }, [results, courseId]);
 
-  // Функция автоматической выдачи достижения за курс
-  const awardCourseAchievement = async () => {
-    if (!userId || !results || results.percentage < 70) return;
-
-    try {
-      const courseKey = courseKeyMapping[courseId];
-      if (!courseKey) {
-        console.error(`Не найден course_key для courseId: ${courseId}`);
-        return;
-      }
-
-      // Находим achievement_id для этого курса
-      const { data: achievement, error: achievementError } = await supabase
-        .from('achievements')
-        .select('id')
-        .eq('course_key', courseKey)
-        .single();
-
-      if (achievementError) {
-        console.error('Ошибка поиска достижения:', achievementError);
-        return;
-      }
-
-      if (achievement) {
-        // Проверяем, не получено ли уже это достижение
-        const { data: existingAchievement } = await supabase
-          .from('user_achievements')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('achievement_id', achievement.id)
-          .single();
-
-        if (!existingAchievement) {
-          // Добавляем достижение пользователю
-          const { error: insertError } = await supabase
-            .from('user_achievements')
-            .insert({
-              user_id: userId,
-              achievement_id: achievement.id,
-              earned_at: new Date().toISOString()
-            });
-
-          if (insertError) {
-            console.error('Ошибка выдачи достижения:', insertError);
-          } else {
-            console.log(`Достижение за курс ${courseKey} выдано пользователю ${userId}`);
-          }
-        }
-      }
-
-      // Проверяем, все ли курсы пройдены для выдачи общего достижения
-      await checkAllCoursesCompleted();
-    } catch (error) {
-      console.error('Ошибка в awardCourseAchievement:', error);
-    }
-  };
-
   // Функция проверки завершения всех курсов
   const checkAllCoursesCompleted = async () => {
     if (!userId) return;
 
     try {
-      // Получаем все завершенные курсы пользователя
       const { data: completedCourses, error } = await supabase
         .from('completed_courses')
         .select('course_id')
@@ -143,7 +85,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
 
       if (error) {
         console.error('Ошибка получения завершенных курсов:', error);
-        return;
+        return false;
       }
 
       // Если пройдено 7 курсов
@@ -157,7 +99,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
 
         if (allError) {
           console.error('Ошибка поиска общего достижения:', allError);
-          return;
+          return false;
         }
 
         if (allAchievement) {
@@ -183,12 +125,75 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
               console.error('Ошибка выдачи общего достижения:', insertAllError);
             } else {
               console.log(`Общее достижение выдано пользователю ${userId}`);
+              return true;
             }
           }
         }
       }
+      return false;
     } catch (error) {
       console.error('Ошибка в checkAllCoursesCompleted:', error);
+      return false;
+    }
+  };
+
+  // Функция автоматической выдачи достижения за курс
+  const awardCourseAchievement = async (): Promise<boolean> => {
+    if (!userId || !results || results.percentage < 70) return false;
+
+    try {
+      const courseKey = courseKeyMapping[courseId];
+      if (!courseKey) {
+        console.error(`Не найден course_key для courseId: ${courseId}`);
+        return false;
+      }
+
+      // Находим achievement_id для этого курса
+      const { data: achievement, error: achievementError } = await supabase
+        .from('achievements')
+        .select('id')
+        .eq('course_key', courseKey)
+        .single();
+
+      if (achievementError) {
+        // Если достижение не найдено, просто продолжаем без ошибки
+        console.log(`Достижение для курса ${courseKey} не найдено, пропускаем`);
+        return false;
+      }
+
+      if (achievement) {
+        // Проверяем, не получено ли уже это достижение
+        const { data: existingAchievement } = await supabase
+          .from('user_achievements')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('achievement_id', achievement.id)
+          .single();
+
+        if (!existingAchievement) {
+          // Добавляем достижение пользователю
+          const { error: insertError } = await supabase
+            .from('user_achievements')
+            .insert({
+              user_id: userId,
+              achievement_id: achievement.id,
+              earned_at: new Date().toISOString()
+            });
+
+          if (insertError) {
+            console.error('Ошибка выдачи достижения:', insertError);
+            return false;
+          } else {
+            console.log(`Достижение за курс ${courseKey} выдано пользователю ${userId}`);
+            return true;
+          }
+        }
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Ошибка в awardCourseAchievement:', error);
+      return false;
     }
   };
 
@@ -210,11 +215,26 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
           onConflict: 'user_id,course_id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Ошибка сохранения курса:", error);
+        throw error;
+      }
+      
       setIsCourseCompleted(true);
       
-      // Выдаем достижение за курс
-      await awardCourseAchievement();
+      // Пытаемся выдать достижение за курс (игнорируем ошибки)
+      try {
+        await awardCourseAchievement();
+      } catch (achievementError) {
+        console.log("Не удалось выдать достижение, но курс сохранен:", achievementError);
+      }
+
+      // Проверяем все курсы для общего достижения
+      try {
+        await checkAllCoursesCompleted();
+      } catch (allCoursesError) {
+        console.log("Не удалось проверить общее достижение:", allCoursesError);
+      }
     } catch (error) {
       console.error("Ошибка сохранения курса:", error);
     }
@@ -247,6 +267,22 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
   // Функция для безопасного имени файла
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
+
+  // Остальной код генерации сертификата остается без изменений
+  const handleDownloadCertificate = async () => {
+    const isEligible = await checkCertificateEligibility();
+    if (!isEligible) {
+      alert("Для получения сертификата необходимо успешно пройти курс с результатом не менее 70%");
+      return;
+    }
+
+    if (!results) {
+      alert("Нет данных результатов для генерации сертификата");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
 
   // === ПОЛНАЯ ФУНКЦИЯ ГЕНЕРАЦИИ PDF СЕРТИФИКАТА ===
   const handleDownloadCertificate = async () => {
