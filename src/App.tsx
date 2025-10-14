@@ -10,7 +10,6 @@ import AuthModals from "./components/AuthModals";
 import CourseModal from "./components/CourseModal";
 import Profile from "./pages/Profile";
 import Cabinet from "./pages/Cabinet";
-import AboutProject from "./pages/AboutProject";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import coursesData from "./data/coursesData";
@@ -89,8 +88,6 @@ function App() {
         {/* Личный кабинет */}
         <Route path="/cabinet" element={<Cabinet />} />
 
-        {/* О проекте */}
-        <Route path="/about" element={<AboutProject />} />
 
         {/* Политика конфиденциальности */}
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
