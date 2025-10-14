@@ -19,7 +19,7 @@ function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false); 
 
   const handleStartCourse = (courseId: number) => {
     const course = coursesData.find((course) => course.id === courseId);
