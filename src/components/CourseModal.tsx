@@ -42,6 +42,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const [userId, setUserId] = useState<string | null>(null);
+  const [hasCompletedCourse, setHasCompletedCourse] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -52,37 +53,24 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     getUser();
   }, []);
 
-  // 🟡 Загружаем предыдущие результаты, но не переводим сразу в resultsMode
+  // Проверяем, был ли курс уже пройден
   useEffect(() => {
     if (!course || !userId) return;
 
-    const fetchProgress = async () => {
+    const checkCourseCompletion = async () => {
       const { data, error } = await supabase
-        .from('progress')
-        .select('*')
+        .from('completed_courses')
+        .select('id')
         .eq('user_id', userId)
         .eq('course_id', Number(course.id))
-        .order('updated_at', { ascending: false })
-        .limit(1);
+        .single();
 
-      if (error) {
-        console.error('Ошибка загрузки прогресса:', error);
-        return;
-      }
-
-      if (data && data.length > 0) {
-        setTestResults({
-          score: data[0].score,
-          total: data[0].total,
-          percentage: data[0].percentage,
-        });
-        // ❌ Убираем setIsResultsMode(true);
-      } else {
-        setTestResults(null);
+      if (!error && data) {
+        setHasCompletedCourse(true);
       }
     };
 
-    fetchProgress();
+    checkCourseCompletion();
   }, [course, userId]);
 
   const handleTestSubmit = async (score: number, total: number) => {
@@ -103,6 +91,7 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
       userData?.user?.email ||
       'Без имени';
 
+    // Сохраняем прогресс
     const payload = {
       user_id: userId,
       user_name: userName,
@@ -116,18 +105,24 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
     try {
       await supabase.from('progress').upsert([payload], { onConflict: ['user_id', 'course_id'] });
 
-      const achievementPayload = {
-        user_id: userId,
-        achievement_id: String(course.id),
-        earned_at: new Date().toISOString(),
-      };
+      // Сохраняем достижение только если курс пройден успешно
+      if (percentage >= 70) {
+        const achievementPayload = {
+          user_id: userId,
+          achievement_id: String(course.id),
+          earned_at: new Date().toISOString(),
+        };
 
-      await supabase
-        .from('user_achievements')
-        .upsert([achievementPayload], { onConflict: ['user_id', 'achievement_id'] });
+        await supabase
+          .from('user_achievements')
+          .upsert([achievementPayload], { onConflict: ['user_id', 'achievement_id'] });
 
-      setToastType('success');
-      setToastMessage('✅ Прогресс и достижение сохранены!');
+        setToastType('success');
+        setToastMessage('✅ Прогресс и достижение сохранены!');
+      } else {
+        setToastType('success');
+        setToastMessage('✅ Прогресс сохранен!');
+      }
     } catch (err: any) {
       console.error('Ошибка при сохранении:', err);
       setToastType('error');
@@ -136,10 +131,10 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   };
 
   const handleRestart = () => {
-    // 🟡 Сброс курса, чтобы можно было пройти заново
     setCurrentLessonIndex(0);
     setIsTestMode(false);
     setIsResultsMode(false);
+    setTestResults(null);
     setToastMessage(null);
   };
 
@@ -155,6 +150,17 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
   const handlePrevLesson = () => {
     if (currentLessonIndex > 0) setCurrentLessonIndex((prev) => prev - 1);
   };
+
+  // Сброс состояния при закрытии модального окна
+  useEffect(() => {
+    if (!isOpen) {
+      setCurrentLessonIndex(0);
+      setIsTestMode(false);
+      setIsResultsMode(false);
+      setTestResults(null);
+      setToastMessage(null);
+    }
+  }, [isOpen]);
 
   const progressPercentage = course ? ((currentLessonIndex + 1) / course.lessons.length) * 100 : 0;
 
@@ -176,13 +182,9 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
             <ResultsComponent
               results={testResults}
               courseName={course.title}
+              courseId={course.id} // Передаем ID курса
               onClose={onClose}
-              // 🟡 Добавили кнопку «Пройти снова»
-              onRestart={handleRestart}
-              onDownloadCertificate={() => {
-                setToastType('success');
-                setToastMessage('🎓 Сертификат создан!');
-              }}
+              onRestart={handleRestart} // Передаем функцию перезапуска
             />
           ) : (
             <div className="p-6">
@@ -192,6 +194,15 @@ const CourseModal: React.FC<CourseModalProps> = ({ isOpen, onClose, course }) =>
                   <X />
                 </button>
               </div>
+
+              {/* Показываем статус завершения курса */}
+              {hasCompletedCourse && (
+                <div className="mb-4 p-3 bg-green-100 border border-green-300 rounded-lg">
+                  <p className="text-green-700 text-sm">
+                    ✅ Вы уже прошли этот курс ранее
+                  </p>
+                </div>
+              )}
 
               <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
                 <div
