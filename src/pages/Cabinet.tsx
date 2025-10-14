@@ -5,8 +5,8 @@ import Footer from "../components/Footer";
 import CoursesSection from "../components/CoursesSection";
 import AchievementsSection from "../components/AchievementsSection";
 import CourseModal from "../components/CourseModal";
-import Profile from "../components/Profile";
-import { useNavigate, Link } from "react-router-dom";
+import Profile from "./Profile";
+import { useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
 import coursesData from "../data/coursesData";
 
@@ -55,7 +55,7 @@ const Cabinet: React.FC = () => {
 
     fetchUserAndProfile();
 
-    const { data: sub } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
@@ -72,10 +72,7 @@ const Cabinet: React.FC = () => {
     });
 
     return () => {
-      try {
-        (sub as any)?.subscription?.unsubscribe?.();
-        (sub as any)?.unsubscribe?.();
-      } catch {}
+      authListener?.subscription.unsubscribe();
     };
   }, []);
 
@@ -135,66 +132,64 @@ const Cabinet: React.FC = () => {
 
           <div className="flex items-center space-x-4">
             {user && (
-              <>
-                <div className="flex items-center gap-4">
-                  {/* Навигация между разделами */}
-                  <nav className="hidden md:flex items-center space-x-4">
-                    <button
-                      onClick={() => setActiveSection("courses")}
-                      className={`px-4 py-2 rounded-lg font-medium transition ${
-                        activeSection === "courses"
-                          ? "bg-yellow-500 text-black"
-                          : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                      }`}
-                    >
-                      Курсы
-                    </button>
-                    <button
-                      onClick={() => setActiveSection("profile")}
-                      className={`px-4 py-2 rounded-lg font-medium transition ${
-                        activeSection === "profile"
-                          ? "bg-yellow-500 text-black"
-                          : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                      }`}
-                    >
-                      Профиль
-                    </button>
-                  </nav>
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
-                      {profile?.avatar_url ? (
-                        <img
-                          src={profile.avatar_url}
-                          alt="Avatar"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-black font-semibold">
-                          {getInitials()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="hidden sm:block">
-                      <span className="text-yellow-500 font-medium block">
-                        {displayName}
-                      </span>
-                      {profile?.class_num && (
-                        <span className="text-gray-300 text-xs block">
-                          {profile.class_num} класс
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
+              <div className="flex items-center gap-4">
+                {/* Навигация между разделами */}
+                <nav className="hidden md:flex items-center space-x-4">
                   <button
-                    onClick={handleExitToMain}
-                    className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
+                    onClick={() => setActiveSection("courses")}
+                    className={`px-4 py-2 rounded-lg font-medium transition ${
+                      activeSection === "courses"
+                        ? "bg-yellow-500 text-black"
+                        : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                    }`}
                   >
-                    Выйти в меню
+                    Курсы
                   </button>
+                  <button
+                    onClick={() => setActiveSection("profile")}
+                    className={`px-4 py-2 rounded-lg font-medium transition ${
+                      activeSection === "profile"
+                        ? "bg-yellow-500 text-black"
+                        : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                    }`}
+                  >
+                    Профиль
+                  </button>
+                </nav>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-black font-semibold">
+                        {getInitials()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="hidden sm:block">
+                    <span className="text-yellow-500 font-medium block">
+                      {displayName}
+                    </span>
+                    {profile?.class_num && (
+                      <span className="text-gray-300 text-xs block">
+                        {profile.class_num} класс
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </>
+
+                <button
+                  onClick={handleExitToMain}
+                  className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
+                >
+                  Выйти в меню
+                </button>
+              </div>
             )}
 
             <button
@@ -243,7 +238,7 @@ const Cabinet: React.FC = () => {
       </header>
 
       {/* ===== MAIN ===== */}
-      <main className="flex-grow container mx-auto px-4 py-10">
+      <main className="flex-grow container mx-auto px-4 py-8">
         {user ? (
           <>
             {activeSection === "courses" ? (
@@ -289,7 +284,11 @@ const Cabinet: React.FC = () => {
 
       <Footer />
 
-      <CourseModal isOpen={isCourseModalOpen} onClose={() => setIsCourseModalOpen(false)} course={selectedCourse} />
+      <CourseModal 
+        isOpen={isCourseModalOpen} 
+        onClose={() => setIsCourseModalOpen(false)} 
+        course={selectedCourse} 
+      />
     </div>
   );
 };
