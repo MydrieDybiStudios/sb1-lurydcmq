@@ -27,7 +27,6 @@ const AuthModals: React.FC<AuthModalsProps> = ({
   const [loginPassword, setLoginPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState('');
-  const [loginSuccess, setLoginSuccess] = useState('');
 
   // Состояния для регистрации
   const [registerName, setRegisterName] = useState('');
@@ -36,13 +35,11 @@ const AuthModals: React.FC<AuthModalsProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [registerError, setRegisterError] = useState('');
-  const [registerSuccess, setRegisterSuccess] = useState('');
 
   // Вход через email/password
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
-    setLoginSuccess('');
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -54,12 +51,8 @@ const AuthModals: React.FC<AuthModalsProps> = ({
         throw error;
       }
 
-      setLoginSuccess('Вход выполнен успешно!');
       onAuthSuccess();
-      setTimeout(() => {
-        onCloseLogin();
-        window.location.href = '/cabinet';
-      }, 1000);
+      onCloseLogin();
 
     } catch (error: any) {
       setLoginError(error.message);
@@ -70,7 +63,6 @@ const AuthModals: React.FC<AuthModalsProps> = ({
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setRegisterError('');
-    setRegisterSuccess('');
 
     if (registerPassword !== confirmPassword) {
       setRegisterError('Пароли не совпадают.');
@@ -95,11 +87,8 @@ const AuthModals: React.FC<AuthModalsProps> = ({
         throw error;
       }
 
-      setRegisterSuccess('Регистрация прошла успешно! Проверьте почту для подтверждения.');
       onAuthSuccess();
-      setTimeout(() => {
-        onCloseRegister();
-      }, 3000);
+      onCloseRegister();
 
     } catch (error: any) {
       setRegisterError(error.message);
@@ -162,7 +151,6 @@ const AuthModals: React.FC<AuthModalsProps> = ({
               </div>
 
               {loginError && <p className="text-red-600 text-sm">{loginError}</p>}
-              {loginSuccess && <p className="text-green-600 text-sm">{loginSuccess}</p>}
 
               <button
                 type="submit"
@@ -261,7 +249,6 @@ const AuthModals: React.FC<AuthModalsProps> = ({
               </div>
 
               {registerError && <p className="text-red-600 text-sm">{registerError}</p>}
-              {registerSuccess && <p className="text-green-600 text-sm">{registerSuccess}</p>}
 
               <button
                 type="submit"
