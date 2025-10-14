@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Footer: React.FC = () => {
   return (
@@ -20,10 +21,10 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="font-bold mb-4">Курсы</h4>
             <ul className="space-y-2">
+              <li><Link to="/cabinet" className="text-gray-400 hover:text-yellow-400 transition">Все курсы</Link></li>
               <li><a href="#" className="text-gray-400 hover:text-yellow-400 transition">Введение в отрасль</a></li>
               <li><a href="#" className="text-gray-400 hover:text-yellow-400 transition">История нефтедобычи</a></li>
               <li><a href="#" className="text-gray-400 hover:text-yellow-400 transition">Геология нефти и газа</a></li>
-              <li><a href="#" className="text-gray-400 hover:text-yellow-400 transition">Методы добычи</a></li>
             </ul>
           </div>
           
@@ -63,8 +64,12 @@ const Footer: React.FC = () => {
             © 2025 Югра.Нефть. Все права защищены.
           </p>
           <div className="flex space-x-6">
-            <a href="#" className="text-gray-400 hover:text-yellow-400 text-sm transition">Политика конфиденциальности</a>
-            <a href="#" className="text-gray-400 hover:text-yellow-400 text-sm transition">Условия использования</a>
+            <Link to="/privacy-policy" className="text-gray-400 hover:text-yellow-400 text-sm transition">
+              Политика конфиденциальности
+            </Link>
+            <Link to="/terms-of-service" className="text-gray-400 hover:text-yellow-400 text-sm transition">
+              Условия использования
+            </Link>
           </div>
         </div>
       </div>
