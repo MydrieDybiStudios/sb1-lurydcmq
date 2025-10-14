@@ -159,17 +159,10 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       setIsGenerating(false);
     }
   };
-
-  return (
+return (
     <div className="p-8 text-center">
       <h3 className="text-2xl font-bold mb-4">
-        {percentage >= 90
-          ? "Превосходный результат!"
-          : percentage >= 70
-          ? "Хороший результат!"
-          : isPassed
-          ? "Тест пройден!"
-          : "Стоит повторить материал"}
+        {percentage >= 90 ? "Превосходный результат!" : percentage >= 70 ? "Хороший результат!" : isPassed ? "Тест пройден!" : "Стоит повторить материал"}
       </h3>
 
       <div className="text-lg text-gray-800 mb-6 leading-relaxed">
@@ -187,6 +180,16 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
           {isGenerating ? "Генерация..." : "Скачать сертификат"}
         </button>
       )}
+
+      <div className="mt-8 border-t border-gray-300 pt-4">
+        <button className="bg-gray-800 hover:bg-black text-white font-medium py-2 px-6 rounded-lg transition" onClick={onClose}>
+          Вернуться к курсам
+        </button>
+      </div>
+    </div>
+  );
+};
+
 
       <div className="mt-8 border-t border-gray-300 pt-4">
         <button
