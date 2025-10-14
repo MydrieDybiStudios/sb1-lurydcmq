@@ -14,6 +14,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   const [userName, setUserName] = useState<string>("Участник");
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // === Загрузка имени пользователя из таблицы profiles ===
   useEffect(() => {
     const loadProfileName = async () => {
       try {
@@ -27,21 +28,19 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
           .maybeSingle();
 
         if (profile) {
-          const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
-          setUserName(fullName || "Участник");
+          const full = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+          setUserName(full || "Участник");
         }
       } catch {
         setUserName("Участник");
       }
     };
-
     loadProfileName();
   }, []);
 
   if (!results) return null;
 
   const { score, total, percentage } = results;
-  const incorrect = total - score;
   const isPassed = percentage >= 50;
 
   const safeFileName = (s: string) =>
@@ -51,6 +50,20 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   const handleDownloadCertificate = async () => {
     setIsGenerating(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("first_name, last_name")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profile) {
+          const full = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+          if (full) setUserName(full);
+        }
+      }
+
       const canvasWidth = 2480;
       const canvasHeight = 1754;
       const padding = 120;
@@ -62,7 +75,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       if (!ctx) throw new Error("Canvas не поддерживается");
 
       // === ФОН ===
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#fffefc";
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
       // === РАМКА ===
@@ -70,47 +83,71 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       ctx.lineWidth = 35;
       roundRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 40, false, true);
 
-      // === ТИТУЛ ===
-      ctx.fillStyle = "#D4AF37";
-      ctx.font = "bold 90px Arial";
+      // === ЗАГОЛОВОК ===
       ctx.textAlign = "center";
+      ctx.fillStyle = "#D4AF37";
+      ctx.font = "bold 78px Arial";
       ctx.fillText("СЕРТИФИКАТ", canvasWidth / 2, padding + 150);
 
+      ctx.font = "bold 54px Arial";
       ctx.fillStyle = "#000";
-      ctx.font = "600 56px Arial";
-      ctx.fillText("о завершении курса", canvasWidth / 2, padding + 230);
+      ctx.fillText("о завершении курса", canvasWidth / 2, padding + 220);
 
       // === ИМЯ ===
-      ctx.fillStyle = "#000";
+      ctx.fillStyle = "#111";
       ctx.font = "bold 80px Arial";
-      ctx.fillText(userName, canvasWidth / 2, padding + 420);
+      ctx.fillText(userName, canvasWidth / 2, padding + 400);
 
-      // === КУРС ===
-      ctx.font = "400 46px Arial";
-      ctx.fillText(`успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 520);
+      // === ОПИСАНИЕ ===
+      ctx.font = "400 42px Arial";
+      ctx.fillStyle = "#333";
+      wrapTextCentered(ctx, `успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 480, canvasWidth - 400, 50);
 
-      // === РЕЗУЛЬТАТЫ ===
+      // === РЕЗУЛЬТАТ ===
+      ctx.font = "bold 40px Arial";
       ctx.fillStyle = "#D4AF37";
-      ctx.font = "bold 52px Arial";
-      ctx.fillText("РЕЗУЛЬТАТЫ ТЕСТА", canvasWidth / 2, padding + 720);
+      ctx.fillText("Результаты:", canvasWidth / 2, padding + 650);
 
+      ctx.font = "400 36px Arial";
+      ctx.fillStyle = "#111";
+      ctx.fillText(`Правильных ответов: ${score} из ${total}`, canvasWidth / 2, padding + 720);
+      ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 780);
+
+      // === НИЖНЯЯ ПОЛОСА (цвета Роснефти) ===
+      const barY = canvasHeight - 250;
       ctx.fillStyle = "#000";
-      ctx.font = "400 44px Arial";
-      ctx.fillText(`Правильных ответов: ${score} из ${total}`, canvasWidth / 2, padding + 800);
-      ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 860);
-      ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 920);
+      ctx.fillRect(0, barY, canvasWidth, 80);
+      ctx.fillStyle = "#FFD700";
+      ctx.fillRect(0, barY + 80, canvasWidth, 20);
+      ctx.fillStyle = "#FFB300";
+      ctx.fillRect(0, barY + 100, canvasWidth, 20);
 
-      // === ДАТА ===
+      // === ТЕКСТ СНИЗУ ===
       const dateStr = new Date().toLocaleDateString("ru-RU");
-      ctx.font = "400 34px Arial";
+      ctx.font = "400 30px Arial";
+      ctx.fillStyle = "#333";
       ctx.textAlign = "left";
-      ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 120);
+      ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 80);
 
-      // === ПОДПИСЬ (место для подписи) ===
       ctx.textAlign = "right";
-      ctx.font = "400 34px Arial";
-      ctx.fillText("__________________________", canvasWidth - padding - 40, canvasHeight - padding - 120);
-      ctx.fillText("Подпись", canvasWidth - padding - 240, canvasHeight - padding - 70);
+      ctx.fillText("Образовательная платформа Yugra.Neft", canvasWidth - padding - 40, canvasHeight - padding - 80);
+
+      // === ПОДПИСЬ (имитация ручки) ===
+      const sigX = canvasWidth / 2 + 400;
+      const sigY = canvasHeight - 280;
+      ctx.strokeStyle = "#1E3A8A"; // тёмно-синяя ручка
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(sigX, sigY);
+      ctx.bezierCurveTo(sigX + 40, sigY - 20, sigX + 120, sigY + 10, sigX + 220, sigY - 30);
+      ctx.bezierCurveTo(sigX + 300, sigY - 50, sigX + 380, sigY, sigX + 420, sigY - 20);
+      ctx.stroke();
+
+      ctx.font = "italic 28px Arial";
+      ctx.fillStyle = "#1E3A8A";
+      ctx.textAlign = "center";
+      ctx.fillText("_____________________", sigX + 210, sigY + 40);
+      ctx.fillText("Подпись", sigX + 210, sigY + 80);
 
       // === PDF ===
       const pngBlob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png", 1));
@@ -141,7 +178,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     }
   };
 
-  // === JSX ===
   return (
     <div className="p-6 text-center">
       <div className="flex justify-center mb-6">
@@ -154,7 +190,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
         </div>
       </div>
 
-      <h3 className="text-2xl font-bold mb-2">
+      <h3 className="text-3xl font-bold mb-4">
         {percentage >= 90
           ? "Превосходный результат!"
           : percentage >= 70
@@ -164,39 +200,37 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
           : "Стоит повторить материал"}
       </h3>
 
-      <p className="text-lg text-gray-700 mb-4">
+      <p className="text-xl text-gray-800 mb-4">
         {userName}, вы ответили правильно на {score} из {total} вопросов по курсу «{courseName}».
       </p>
 
       <div className="mb-8">
-        <div className="w-full bg-gray-200 rounded-full h-4 mb-2">
+        <div className="w-full bg-gray-200 rounded-full h-5 mb-2">
           <div
-            className={`${isPassed ? "bg-yellow-500" : "bg-red-500"} h-4 rounded-full`}
+            className={`${isPassed ? "bg-yellow-500" : "bg-red-500"} h-5 rounded-full`}
             style={{ width: `${percentage}%` }}
           ></div>
         </div>
-        <p className="text-base text-gray-600 font-semibold">{percentage}% правильных ответов</p>
+        <p className="text-base text-gray-600">{percentage}% правильных ответов</p>
       </div>
 
       {percentage >= 70 && (
         <div className="mb-8">
-          <p className="text-gray-700 mb-4 font-medium">
-            Поздравляем, {userName}! Вы можете скачать именной сертификат.
-          </p>
+          <p className="text-gray-700 mb-4">Поздравляем, {userName}! Вы можете скачать именной сертификат.</p>
           <button
             onClick={handleDownloadCertificate}
             disabled={isGenerating}
-            className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-60 text-black font-medium py-3 px-8 rounded-lg transition flex items-center mx-auto text-lg"
+            className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-60 text-black font-medium py-3 px-8 rounded-lg transition flex items-center mx-auto"
           >
-            <Award className="mr-2 w-6 h-6" />
+            <Award className="mr-2 w-5 h-5" />
             <span>{isGenerating ? "Генерация..." : "Скачать сертификат"}</span>
           </button>
         </div>
       )}
 
-      <div className="mt-4 border-t border-gray-200 pt-4">
-        <p className="text-gray-600 mb-4 text-base">
-          {isPassed ? "Отличная работа! Продолжайте обучение." : "Рекомендуем повторить материал и пройти тест снова."}
+      <div className="mt-6 border-t border-gray-200 pt-4">
+        <p className="text-gray-700 mb-4">
+          {isPassed ? "Отличная работа! Продолжайте обучение." : "Попробуйте ещё раз и улучшите результат."}
         </p>
         <button
           className="bg-gray-800 hover:bg-black text-white font-medium py-2 px-6 rounded-lg transition"
@@ -222,4 +256,33 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
+}
+
+function wrapTextCentered(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  centerX: number,
+  startY: number,
+  maxWidth: number,
+  lineHeight: number
+) {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let current = "";
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    const test = current ? current + " " + word : word;
+    const w = ctx.measureText(test).width;
+    if (w > maxWidth && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+
+  for (let i = 0; i < lines.length; i++) {
+    ctx.fillText(lines[i], centerX, startY + i * lineHeight);
+  }
 }
