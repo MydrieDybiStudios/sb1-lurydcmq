@@ -1,7 +1,9 @@
+// src/components/ResultsComponent.tsx
 import React, { useEffect, useState } from "react";
 import { Award, CheckCircle } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { supabase } from "../lib/supabaseClient";
+import { useNavigate } from "react-router-dom";
 
 interface ResultsComponentProps {
   results: { score: number; total: number; percentage: number } | null;
@@ -10,11 +12,12 @@ interface ResultsComponentProps {
 }
 
 const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName, onClose }) => {
+  const navigate = useNavigate();
+
   const [userName, setUserName] = useState<string>("Участник");
   const [isGenerating, setIsGenerating] = useState(false);
-
-  // 🔹 Новый флаг — доступен ли сертификат
   const [isCertificateAvailable, setIsCertificateAvailable] = useState(false);
+  const [isCourseCompleted, setIsCourseCompleted] = useState(false);
 
   useEffect(() => {
     const loadProfileName = async () => {
@@ -48,17 +51,17 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   const resultTitle = isPassed ? "Поздравляем!" : "Попробуйте снова!";
   const resultClass = isPassed ? "bg-yellow-500" : "bg-red-500";
 
-  // 🔹 Когда результат ≥ 70%, разрешаем получить сертификат (один раз)
   useEffect(() => {
     if (percentage >= 70) {
       setIsCertificateAvailable(true);
+      setIsCourseCompleted(true);
     }
   }, [percentage]);
 
+  // === Генерация сертификата ===
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
 
-  // === Генерация PDF сертификата ===
   const handleDownloadCertificate = async () => {
     if (!isCertificateAvailable) {
       alert("Чтобы получить сертификат, пройдите курс заново.");
@@ -77,28 +80,19 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas не поддерживается");
 
-      // === ФОН (градиент) ===
+      // === Фон ===
       const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
       gradient.addColorStop(0, "#fffef5");
       gradient.addColorStop(1, "#fff9e5");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      // === РАМКА ===
+      // === Рамка ===
       ctx.strokeStyle = "#D4AF37";
       ctx.lineWidth = 40;
-      roundRect(
-        ctx,
-        padding / 2,
-        padding / 2,
-        canvasWidth - padding,
-        canvasHeight - padding,
-        50,
-        false,
-        true
-      );
+      roundRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 50, false, true);
 
-      // === ТЕКСТЫ ===
+      // === Текст ===
       ctx.fillStyle = "#D4AF37";
       ctx.font = "bold 110px Arial";
       ctx.textAlign = "center";
@@ -113,11 +107,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       ctx.fillText(userName, canvasWidth / 2, padding + 460);
 
       ctx.font = "400 50px Arial";
-      ctx.fillText(
-        `успешно завершил(а) курс «${courseName}»`,
-        canvasWidth / 2,
-        padding + 550
-      );
+      ctx.fillText(`успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 550);
 
       ctx.fillStyle = "#D4AF37";
       ctx.font = "bold 60px Arial";
@@ -135,49 +125,17 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       ctx.fillStyle = "#000";
       ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 160);
 
-      // === Подпись ===
-      ctx.textAlign = "right";
-      ctx.strokeStyle = "#1E3A8A";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(canvasWidth - padding - 420, canvasHeight - padding - 150);
-      ctx.bezierCurveTo(
-        canvasWidth - padding - 350,
-        canvasHeight - padding - 180,
-        canvasWidth - padding - 100,
-        canvasHeight - padding - 80,
-        canvasWidth - padding - 40,
-        canvasHeight - padding - 120
-      );
-      ctx.stroke();
-
-      ctx.fillStyle = "#1E3A8A";
-      ctx.font = "italic 36px Arial";
-      ctx.fillText("Р.И. Кузоваткин", canvasWidth - padding - 80, canvasHeight - padding - 80);
-
-      ctx.fillStyle = "#000";
-      ctx.font = "400 30px Arial";
-      ctx.fillText("Подпись", canvasWidth - padding - 230, canvasHeight - padding - 40);
-
       ctx.textAlign = "center";
       ctx.fillStyle = "#444";
       ctx.font = "italic 36px Arial";
-      ctx.fillText(
-        "Цифровая образовательная среда «Югра.Нефть»",
-        canvasWidth / 2,
-        canvasHeight - padding + 10
-      );
+      ctx.fillText("Цифровая образовательная среда «Югра.Нефть»", canvasWidth / 2, canvasHeight - padding + 10);
 
-      // === СОХРАНЕНИЕ PDF ===
-      const pngBlob: Blob | null = await new Promise((res) =>
-        canvas.toBlob((b) => res(b), "image/png", 1)
-      );
+      const pngBlob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png", 1));
       if (!pngBlob) throw new Error("Ошибка при создании изображения сертификата");
 
       const pdfDoc = await PDFDocument.create();
       const pngBytes = await pngBlob.arrayBuffer();
       const pngImage = await pdfDoc.embedPng(pngBytes);
-
       const page = pdfDoc.addPage([pngImage.width, pngImage.height]);
       page.drawImage(pngImage, { x: 0, y: 0, width: pngImage.width, height: pngImage.height });
 
@@ -201,18 +159,27 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     }
   };
 
-  // 🔹 При нажатии на "Вернуться к курсам" — сбрасываем флаг сертификата
+  // === Сброс курса и переход на /cabinet ===
   const handleReturnToCourses = () => {
     setIsCertificateAvailable(false);
-    onClose();
+    setIsCourseCompleted(false);
+    localStorage.removeItem("currentCourseResults");
+    localStorage.removeItem("certificateGenerated");
+
+    // переход без перезагрузки
+    navigate("/cabinet");
   };
 
   return (
     <div className="p-6 text-center">
       <div className="flex justify-center mb-6">
-        <div className={`${isPassed ? "bg-yellow-100" : "bg-red-100"} rounded-full w-20 h-20 flex items-center justify-center`}>
+        <div
+          className={`${isPassed ? "bg-yellow-100" : "bg-red-100"} rounded-full w-20 h-20 flex items-center justify-center`}
+        >
           {isPassed ? (
-            <CheckCircle className={`${percentage >= 90 ? "text-yellow-600" : "text-yellow-500"} w-10 h-10`} />
+            <CheckCircle
+              className={`${percentage >= 90 ? "text-yellow-600" : "text-yellow-500"} w-10 h-10`}
+            />
           ) : (
             <div className="text-red-600 text-3xl">!</div>
           )}
@@ -231,10 +198,11 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
         <p className="text-sm text-gray-600">{percentage}% правильных ответов</p>
       </div>
 
-      {/* 🔹 Кнопка появляется только если сертификат доступен */}
-      {isCertificateAvailable && (
+      {isCertificateAvailable && isCourseCompleted && (
         <div className="mb-8">
-          <p className="text-gray-700 mb-4">Поздравляем, {userName}! Вы можете получить именной сертификат.</p>
+          <p className="text-gray-700 mb-4">
+            Поздравляем, {userName}! Вы можете получить именной сертификат.
+          </p>
           <button
             onClick={handleDownloadCertificate}
             disabled={isGenerating}
@@ -248,11 +216,13 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
       <div className="mt-4 border-t border-gray-200 pt-4">
         <p className="text-gray-600 mb-4">
-          {isPassed ? "Отличная работа! Продолжайте обучение." : "Рекомендуем повторить материал и пройти тест снова."}
+          {isPassed
+            ? "Отличная работа! Продолжайте обучение."
+            : "Рекомендуем повторить материал и пройти тест снова."}
         </p>
         <button
           className="bg-gray-800 hover:bg-black text-white font-medium py-2 px-6 rounded-lg transition"
-          onClick={handleReturnToCourses} // 🔹 заменили onClose()
+          onClick={handleReturnToCourses}
         >
           Вернуться к курсам
         </button>
@@ -263,8 +233,17 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
 export default ResultsComponent;
 
-/* === ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ === */
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number, fill = false, stroke = true) {
+// === Вспомогательная функция ===
+function roundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number,
+  fill = false,
+  stroke = true
+) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.arcTo(x + w, y, x + w, y + h, r);
