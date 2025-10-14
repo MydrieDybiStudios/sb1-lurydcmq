@@ -19,6 +19,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+
         const { data: profile } = await supabase
           .from("profiles")
           .select("first_name, last_name")
@@ -26,13 +27,14 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
           .maybeSingle();
 
         if (profile) {
-          const full = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
-          setUserName(full || "Участник");
+          const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(" ");
+          setUserName(fullName || "Участник");
         }
       } catch {
         setUserName("Участник");
       }
     };
+
     loadProfileName();
   }, []);
 
@@ -51,7 +53,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     try {
       const canvasWidth = 2480;
       const canvasHeight = 1754;
-      const padding = 100;
+      const padding = 120;
 
       const canvas = document.createElement("canvas");
       canvas.width = canvasWidth;
@@ -60,10 +62,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       if (!ctx) throw new Error("Canvas не поддерживается");
 
       // === ФОН ===
-      const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
-      gradient.addColorStop(0, "#fffef7");
-      gradient.addColorStop(1, "#f7f5e6");
-      ctx.fillStyle = gradient;
+      ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
       // === РАМКА ===
@@ -71,71 +70,47 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       ctx.lineWidth = 35;
       roundRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 40, false, true);
 
-      ctx.strokeStyle = "#1A1A1A";
-      ctx.lineWidth = 6;
-      roundRect(ctx, padding, padding, canvasWidth - padding * 2, canvasHeight - padding * 2, 25, false, true);
-
-      // === ВЕРХНИЙ БЛОК ===
-      ctx.fillStyle = "#000";
-      ctx.font = "bold 72px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("СЕРТИФИКАТ ДОСТИЖЕНИЯ", canvasWidth / 2, padding + 130);
-
-      ctx.font = "bold 60px Arial";
+      // === ТИТУЛ ===
       ctx.fillStyle = "#D4AF37";
-      ctx.fillText("Образовательная платформа «Югра.Нефть»", canvasWidth / 2, padding + 220);
+      ctx.font = "bold 90px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("СЕРТИФИКАТ", canvasWidth / 2, padding + 150);
+
+      ctx.fillStyle = "#000";
+      ctx.font = "600 56px Arial";
+      ctx.fillText("о завершении курса", canvasWidth / 2, padding + 230);
 
       // === ИМЯ ===
+      ctx.fillStyle = "#000";
       ctx.font = "bold 80px Arial";
-      ctx.fillStyle = "#111";
-      ctx.fillText(userName, canvasWidth / 2, padding + 400);
+      ctx.fillText(userName, canvasWidth / 2, padding + 420);
 
-      ctx.font = "400 42px Arial";
-      ctx.fillStyle = "#333";
-      wrapTextCentered(ctx, `успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 480, canvasWidth - 300, 50);
+      // === КУРС ===
+      ctx.font = "400 46px Arial";
+      ctx.fillText(`успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 520);
 
-      // === СТАТИСТИКА ===
-      ctx.font = "bold 40px Arial";
+      // === РЕЗУЛЬТАТЫ ===
       ctx.fillStyle = "#D4AF37";
-      ctx.fillText("РЕЗУЛЬТАТЫ:", canvasWidth / 2, padding + 650);
+      ctx.font = "bold 52px Arial";
+      ctx.fillText("РЕЗУЛЬТАТЫ ТЕСТА", canvasWidth / 2, padding + 720);
 
-      ctx.font = "400 36px Arial";
-      ctx.fillStyle = "#111";
-      ctx.fillText(`✅ Правильных ответов: ${score}`, canvasWidth / 2, padding + 720);
-      ctx.fillText(`❌ Ошибок: ${incorrect}`, canvasWidth / 2, padding + 780);
-      ctx.fillText(`📊 Успешность: ${percentage}%`, canvasWidth / 2, padding + 840);
-
-      // === ДЕКОР ПОЛОСА (в стиле Роснефти) ===
-      const barHeight = 80;
-      const barY = canvasHeight - padding - 220;
       ctx.fillStyle = "#000";
-      ctx.fillRect(0, barY, canvasWidth, barHeight);
-      ctx.fillStyle = "#FFD700";
-      ctx.fillRect(0, barY + barHeight, canvasWidth, 10);
-      ctx.fillStyle = "#FEC601";
-      ctx.fillRect(0, barY + barHeight + 10, canvasWidth, 10);
+      ctx.font = "400 44px Arial";
+      ctx.fillText(`Правильных ответов: ${score} из ${total}`, canvasWidth / 2, padding + 800);
+      ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 860);
+      ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 920);
 
-      // === НИЖНИЙ ТЕКСТ ===
+      // === ДАТА ===
       const dateStr = new Date().toLocaleDateString("ru-RU");
-      ctx.font = "400 28px Arial";
-      ctx.fillStyle = "#333";
+      ctx.font = "400 34px Arial";
       ctx.textAlign = "left";
-      ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 60);
+      ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 120);
 
+      // === ПОДПИСЬ (место для подписи) ===
       ctx.textAlign = "right";
-      ctx.fillText("Платформа «Югра.Нефть»", canvasWidth - padding - 40, canvasHeight - padding - 60);
-
-      // === ЛОГОТИП (простая графика Роснефти) ===
-      const logoX = canvasWidth / 2 - 100;
-      const logoY = padding + 40;
-      ctx.fillStyle = "#FFD700";
-      for (let i = 0; i < 5; i++) {
-        ctx.fillRect(logoX + i * 40, logoY - i * 20, 30, 120);
-      }
-      ctx.fillStyle = "#000";
-      for (let i = 5; i < 9; i++) {
-        ctx.fillRect(logoX + i * 40, logoY - (8 - i) * 20, 30, 120);
-      }
+      ctx.font = "400 34px Arial";
+      ctx.fillText("__________________________", canvasWidth - padding - 40, canvasHeight - padding - 120);
+      ctx.fillText("Подпись", canvasWidth - padding - 240, canvasHeight - padding - 70);
 
       // === PDF ===
       const pngBlob: Blob | null = await new Promise((res) => canvas.toBlob((b) => res(b), "image/png", 1));
@@ -200,25 +175,27 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
             style={{ width: `${percentage}%` }}
           ></div>
         </div>
-        <p className="text-sm text-gray-600">{percentage}% правильных ответов</p>
+        <p className="text-base text-gray-600 font-semibold">{percentage}% правильных ответов</p>
       </div>
 
       {percentage >= 70 && (
         <div className="mb-8">
-          <p className="text-gray-700 mb-4">Поздравляем, {userName}! Вы можете получить именной сертификат.</p>
+          <p className="text-gray-700 mb-4 font-medium">
+            Поздравляем, {userName}! Вы можете скачать именной сертификат.
+          </p>
           <button
             onClick={handleDownloadCertificate}
             disabled={isGenerating}
-            className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-60 text-black font-medium py-2 px-6 rounded-lg transition flex items-center mx-auto"
+            className="bg-yellow-500 hover:bg-yellow-600 disabled:opacity-60 text-black font-medium py-3 px-8 rounded-lg transition flex items-center mx-auto text-lg"
           >
-            <Award className="mr-2 w-5 h-5" />
-            <span>{isGenerating ? "Генерация..." : "Получить сертификат"}</span>
+            <Award className="mr-2 w-6 h-6" />
+            <span>{isGenerating ? "Генерация..." : "Скачать сертификат"}</span>
           </button>
         </div>
       )}
 
       <div className="mt-4 border-t border-gray-200 pt-4">
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-600 mb-4 text-base">
           {isPassed ? "Отличная работа! Продолжайте обучение." : "Рекомендуем повторить материал и пройти тест снова."}
         </p>
         <button
@@ -245,33 +222,4 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.closePath();
   if (fill) ctx.fill();
   if (stroke) ctx.stroke();
-}
-
-function wrapTextCentered(
-  ctx: CanvasRenderingContext2D,
-  text: string,
-  centerX: number,
-  startY: number,
-  maxWidth: number,
-  lineHeight: number
-) {
-  const words = text.split(" ");
-  const lines: string[] = [];
-  let current = "";
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    const test = current ? current + " " + word : word;
-    const w = ctx.measureText(test).width;
-    if (w > maxWidth && current) {
-      lines.push(current);
-      current = word;
-    } else {
-      current = test;
-    }
-  }
-  if (current) lines.push(current);
-
-  for (let i = 0; i < lines.length; i++) {
-    ctx.fillText(lines[i], centerX, startY + i * lineHeight);
-  }
 }
