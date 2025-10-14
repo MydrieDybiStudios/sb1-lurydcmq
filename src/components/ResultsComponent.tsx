@@ -1,6 +1,6 @@
 // src/components/ResultsComponent.tsx
 import React, { useEffect, useState } from "react";
-import { Award } from "lucide-react";
+import { Award, CheckCircle } from "lucide-react";
 import { PDFDocument } from "pdf-lib";
 import { supabase } from "../lib/supabaseClient";
 
@@ -43,6 +43,9 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
   const incorrect = total - score;
   const isPassed = percentage >= 50;
 
+  const resultTitle = isPassed ? "Поздравляем!" : "Попробуйте снова!";
+  const resultClass = isPassed ? "bg-yellow-500" : "bg-red-500";
+
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
 
@@ -72,35 +75,42 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
       ctx.lineWidth = 40;
       roundRect(ctx, padding / 2, padding / 2, canvasWidth - padding, canvasHeight - padding, 50, false, true);
 
+      // === ЛОГОТИП ROSNEFT (прямоугольник стилизованный сверху) ===
+      ctx.fillStyle = "#000";
+      ctx.fillRect(canvasWidth / 2 - 140, padding + 40, 280, 80);
+      ctx.fillStyle = "#FFD700";
+      ctx.fillRect(canvasWidth / 2 - 140, padding + 40, 60, 80);
+      ctx.fillRect(canvasWidth / 2 - 70, padding + 40, 60, 60);
+
       // === ЗАГОЛОВОК ===
       ctx.fillStyle = "#D4AF37";
       ctx.font = "bold 110px Arial";
       ctx.textAlign = "center";
-      ctx.fillText("СЕРТИФИКАТ", canvasWidth / 2, padding + 200);
+      ctx.fillText("СЕРТИФИКАТ", canvasWidth / 2, padding + 240);
 
       ctx.fillStyle = "#000";
       ctx.font = "600 60px Arial";
-      ctx.fillText("о завершении курса", canvasWidth / 2, padding + 280);
+      ctx.fillText("о завершении курса", canvasWidth / 2, padding + 320);
 
       // === ИМЯ ===
       ctx.fillStyle = "#000";
       ctx.font = "bold 90px Arial";
-      ctx.fillText(userName, canvasWidth / 2, padding + 460);
+      ctx.fillText(userName, canvasWidth / 2, padding + 500);
 
       // === КУРС ===
       ctx.font = "400 50px Arial";
-      ctx.fillText(`успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 550);
+      ctx.fillText(`успешно завершил(а) курс «${courseName}»`, canvasWidth / 2, padding + 600);
 
       // === РЕЗУЛЬТАТЫ ===
       ctx.fillStyle = "#D4AF37";
       ctx.font = "bold 60px Arial";
-      ctx.fillText("РЕЗУЛЬТАТЫ ТЕСТА", canvasWidth / 2, padding + 720);
+      ctx.fillText("РЕЗУЛЬТАТЫ ТЕСТА", canvasWidth / 2, padding + 750);
 
       ctx.fillStyle = "#000";
       ctx.font = "400 48px Arial";
-      ctx.fillText(`Правильных ответов: ${score} из ${total}`, canvasWidth / 2, padding + 800);
-      ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 860);
-      ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 920);
+      ctx.fillText(`Правильных ответов: ${score} из ${total}`, canvasWidth / 2, padding + 830);
+      ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 890);
+      ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 950);
 
       // === ПОДПИСЬ / ДАТА ===
       const dateStr = new Date().toLocaleDateString("ru-RU");
@@ -111,18 +121,23 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
 
       // Подпись
       ctx.textAlign = "right";
-      ctx.strokeStyle = "#1E3A8A";
+      ctx.strokeStyle = "#000";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(canvasWidth - padding - 420, canvasHeight - padding - 150);
-      ctx.bezierCurveTo(canvasWidth - padding - 350, canvasHeight - padding - 180, canvasWidth - padding - 100, canvasHeight - padding - 80, canvasWidth - padding - 40, canvasHeight - padding - 120);
+      ctx.bezierCurveTo(
+        canvasWidth - padding - 350,
+        canvasHeight - padding - 180,
+        canvasWidth - padding - 100,
+        canvasHeight - padding - 80,
+        canvasWidth - padding - 40,
+        canvasHeight - padding - 120
+      );
       ctx.stroke();
 
-      ctx.fillStyle = "#1E3A8A";
+      ctx.fillStyle = "#000";
       ctx.font = "italic 36px Arial";
       ctx.fillText("Р.И. Кузоваткин", canvasWidth - padding - 80, canvasHeight - padding - 80);
-
-      ctx.fillStyle = "#000";
       ctx.font = "400 30px Arial";
       ctx.fillText("Подпись", canvasWidth - padding - 230, canvasHeight - padding - 40);
 
@@ -160,13 +175,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     }
   };
 
-  // === JSX ===
- return (
+  return (
     <div className="p-6 text-center">
       <div className="flex justify-center mb-6">
-        <div className={`${isPassed ? "bg-green-100" : "bg-red-100"} rounded-full w-20 h-20 flex items-center justify-center`}>
+        <div className={`${isPassed ? "bg-yellow-100" : "bg-red-100"} rounded-full w-20 h-20 flex items-center justify-center`}>
           {isPassed ? (
-            <CheckCircle className={`${percentage >= 90 ? "text-green-600" : "text-yellow-600"} w-10 h-10`} />
+            <CheckCircle className={`${percentage >= 90 ? "text-yellow-600" : "text-yellow-500"} w-10 h-10`} />
           ) : (
             <div className="text-red-600 text-3xl">!</div>
           )}
@@ -210,6 +224,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({ results, courseName
     </div>
   );
 };
+
 export default ResultsComponent;
 
 /* === ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ === */
