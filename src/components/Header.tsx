@@ -85,30 +85,43 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
     navigate("/cabinet");
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <header className="bg-black text-white shadow-lg">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        {/* Логотип и название */}
         <div className="flex items-center space-x-3">
-          <div className="gradient-bg text-black font-bold rounded-full w-10 h-10 flex items-center justify-center">
-            UO
-          </div>
-          <div>
-            <h1 className="text-lg md:text-xl font-bold">
-              Цифровая Образовательная Платформа "Югра.Нефть"
-            </h1>
-            <p className="text-xs text-gray-300 hidden md:block">
-              Интерактивные курсы, тесты и достижения
-            </p>
-          </div>
+          <Link to="/" className="flex items-center space-x-3">
+            <div className="gradient-bg text-black font-bold rounded-full w-10 h-10 flex items-center justify-center">
+              UO
+            </div>
+            <div>
+              <h1 className="text-lg md:text-xl font-bold">
+                Цифровая Образовательная Платформа "Югра.Нефть"
+              </h1>
+              <p className="text-xs text-gray-300 hidden md:block">
+                Интерактивные курсы, тесты и достижения
+              </p>
+            </div>
+          </Link>
         </div>
 
         {/* Навигация — десктоп */}
         <nav className="hidden md:flex space-x-6">
-          <Link to="/about" className="hover:text-yellow-400 transition">
+          <Link to="/about" className="hover:text-yellow-400 transition py-2">
             О проекте
           </Link>
+          <Link to="/how-it-works" className="hover:text-yellow-400 transition py-2">
+            Как работает
+          </Link>
+          <Link to="/partners" className="hover:text-yellow-400 transition py-2">
+            Партнёры
+          </Link>
           {user && (
-            <Link to="/cabinet" className="hover:text-yellow-400 transition">
+            <Link to="/cabinet" className="hover:text-yellow-400 transition py-2">
               Мои курсы
             </Link>
           )}
@@ -173,7 +186,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             </>
           )}
 
-          {/* мобильное меню */}
+          {/* Кнопка мобильного меню */}
           <button
             className="md:hidden"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -186,23 +199,46 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
 
       {/* Мобильное меню */}
       <div
-        className={`md:hidden bg-black py-2 px-4 ${isMobileMenuOpen ? "block" : "hidden"}`}
+        className={`md:hidden bg-black py-4 px-4 border-t border-gray-800 ${
+          isMobileMenuOpen ? "block" : "hidden"
+        }`}
       >
-        <div className="flex flex-col space-y-3">
-          <Link to="/about" className="hover:text-yellow-400 transition">
+        <div className="flex flex-col space-y-4">
+          {/* Основная навигация */}
+          <Link 
+            to="/about" 
+            className="hover:text-yellow-400 transition py-2"
+            onClick={closeMobileMenu}
+          >
             О проекте
           </Link>
+          <Link 
+            to="/how-it-works" 
+            className="hover:text-yellow-400 transition py-2"
+            onClick={closeMobileMenu}
+          >
+            Как работает
+          </Link>
+          <Link 
+            to="/partners" 
+            className="hover:text-yellow-400 transition py-2"
+            onClick={closeMobileMenu}
+          >
+            Партнёры
+          </Link>
+
+          {/* Блок пользователя */}
           {user ? (
             <>
-              {/* В мобильном меню также делаем профиль кликабельным */}
+              {/* Профиль пользователя */}
               <div 
-                className="flex items-center gap-3 cursor-pointer py-2"
+                className="flex items-center gap-3 cursor-pointer py-3 border-t border-gray-800 pt-4"
                 onClick={() => {
                   handleProfileClick();
-                  setIsMobileMenuOpen(false);
+                  closeMobileMenu();
                 }}
               >
-                <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
+                <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
@@ -215,48 +251,55 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
                     </span>
                   )}
                 </div>
-                <span className="text-yellow-500 font-medium">
-                  {profile?.first_name || user.email || "Пользователь"}
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-yellow-500 font-medium">
+                    {profile?.first_name || user.email || "Пользователь"}
+                  </span>
+                  <span className="text-gray-400 text-sm">Профиль</span>
+                </div>
               </div>
 
               <Link 
                 to="/cabinet" 
-                className="text-yellow-500 hover:text-yellow-400 transition"
-                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-yellow-500 hover:text-yellow-400 transition py-2"
+                onClick={closeMobileMenu}
               >
                 Личный кабинет
               </Link>
+              
               <button 
                 onClick={() => {
                   handleLogout();
-                  setIsMobileMenuOpen(false);
+                  closeMobileMenu();
                 }}
-                className="text-yellow-500 hover:text-yellow-400 transition text-left"
+                className="text-yellow-500 hover:text-yellow-400 transition text-left py-2"
               >
                 Выйти
               </button>
             </>
           ) : (
             <>
-              <button 
-                onClick={() => {
-                  onLogin();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="text-yellow-500 hover:text-yellow-400 transition text-left"
-              >
-                Войти
-              </button>
-              <button 
-                onClick={() => {
-                  onRegister();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="text-yellow-500 hover:text-yellow-400 transition text-left"
-              >
-                Регистрация
-              </button>
+              {/* Кнопки авторизации для неавторизованных пользователей */}
+              <div className="border-t border-gray-800 pt-4 flex flex-col space-y-3">
+                <button 
+                  onClick={() => {
+                    onLogin();
+                    closeMobileMenu();
+                  }}
+                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-3 px-4 rounded transition text-center"
+                >
+                  Войти
+                </button>
+                <button 
+                  onClick={() => {
+                    onRegister();
+                    closeMobileMenu();
+                  }}
+                  className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-3 px-4 rounded transition text-center"
+                >
+                  Регистрация
+                </button>
+              </div>
             </>
           )}
         </div>
