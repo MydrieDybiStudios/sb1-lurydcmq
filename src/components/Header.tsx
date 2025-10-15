@@ -138,6 +138,10 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
           >
             Партнёры
           </button>
+          {/* Добавляем ссылку на страницу отзывов */}
+          <Link to="/reviews" className="hover:text-yellow-400 transition py-2">
+            Отзывы
+          </Link>
           {user && (
             <Link to="/cabinet" className="hover:text-yellow-400 transition py-2">
               Мои курсы
@@ -241,6 +245,14 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
           >
             Партнёры
           </button>
+          {/* Добавляем ссылку на страницу отзывов в мобильное меню */}
+          <Link 
+            to="/reviews" 
+            className="hover:text-yellow-400 transition py-2 text-left"
+            onClick={closeMobileMenu}
+          >
+            Отзывы
+          </Link>
 
           {/* Блок пользователя */}
           {user ? (
