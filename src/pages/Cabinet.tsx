@@ -1,4 +1,3 @@
-// src/pages/Cabinet.tsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Footer from "../components/Footer";
@@ -9,6 +8,9 @@ import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
 import coursesData from "../data/coursesData";
+
+// Импортируем круглый логотип
+import logo from "../logos/logo.png";
 
 interface ProfileData {
   first_name: string;
@@ -125,9 +127,12 @@ const Cabinet: React.FC = () => {
       <header className="bg-black text-white shadow-lg">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <div className="gradient-bg text-black font-bold rounded-full w-10 h-10 flex items-center justify-center">
-              UO
-            </div>
+            {/* КРУГЛЫЙ ЛОГОТИП */}
+            <img 
+              src={logo} 
+              alt="Югра.Нефть" 
+              className="w-10 h-10 rounded-full object-cover border-2 border-yellow-400"
+            />
             <div>
               <h1 className="text-lg md:text-xl font-bold">Личный кабинет — Югра.Нефть</h1>
               <p className="text-xs text-gray-300 hidden md:block">Ваши курсы и достижения</p>
@@ -161,9 +166,9 @@ const Cabinet: React.FC = () => {
                   </button>
                 </nav>
 
-                {/* Кликабельные аватар и никнейм */}
+                {/* Кликабельные аватар и никнейм - СДВИНУТО ВПРАВО */}
                 <div 
-                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity ml-auto"
                   onClick={handleGoToProfile}
                   title="Перейти в профиль"
                 >
