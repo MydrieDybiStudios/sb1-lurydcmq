@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { Star, StarHalf } from "lucide-react";
 import Footer from "../components/Footer";
 
+// Импортируем круглый логотип
+import logo from "../logos/logo.png";
+
 const ReviewsPage: React.FC = () => {
   const testimonials = [
     {
@@ -124,15 +127,23 @@ const ReviewsPage: React.FC = () => {
     return stars;
   };
 
+  // Функция для открытия формы отзыва
+  const handleLeaveReview = () => {
+    window.open('https://forms.yandex.ru/u/662511a43e9d086b4aa04017', '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Хедер */}
       <header className="bg-black text-white shadow-lg">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <Link to="/" className="flex items-center space-x-3">
-            <div className="gradient-bg text-black font-bold rounded-full w-10 h-10 flex items-center justify-center">
-              UO
-            </div>
+            {/* КРУГЛЫЙ ЛОГОТИП */}
+            <img 
+              src={logo} 
+              alt="Югра.Нефть" 
+              className="w-10 h-10 rounded-full object-cover border-2 border-yellow-400"
+            />
             <div>
               <h1 className="text-lg md:text-xl font-bold">
                 Цифровая Образовательная Платформа "Югра.Нефть"
@@ -158,7 +169,7 @@ const ReviewsPage: React.FC = () => {
         </div>
 
         {/* Статистика */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-xl p-6 text-center shadow-lg">
             <div className="text-3xl font-bold text-yellow-600 mb-2">{testimonials.length}</div>
             <div className="text-gray-600">Всего отзывов</div>
@@ -175,6 +186,19 @@ const ReviewsPage: React.FC = () => {
             </div>
             <div className="text-gray-600">Положительных отзывов</div>
           </div>
+        </div>
+
+        {/* Кнопка "Оставить отзыв" */}
+        <div className="text-center mb-12">
+          <button 
+            onClick={handleLeaveReview}
+            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-lg"
+          >
+            ✨ Оставить отзыв
+          </button>
+          <p className="text-gray-600 mt-3 text-sm">
+            Поделитесь своим опытом обучения на нашей платформе
+          </p>
         </div>
 
         {/* Отзывы */}
