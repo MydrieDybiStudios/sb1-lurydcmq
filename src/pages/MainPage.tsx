@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
 import AboutSection from "../components/AboutSection";
-import TestimonialsSection from "../components/TestimonialsSection";
 import CtaSection from "../components/CtaSection";
 import Footer from "../components/Footer";
-import { Compass, X, Home, Users, BookOpen, Award, Star, MessageCircle } from "lucide-react";
+import { Compass, X, Home, Users, BookOpen, Award, MessageCircle } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Импорты логотипов из папки src/logos/
 import school1Logo from "../logos/school1-logo.png";
@@ -15,33 +15,45 @@ import rnYuganskLogo from "../logos/rn-yugansk-logo.png";
 // Компонент путеводителя для мобильных устройств
 const MobileGuide: React.FC = () => {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const guideItems = [
-    { icon: Home, label: "Главная", sectionId: "hero" },
-    { icon: BookOpen, label: "О проекте", sectionId: "about" },
-    { icon: Users, label: "Как работает", sectionId: "how-it-works" },
-    { icon: Award, label: "Партнёры", sectionId: "partners" },
-    { icon: Star, label: "Отзывы", sectionId: "testimonials" },
-    { icon: MessageCircle, label: "Контакты", sectionId: "cta" }
+    { icon: Home, label: "Главная", action: () => navigate("/") },
+    { icon: BookOpen, label: "О проекте", action: () => scrollToSection("about") },
+    { icon: Users, label: "Как работает", action: () => scrollToSection("how-it-works") },
+    { icon: Award, label: "Партнёры", action: () => scrollToSection("partners") },
+    { icon: MessageCircle, label: "Контакты", action: () => scrollToSection("cta") }
   ];
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+    if (location.pathname === "/") {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      navigate("/");
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     }
     setIsGuideOpen(false);
   };
 
   return (
     <>
-      {/* Кнопка открытия путеводителя */}
+      {/* Кнопка открытия путеводителя - УВЕЛИЧЕНА */}
       <button
         onClick={() => setIsGuideOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full p-3 shadow-lg lg:hidden transition-all duration-300 hover:scale-110"
+        className="fixed bottom-6 right-6 z-40 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full p-4 shadow-2xl lg:hidden transition-all duration-300 hover:scale-110"
         aria-label="Открыть навигацию"
+        style={{ width: '60px', height: '60px' }}
       >
-        <Compass className="w-6 h-6" />
+        <Compass className="w-7 h-7" />
       </button>
 
       {/* Модальное окно путеводителя */}
@@ -64,7 +76,7 @@ const MobileGuide: React.FC = () => {
                 return (
                   <button
                     key={index}
-                    onClick={() => scrollToSection(item.sectionId)}
+                    onClick={item.action}
                     className="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-yellow-50 transition-colors"
                   >
                     <IconComponent className="w-6 h-6 text-yellow-600 mb-2" />
@@ -236,6 +248,11 @@ const PartnersSection: React.FC = () => {
     }
   ];
 
+  // Функция для открытия формы партнерства
+  const handlePartnerForm = () => {
+    window.open('https://forms.yandex.ru/u/68efb425e010db1cab0dd08b', '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <section id="partners" className="py-8 md:py-16 bg-white w-full">
       <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
@@ -285,7 +302,10 @@ const PartnersSection: React.FC = () => {
           <p className="text-yellow-100 mb-4 sm:mb-6 max-w-2xl mx-auto text-sm sm:text-base">
             Мы открыты для сотрудничества с образовательными учреждениями и компаниями нефтегазовой отрасли
           </p>
-          <button className="bg-black hover:bg-gray-900 text-white font-medium py-2 px-4 sm:py-3 sm:px-8 rounded-lg transition text-sm sm:text-base">
+          <button 
+            onClick={handlePartnerForm}
+            className="bg-black hover:bg-gray-900 text-white font-medium py-2 px-4 sm:py-3 sm:px-8 rounded-lg transition text-sm sm:text-base"
+          >
             Связаться с нами
           </button>
         </div>
@@ -463,7 +483,7 @@ const MainPage: React.FC<{
         <AboutProjectSection />
         <HowItWorksSection />
         <PartnersSection />
-        <TestimonialsSection />
+        {/* TestimonialsSection удален с главной страницы */}
         <CtaSection onLogin={onLogin} onRegister={onRegister} />
       </main>
       
