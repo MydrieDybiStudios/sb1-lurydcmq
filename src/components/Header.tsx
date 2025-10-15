@@ -101,15 +101,17 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
   return (
     <header className="bg-black text-white shadow-lg">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Логотип и название */}
+        {/* Логотип и название - ИСПРАВЛЕННАЯ ЧАСТЬ */}
         <div className="flex items-center space-x-3">
-          <Link to="/" className="flex items-center space-x-3">
-            <div className="gradient-bg text-black font-bold rounded-full w-10 h-10 flex items-center justify-center">
+          <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
+            <div className="gradient-bg text-black font-bold rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center flex-shrink-0">
               UO
             </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold">
-                Цифровая Образовательная Платформа "Югра.Нефть"
+            <div className="max-w-[180px] sm:max-w-none">
+              <h1 className="text-sm sm:text-lg md:text-xl font-bold leading-tight">
+                <span className="hidden sm:inline">Цифровая Образовательная Платформа </span>
+                <span className="sm:hidden">Платформа </span>
+                "Югра.Нефть"
               </h1>
               <p className="text-xs text-gray-300 hidden md:block">
                 Интерактивные курсы, тесты и достижения
