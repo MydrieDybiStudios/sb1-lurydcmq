@@ -18,6 +18,25 @@ import Partners from "./pages/Partners";
 import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
 
+// Главная страница компонент
+const MainPage: React.FC<{
+  onLogin: () => void;
+  onRegister: () => void;
+}> = ({ onLogin, onRegister }) => {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header onLogin={onLogin} onRegister={onRegister} />
+      <main className="flex-grow">
+        <HeroSection />
+        <AboutSection />
+        <TestimonialsSection />
+        <CtaSection onLogin={onLogin} onRegister={onRegister} />
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -42,70 +61,64 @@ function App() {
 
   return (
     <Router>
-      <Routes>
-        {/* Главная страница */}
-        <Route
-          path="/"
-          element={
-            <div className="min-h-screen flex flex-col">
-              <Header
+      <div className="App">
+        <Routes>
+          {/* Главная страница */}
+          <Route
+            path="/"
+            element={
+              <MainPage 
                 onLogin={handleLogin}
                 onRegister={handleRegister}
               />
+            }
+          />
 
-              <HeroSection />
-              <AboutSection />
-              <TestimonialsSection />
-              <CtaSection onLogin={handleLogin} onRegister={handleRegister} />
+          {/* Профиль */}
+          <Route path="/profile" element={<Profile />} />
 
-              <Footer />
+          {/* Личный кабинет */}
+          <Route path="/cabinet" element={<Cabinet />} />
 
-              <AuthModals
-                isLoginOpen={isLoginModalOpen}
-                isRegisterOpen={isRegisterModalOpen}
-                onCloseLogin={() => setIsLoginModalOpen(false)}
-                onCloseRegister={() => setIsRegisterModalOpen(false)}
-                onSwitchToLogin={() => {
-                  setIsRegisterModalOpen(false);
-                  setIsLoginModalOpen(true);
-                }}
-                onSwitchToRegister={() => {
-                  setIsLoginModalOpen(false);
-                  setIsRegisterModalOpen(true);
-                }}
-                onAuthSuccess={handleAuthSuccess}
-              />
+          {/* О проекте */}
+          <Route path="/about" element={<About />} />
 
-              <CourseModal
-                isOpen={isCourseModalOpen}
-                onClose={() => setIsCourseModalOpen(false)}
-                course={currentCourse}
-              />
-            </div>
-          }
+          {/* Как работает сайт */}
+          <Route path="/how-it-works" element={<HowItWorksPage />} />
+
+          {/* Партнёры */}
+          <Route path="/partners" element={<Partners />} />
+
+          {/* Политика конфиденциальности */}
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+          {/* Условия использования */}
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+        </Routes>
+
+        {/* Модальные окна - рендерятся поверх всех страниц */}
+        <AuthModals
+          isLoginOpen={isLoginModalOpen}
+          isRegisterOpen={isRegisterModalOpen}
+          onCloseLogin={() => setIsLoginModalOpen(false)}
+          onCloseRegister={() => setIsRegisterModalOpen(false)}
+          onSwitchToLogin={() => {
+            setIsRegisterModalOpen(false);
+            setIsLoginModalOpen(true);
+          }}
+          onSwitchToRegister={() => {
+            setIsLoginModalOpen(false);
+            setIsRegisterModalOpen(true);
+          }}
+          onAuthSuccess={handleAuthSuccess}
         />
 
-        {/* Профиль */}
-        <Route path="/profile" element={<Profile />} />
-
-        {/* Личный кабинет */}
-        <Route path="/cabinet" element={<Cabinet />} />
-
-        {/* О проекте */}
-        <Route path="/about" element={<About />} />
-
-        {/* Как работает сайт */}
-        <Route path="/how-it-works" element={<HowItWorksPage />} />
-
-        {/* Партнёры */}
-        <Route path="/partners" element={<Partners />} />
-
-        {/* Политика конфиденциальности */}
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-
-        {/* Условия использования */}
-        <Route path="/terms-of-service" element={<TermsOfService />} />
-      </Routes>
+        <CourseModal
+          isOpen={isCourseModalOpen}
+          onClose={() => setIsCourseModalOpen(false)}
+          course={currentCourse}
+        />
+      </div>
     </Router>
   );
 }
