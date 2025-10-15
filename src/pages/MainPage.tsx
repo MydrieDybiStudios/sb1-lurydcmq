@@ -480,11 +480,11 @@ const MainPage: React.FC<{
       
       <main className="flex-grow w-full">
         <HeroSection />
+        <CtaSection onLogin={onLogin} onRegister={onRegister} />
         <AboutProjectSection />
         <HowItWorksSection />
         <PartnersSection />
         {/* TestimonialsSection удален с главной страницы */}
-        <CtaSection onLogin={onLogin} onRegister={onRegister} />
       </main>
       
       {/* Путеводитель для мобильных устройств */}
