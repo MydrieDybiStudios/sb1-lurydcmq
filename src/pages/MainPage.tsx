@@ -58,34 +58,34 @@ const HowItWorksSection: React.FC = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Как работает платформа</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+    <section id="how-it-works" className="py-8 md:py-16 bg-gray-50 w-full">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+        <div className="text-center mb-8 md:mb-16">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Как работает платформа</h2>
+          <p className="text-base sm:text-xl text-gray-600 max-w-3xl mx-auto px-2">
             Простой и понятный процесс обучения, который поможет вам освоить основы нефтегазовой отрасли
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 md:mb-16">
           {steps.map((step, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white font-bold text-xl">{step.number}</span>
+            <div key={index} className="bg-white rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-4 sm:p-6 text-center hover:shadow-lg sm:hover:shadow-xl transition-shadow w-full">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <span className="text-white font-bold text-sm sm:text-xl">{step.number}</span>
               </div>
               
-              <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">{step.icon}</span>
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <span className="text-xl sm:text-2xl">{step.icon}</span>
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
-              <p className="text-gray-600 mb-4">{step.description}</p>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">{step.title}</h3>
+              <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{step.description}</p>
               
-              <ul className="text-sm text-gray-500 text-left space-y-2">
+              <ul className="text-xs sm:text-sm text-gray-500 text-left space-y-1 sm:space-y-2">
                 {step.details.map((detail, idx) => (
                   <li key={idx} className="flex items-start">
                     <span className="text-yellow-500 mr-2">•</span>
-                    {detail}
+                    <span>{detail}</span>
                   </li>
                 ))}
               </ul>
@@ -93,46 +93,46 @@ const HowItWorksSection: React.FC = () => {
           ))}
         </div>
 
-        <div className="bg-white rounded-2xl p-8 shadow-lg">
-          <h3 className="text-2xl font-bold text-center mb-8">Преимущества нашей платформы</h3>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="flex items-start space-x-4">
-              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-green-600 font-bold">✓</span>
+        <div className="bg-white rounded-lg sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-md sm:shadow-lg w-full">
+          <h3 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6 md:mb-8">Преимущества нашей платформы</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div className="flex items-start space-x-3 sm:space-x-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span className="text-green-600 font-bold text-sm sm:text-base">✓</span>
               </div>
               <div>
-                <h4 className="font-bold text-lg mb-2">Бесплатный доступ</h4>
-                <p className="text-gray-600">Все курсы доступны совершенно бесплатно для учащихся</p>
+                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Бесплатный доступ</h4>
+                <p className="text-gray-600 text-sm sm:text-base">Все курсы доступны совершенно бесплатно для учащихся</p>
               </div>
             </div>
             
-            <div className="flex items-start space-x-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 font-bold">✓</span>
+            <div className="flex items-start space-x-3 sm:space-x-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span className="text-blue-600 font-bold text-sm sm:text-base">✓</span>
               </div>
               <div>
-                <h4 className="font-bold text-lg mb-2">Сертификаты</h4>
-                <p className="text-gray-600">Получайте именные сертификаты о прохождении курсов</p>
+                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Сертификаты</h4>
+                <p className="text-gray-600 text-sm sm:text-base">Получайте именные сертификаты о прохождении курсов</p>
               </div>
             </div>
             
-            <div className="flex items-start space-x-4">
-              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-purple-600 font-bold">✓</span>
+            <div className="flex items-start space-x-3 sm:space-x-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span className="text-purple-600 font-bold text-sm sm:text-base">✓</span>
               </div>
               <div>
-                <h4 className="font-bold text-lg mb-2">Геймификация</h4>
-                <p className="text-gray-600">Система достижений делает обучение увлекательным</p>
+                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Геймификация</h4>
+                <p className="text-gray-600 text-sm sm:text-base">Система достижений делает обучение увлекательным</p>
               </div>
             </div>
             
-            <div className="flex items-start space-x-4">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-red-600 font-bold">✓</span>
+            <div className="flex items-start space-x-3 sm:space-x-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span className="text-red-600 font-bold text-sm sm:text-base">✓</span>
               </div>
               <div>
-                <h4 className="font-bold text-lg mb-2">Практические знания</h4>
-                <p className="text-gray-600">Курсы разработаны при участии industry-экспертов</p>
+                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Практические знания</h4>
+                <p className="text-gray-600 text-sm sm:text-base">Курсы разработаны при участии industry-экспертов</p>
               </div>
             </div>
           </div>
@@ -168,29 +168,29 @@ const PartnersSection: React.FC = () => {
   ];
 
   return (
-    <section id="partners" className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Наши партнёры</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+    <section id="partners" className="py-8 md:py-16 bg-white w-full">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+        <div className="text-center mb-8 md:mb-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Наши партнёры</h2>
+          <p className="text-base sm:text-xl text-gray-600 max-w-3xl mx-auto px-2">
             Совместными усилиями мы создаём качественное образование для будущего нефтегазовой отрасли
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 md:mb-16">
           {partners.map((partner, index) => (
-            <div key={index} className="bg-gray-50 rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow">
-              <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-full flex items-center justify-center">
+            <div key={index} className="bg-gray-50 rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-4 sm:p-6 text-center hover:shadow-lg sm:hover:shadow-xl transition-shadow w-full">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-full flex items-center justify-center">
                 <img 
                   src={partner.logo} 
                   alt={`Логотип ${partner.name}`}
-                  className="w-12 h-12 object-contain"
+                  className={`object-contain ${partner.name === "РН-Юганскнефтегаз" ? "w-16 h-16 sm:w-20 sm:h-20" : "w-14 h-14 sm:w-16 sm:h-16"}`}
                 />
               </div>
               
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{partner.name}</h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{partner.name}</h3>
               
-              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-4 ${
+              <span className={`inline-block px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-4 ${
                 partner.type.includes("Информационный") 
                   ? "bg-blue-100 text-blue-800"
                   : partner.type.includes("Образовательный")
@@ -200,19 +200,19 @@ const PartnersSection: React.FC = () => {
                 {partner.type}
               </span>
               
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
                 {partner.description}
               </p>
             </div>
           ))}
         </div>
 
-        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl p-8 text-center text-white">
-          <h3 className="text-2xl font-bold mb-4">Станьте нашим партнёром</h3>
-          <p className="text-yellow-100 mb-6 max-w-2xl mx-auto">
+        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg sm:rounded-2xl p-4 sm:p-6 md:p-8 text-center text-white w-full">
+          <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Станьте нашим партнёром</h3>
+          <p className="text-yellow-100 mb-4 sm:mb-6 max-w-2xl mx-auto text-sm sm:text-base">
             Мы открыты для сотрудничества с образовательными учреждениями и компаниями нефтегазовой отрасли
           </p>
-          <button className="bg-black hover:bg-gray-900 text-white font-medium py-3 px-8 rounded-lg transition">
+          <button className="bg-black hover:bg-gray-900 text-white font-medium py-2 px-4 sm:py-3 sm:px-8 rounded-lg transition text-sm sm:text-base">
             Связаться с нами
           </button>
         </div>
@@ -223,65 +223,152 @@ const PartnersSection: React.FC = () => {
 
 const AboutProjectSection: React.FC = () => {
   return (
-    <section id="about" className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">О проекте</h2>
-              <p className="text-gray-600 mb-4">
-                Инновационная образовательная платформа для изучения нефтегазовой отрасли. 
-                Создаем доступную и современную образовательную среду для учащихся, 
-                интересующихся нефтегазовой отраслью.
-              </p>
-              <p className="text-gray-600 mb-6">
-                Мы стремимся к тому, чтобы каждый студент мог получить качественные знания 
-                и практические навыки. Платформа "Югра.Нефть" объединяет лучшие образовательные 
-                практики с современными технологиями для подготовки будущих специалистов.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-yellow-50 rounded-lg p-4 text-center">
-                  <span className="text-2xl">🎯</span>
-                  <h3 className="font-bold text-gray-900 mt-2">Цель</h3>
-                  <p className="text-sm text-gray-600">Качественное образование</p>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-4 text-center">
-                  <span className="text-2xl">👥</span>
-                  <h3 className="font-bold text-gray-900 mt-2">Аудитория</h3>
-                  <p className="text-sm text-gray-600">Учащиеся и студенты</p>
-                </div>
-                <div className="bg-green-50 rounded-lg p-4 text-center">
-                  <span className="text-2xl">📚</span>
-                  <h3 className="font-bold text-gray-900 mt-2">Курсы</h3>
-                  <p className="text-sm text-gray-600">7 направлений</p>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-4 text-center">
-                  <span className="text-2xl">🏆</span>
-                  <h3 className="font-bold text-gray-900 mt-2">Достижения</h3>
-                  <p className="text-sm text-gray-600">Система мотивации</p>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 gap-6">
-              <div className="text-center p-6 bg-yellow-50 rounded-lg">
-                <h3 className="text-xl font-bold mb-3">Профессиональная ориентация</h3>
-                <p className="text-gray-600">
-                  Помогаем учащимся определиться с будущей профессией в нефтегазовой отрасли
+    <section id="about" className="py-8 md:py-16 bg-gradient-to-br from-gray-50 to-yellow-50 w-full">
+      <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+        <div className="bg-white rounded-lg sm:rounded-2xl shadow-lg sm:shadow-xl p-6 sm:p-8 md:p-12 w-full border border-yellow-100">
+          {/* Заголовок */}
+          <div className="text-center mb-8 md:mb-12">
+            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4">
+              Цифровая образовательная среда <span className="text-yellow-600">«ЮГРА.НЕФТЬ»</span>
+            </h1>
+            <p className="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">
+              Инновационная платформа, объединяющая обучение, профориентацию и музейную экспозицию
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+            {/* Левая колонка - основная информация */}
+            <div className="space-y-6">
+              <div className="bg-blue-50 rounded-lg p-4 sm:p-6 border-l-4 border-blue-500">
+                <h3 className="font-bold text-gray-900 mb-3 text-lg">Авторы проекта</h3>
+                <p className="text-gray-700">
+                  Пестриков Кирилл Валерьевич и Морозов Антон Павлович,<br />
+                  учащиеся 10А Роснефть-класса МБОУ «Средняя общеобразовательная школа № 1» пгт. Пойковский
                 </p>
               </div>
-              <div className="text-center p-6 bg-blue-50 rounded-lg">
-                <h3 className="text-xl font-bold mb-3">Доступные материалы</h3>
-                <p className="text-gray-600">
-                  Все курсы и учебные материалы доступны бесплатно для всех учащихся
+
+              <div className="bg-green-50 rounded-lg p-4 sm:p-6 border-l-4 border-green-500">
+                <h3 className="font-bold text-gray-900 mb-3 text-lg">Научный руководитель</h3>
+                <p className="text-gray-700">Рахманов Александр Валерьевич</p>
+              </div>
+
+              <div className="bg-purple-50 rounded-lg p-4 sm:p-6 border-l-4 border-purple-500">
+                <h3 className="font-bold text-gray-900 mb-3 text-lg">Место реализации</h3>
+                <p className="text-gray-700">
+                  Музей нефти имени Романа Ивановича Кузоваткина,<br />
+                  школа № 1, пгт. Пойковский, Ханты-Мансийский автономный округ — Югра
                 </p>
               </div>
-              <div className="text-center p-6 bg-green-50 rounded-lg">
-                <h3 className="text-xl font-bold mb-3">Геймификация</h3>
-                <p className="text-gray-600">
-                  Система достижений и сертификатов делает обучение увлекательным
+
+              <div className="prose prose-sm sm:prose-base max-w-none">
+                <p className="text-gray-700 leading-relaxed">
+                  <strong>Цифровая образовательная среда «ЮГРА.НЕФТЬ»</strong> — это инновационная платформа, 
+                  объединяющая обучение, профориентацию и музейную экспозицию. Проект разработан школьниками 
+                  для школьников и направлен на то, чтобы сделать процесс изучения нефтегазовой отрасли 
+                  современным, наглядным и интерактивным.
                 </p>
               </div>
             </div>
+
+            {/* Правая колонка - цели и особенности */}
+            <div className="space-y-6">
+              <div className="bg-yellow-50 rounded-lg p-4 sm:p-6 border-l-4 border-yellow-500">
+                <h3 className="font-bold text-gray-900 mb-4 text-lg">Цели проекта</h3>
+                <ul className="space-y-3 text-gray-700">
+                  <li className="flex items-start">
+                    <span className="text-yellow-600 mr-2 mt-1">•</span>
+                    <span>Повышение интереса учащихся к нефтегазовой отрасли и инженерным специальностям</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-yellow-600 mr-2 mt-1">•</span>
+                    <span>Создание современной интерактивной платформы на базе школьного музея</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-yellow-600 mr-2 mt-1">•</span>
+                    <span>Формирование практических знаний о добыче, переработке и транспортировке нефти и газа</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-yellow-600 mr-2 mt-1">•</span>
+                    <span>Развитие профориентационной активности школьников и помощь в выборе профессии</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-red-50 rounded-lg p-4 sm:p-6 border-l-4 border-red-500">
+                <h3 className="font-bold text-gray-900 mb-4 text-lg">Технологии</h3>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                    <span>VR технологии</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                    <span>AR приложения</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                    <span>Геймификация</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
+                    <span>Веб-портал</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center p-4 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-lg text-white">
+                <h3 className="font-bold mb-2">Основной образовательный ресурс</h3>
+                <p className="text-yellow-100 text-sm">ugra-oil.vercel.app</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Дополнительная информация */}
+          <div className="mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
+              <h3 className="font-bold text-gray-900 mb-3 text-lg">Результаты внедрения</h3>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start">
+                  <span className="text-green-600 mr-2 mt-1">✓</span>
+                  <span>Тестирование среди учащихся 8–11 классов</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-green-600 mr-2 mt-1">✓</span>
+                  <span>Повышение вовлечённости и интереса к нефтегазовой тематике</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-green-600 mr-2 mt-1">✓</span>
+                  <span>Более высокие результаты по тематическим тестам</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
+              <h3 className="font-bold text-gray-900 mb-3 text-lg">Перспективы развития</h3>
+              <ul className="space-y-2 text-sm text-gray-700">
+                <li className="flex items-start">
+                  <span className="text-blue-600 mr-2 mt-1">→</span>
+                  <span>Внедрение в профильные Роснефть-классы</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-600 mr-2 mt-1">→</span>
+                  <span>Новые модули по геологии и экологии</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-blue-600 mr-2 mt-1">→</span>
+                  <span>Интеграция с системами дистанционного обучения</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Заключение */}
+          <div className="mt-8 text-center">
+            <p className="text-gray-600 italic text-sm sm:text-base">
+              Цифровая образовательная среда «ЮГРА.НЕФТЬ» — пример того, как школьная инициатива и современные 
+              технологии VR/AR могут объединить музей, образование и инновации, открывая новое поколение для 
+              профессий нефтегазовой отрасли.
+            </p>
           </div>
         </div>
       </div>
@@ -295,10 +382,10 @@ const MainPage: React.FC<{
   onRegister: () => void;
 }> = ({ onLogin, onRegister }) => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
       <Header onLogin={onLogin} onRegister={onRegister} />
       
-      <main className="flex-grow">
+      <main className="flex-grow w-full">
         <HeroSection />
         <AboutProjectSection />
         <HowItWorksSection />
