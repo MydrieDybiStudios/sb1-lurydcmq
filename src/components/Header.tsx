@@ -250,13 +250,13 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             </>
           )}
 
-          {/* Кнопка быстрой навигации для ПК */}
+          {/* Кнопка быстрой навигации для ПК - ИСПРАВЛЕННЫЙ КОМПАС */}
           <button
             onClick={() => setIsQuickNavOpen(true)}
             className="hidden lg:flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full transition-all duration-300 hover:scale-110 ml-2"
             aria-label="Быстрая навигация"
           >
-            <Compass className="w-6 h-6" />
+            <Compass className="w-6 h-6 flex-shrink-0" />
           </button>
 
           {/* Кнопка мобильного меню - УБРАНА ИЗ ВИДИМОСТИ НА МОБИЛЬНЫХ */}
@@ -324,7 +324,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
                     onClick={item.action}
                     className="flex flex-col items-center p-6 bg-gray-50 rounded-xl hover:bg-yellow-50 transition-all duration-300 hover:scale-105"
                   >
-                    <IconComponent className="w-8 h-8 text-yellow-600 mb-3" />
+                    <IconComponent className="w-8 h-8 text-yellow-600 mb-3 flex-shrink-0" />
                     <span className="text-base font-medium text-gray-700 text-center">{item.label}</span>
                   </button>
                 );
