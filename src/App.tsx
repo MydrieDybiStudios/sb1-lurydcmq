@@ -1,41 +1,14 @@
 import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Header from "./components/Header";
-import HeroSection from "./components/HeroSection";
-import AboutSection from "./components/AboutSection";
-import TestimonialsSection from "./components/TestimonialsSection";
-import CtaSection from "./components/CtaSection";
-import Footer from "./components/Footer";
 import AuthModals from "./components/AuthModals";
 import CourseModal from "./components/CourseModal";
 import Profile from "./pages/Profile";
 import Cabinet from "./pages/Cabinet";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
-import About from "./pages/About";
-import HowItWorksPage from "./pages/HowItWorksPage";
-import Partners from "./pages/Partners";
+import MainPage from "./pages/MainPage";
 import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
-
-// Главная страница компонент
-const MainPage: React.FC<{
-  onLogin: () => void;
-  onRegister: () => void;
-}> = ({ onLogin, onRegister }) => {
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Header onLogin={onLogin} onRegister={onRegister} />
-      <main className="flex-grow">
-        <HeroSection />
-        <AboutSection />
-        <TestimonialsSection />
-        <CtaSection onLogin={onLogin} onRegister={onRegister} />
-      </main>
-      <Footer />
-    </div>
-  );
-};
 
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
@@ -79,15 +52,6 @@ function App() {
 
           {/* Личный кабинет */}
           <Route path="/cabinet" element={<Cabinet />} />
-
-          {/* О проекте */}
-          <Route path="/about" element={<About />} />
-
-          {/* Как работает сайт */}
-          <Route path="/how-it-works" element={<HowItWorksPage />} />
-
-          {/* Партнёры */}
-          <Route path="/partners" element={<Partners />} />
 
           {/* Политика конфиденциальности */}
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
