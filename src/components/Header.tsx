@@ -3,7 +3,7 @@ import { Menu, X, Compass } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
-// Импортируем логотип
+// Импортируем круглый логотип
 import logo from "../logos/logo.png";
 
 interface HeaderProps {
@@ -140,13 +140,13 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
   return (
     <header className="bg-black text-white shadow-lg relative">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Логотип и название - ОБНОВЛЕННЫЙ ЛОГОТИП */}
+        {/* Логотип и название - КРУГЛЫЙ ЛОГОТИП */}
         <div className="flex items-center space-x-3">
           <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
             <img 
               src={logo} 
               alt="Югра.Нефть" 
-              className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 object-contain"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0 object-cover border-2 border-yellow-400"
             />
             <div className="max-w-[180px] sm:max-w-none">
               <h1 className="text-sm sm:text-lg md:text-xl font-bold leading-tight">
@@ -191,13 +191,13 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
           )}
         </nav>
 
-        {/* Блок справа - СДВИНУТ ВПРАВО */}
-        <div className="flex items-center space-x-4 ml-auto">
+        {/* Блок справа - СДВИНУТ ВПРАВО с улучшенным отступом */}
+        <div className="flex items-center space-x-4 ml-8">
           {user ? (
             <>
-              {/* Кликабельные аватар и имя пользователя */}
+              {/* Кликабельные аватар и имя пользователя - СДВИНУТО ВПРАВО */}
               <div 
-                className="flex items-center gap-3 cursor-pointer group"
+                className="flex items-center gap-3 cursor-pointer group ml-auto"
                 onClick={handleProfileClick}
                 title="Перейти в профиль"
               >
