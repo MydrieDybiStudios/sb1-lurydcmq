@@ -89,6 +89,15 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
     setIsMobileMenuOpen(false);
   };
 
+  // Функции для скролла к секциям
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    closeMobileMenu();
+  };
+
   return (
     <header className="bg-black text-white shadow-lg">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -111,15 +120,24 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
 
         {/* Навигация — десктоп */}
         <nav className="hidden md:flex space-x-6">
-          <Link to="/about" className="hover:text-yellow-400 transition py-2">
+          <button 
+            onClick={() => scrollToSection('about')}
+            className="hover:text-yellow-400 transition py-2"
+          >
             О проекте
-          </Link>
-          <Link to="/how-it-works" className="hover:text-yellow-400 transition py-2">
+          </button>
+          <button 
+            onClick={() => scrollToSection('how-it-works')}
+            className="hover:text-yellow-400 transition py-2"
+          >
             Как работает
-          </Link>
-          <Link to="/partners" className="hover:text-yellow-400 transition py-2">
+          </button>
+          <button 
+            onClick={() => scrollToSection('partners')}
+            className="hover:text-yellow-400 transition py-2"
+          >
             Партнёры
-          </Link>
+          </button>
           {user && (
             <Link to="/cabinet" className="hover:text-yellow-400 transition py-2">
               Мои курсы
@@ -205,27 +223,24 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
       >
         <div className="flex flex-col space-y-4">
           {/* Основная навигация */}
-          <Link 
-            to="/about" 
-            className="hover:text-yellow-400 transition py-2"
-            onClick={closeMobileMenu}
+          <button 
+            onClick={() => scrollToSection('about')}
+            className="hover:text-yellow-400 transition py-2 text-left"
           >
             О проекте
-          </Link>
-          <Link 
-            to="/how-it-works" 
-            className="hover:text-yellow-400 transition py-2"
-            onClick={closeMobileMenu}
+          </button>
+          <button 
+            onClick={() => scrollToSection('how-it-works')}
+            className="hover:text-yellow-400 transition py-2 text-left"
           >
             Как работает
-          </Link>
-          <Link 
-            to="/partners" 
-            className="hover:text-yellow-400 transition py-2"
-            onClick={closeMobileMenu}
+          </button>
+          <button 
+            onClick={() => scrollToSection('partners')}
+            className="hover:text-yellow-400 transition py-2 text-left"
           >
             Партнёры
-          </Link>
+          </button>
 
           {/* Блок пользователя */}
           {user ? (
