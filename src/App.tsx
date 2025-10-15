@@ -7,6 +7,7 @@ import Cabinet from "./pages/Cabinet";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import MainPage from "./pages/MainPage";
+import ReviewsPage from "./pages/ReviewsPage"; // Импортируем страницу отзывов
 import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
 
@@ -52,6 +53,9 @@ function App() {
 
           {/* Личный кабинет */}
           <Route path="/cabinet" element={<Cabinet />} />
+
+          {/* Страница отзывов */}
+          <Route path="/reviews" element={<ReviewsPage />} />
 
           {/* Политика конфиденциальности */}
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
