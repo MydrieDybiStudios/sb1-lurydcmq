@@ -6,10 +6,10 @@ import TestimonialsSection from "../components/TestimonialsSection";
 import CtaSection from "../components/CtaSection";
 import Footer from "../components/Footer";
 
-// Импорты иконок партнеров
-import school1Logo from "../logos/school1-logo.png";
-import educationDepartmentLogo from "../logos/education-department-logo.png";
-import rnYuganskLogo from "../logos/rn-yugansk-logo.png";
+// Импорты логотипов с правильными путями
+import school1Logo from "../../logos/school1-logo.png";
+import educationDepartmentLogo from "../../logos/education-department-logo.png";
+import rnYuganskLogo from "../../logos/rn-yugansk-logo.png";
 
 const HowItWorksSection: React.FC = () => {
   const steps = [
