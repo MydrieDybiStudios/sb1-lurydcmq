@@ -1,15 +1,84 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
 import AboutSection from "../components/AboutSection";
 import TestimonialsSection from "../components/TestimonialsSection";
 import CtaSection from "../components/CtaSection";
 import Footer from "../components/Footer";
+import { Compass, X, Home, Users, BookOpen, Award, Star, MessageCircle } from "lucide-react";
 
 // Импорты логотипов из папки src/logos/
 import school1Logo from "../logos/school1-logo.png";
 import educationDepartmentLogo from "../logos/education-department-logo.png";
 import rnYuganskLogo from "../logos/rn-yugansk-logo.png";
+
+// Компонент путеводителя для мобильных устройств
+const MobileGuide: React.FC = () => {
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+  const guideItems = [
+    { icon: Home, label: "Главная", sectionId: "hero" },
+    { icon: BookOpen, label: "О проекте", sectionId: "about" },
+    { icon: Users, label: "Как работает", sectionId: "how-it-works" },
+    { icon: Award, label: "Партнёры", sectionId: "partners" },
+    { icon: Star, label: "Отзывы", sectionId: "testimonials" },
+    { icon: MessageCircle, label: "Контакты", sectionId: "cta" }
+  ];
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsGuideOpen(false);
+  };
+
+  return (
+    <>
+      {/* Кнопка открытия путеводителя */}
+      <button
+        onClick={() => setIsGuideOpen(true)}
+        className="fixed bottom-6 right-6 z-40 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full p-3 shadow-lg lg:hidden transition-all duration-300 hover:scale-110"
+        aria-label="Открыть навигацию"
+      >
+        <Compass className="w-6 h-6" />
+      </button>
+
+      {/* Модальное окно путеводителя */}
+      {isGuideOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden flex items-end">
+          <div className="bg-white w-full rounded-t-2xl p-6 animate-slide-up">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-bold text-gray-900">Быстрая навигация</h3>
+              <button 
+                onClick={() => setIsGuideOpen(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              {guideItems.map((item, index) => {
+                const IconComponent = item.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => scrollToSection(item.sectionId)}
+                    className="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-yellow-50 transition-colors"
+                  >
+                    <IconComponent className="w-6 h-6 text-yellow-600 mb-2" />
+                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 
 const HowItWorksSection: React.FC = () => {
   const steps = [
@@ -184,7 +253,11 @@ const PartnersSection: React.FC = () => {
                 <img 
                   src={partner.logo} 
                   alt={`Логотип ${partner.name}`}
-                  className={`object-contain ${partner.name === "РН-Юганскнефтегаз" ? "w-16 h-16 sm:w-20 sm:h-20" : "w-14 h-14 sm:w-16 sm:h-16"}`}
+                  className={`object-contain ${
+                    partner.name === "РН-Юганскнефтегаз" 
+                      ? "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" 
+                      : "w-14 h-14 sm:w-16 sm:h-16"
+                  }`}
                 />
               </div>
               
@@ -393,6 +466,9 @@ const MainPage: React.FC<{
         <TestimonialsSection />
         <CtaSection onLogin={onLogin} onRegister={onRegister} />
       </main>
+      
+      {/* Путеводитель для мобильных устройств */}
+      <MobileGuide />
       
       <Footer />
     </div>
