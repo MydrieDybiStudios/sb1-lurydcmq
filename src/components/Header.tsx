@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Menu } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, BookOpen, Users, Award, Star, MessageCircle, Home, Compass } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
 interface HeaderProps {
@@ -10,9 +10,11 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isQuickNavOpen, setIsQuickNavOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<{ first_name?: string; last_name?: string; avatar_url?: string } | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     let mounted = true;
@@ -89,17 +91,53 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
     setIsMobileMenuOpen(false);
   };
 
-  // Функции для скролла к секциям
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-    closeMobileMenu();
+  const closeQuickNav = () => {
+    setIsQuickNavOpen(false);
   };
 
+  // Функции для скролла к секциям (только для главной страницы)
+  const scrollToSection = (sectionId: string) => {
+    if (location.pathname === "/") {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    } else {
+      // Если не на главной, переходим на главную и скроллим
+      navigate("/");
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    }
+    closeMobileMenu();
+    closeQuickNav();
+  };
+
+  // Элементы быстрой навигации
+  const quickNavItems = [
+    { icon: Home, label: "Главная", action: () => navigate("/") },
+    { icon: BookOpen, label: "О проекте", action: () => scrollToSection("about") },
+    { icon: Users, label: "Как работает", action: () => scrollToSection("how-it-works") },
+    { icon: Award, label: "Партнёры", action: () => scrollToSection("partners") },
+    { icon: Star, label: "Отзывы", action: () => navigate("/reviews") },
+    { icon: MessageCircle, label: "Курсы", action: () => navigate("/courses") },
+    { icon: Award, label: "Достижения", action: () => navigate("/achievements") },
+    { icon: Users, label: "Сообщество", action: () => navigate("/community") },
+  ];
+
+  // Если пользователь авторизован, добавляем ссылки на профиль
+  if (user) {
+    quickNavItems.push(
+      { icon: Users, label: "Личный кабинет", action: () => navigate("/cabinet") },
+      { icon: Star, label: "Мой профиль", action: () => navigate("/profile") }
+    );
+  }
+
   return (
-    <header className="bg-black text-white shadow-lg">
+    <header className="bg-black text-white shadow-lg relative">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
         {/* Логотип и название - ИСПРАВЛЕННАЯ ЧАСТЬ */}
         <div className="flex items-center space-x-3">
@@ -121,38 +159,46 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
         </div>
 
         {/* Навигация — десктоп */}
-        <nav className="hidden md:flex space-x-6">
+        <nav className="hidden lg:flex items-center space-x-6 mr-8">
           <button 
             onClick={() => scrollToSection('about')}
-            className="hover:text-yellow-400 transition py-2"
+            className="hover:text-yellow-400 transition py-2 whitespace-nowrap"
           >
             О проекте
           </button>
           <button 
             onClick={() => scrollToSection('how-it-works')}
-            className="hover:text-yellow-400 transition py-2"
+            className="hover:text-yellow-400 transition py-2 whitespace-nowrap"
           >
             Как работает
           </button>
           <button 
             onClick={() => scrollToSection('partners')}
-            className="hover:text-yellow-400 transition py-2"
+            className="hover:text-yellow-400 transition py-2 whitespace-nowrap"
           >
             Партнёры
           </button>
-          {/* Добавляем ссылку на страницу отзывов */}
-          <Link to="/reviews" className="hover:text-yellow-400 transition py-2">
+          <Link to="/reviews" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
             Отзывы
           </Link>
+          <Link to="/courses" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
+            Курсы
+          </Link>
+          <Link to="/achievements" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
+            Достижения
+          </Link>
+          <Link to="/community" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
+            Сообщество
+          </Link>
           {user && (
-            <Link to="/cabinet" className="hover:text-yellow-400 transition py-2">
+            <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
               Мои курсы
             </Link>
           )}
         </nav>
 
-        {/* Блок справа */}
-        <div className="flex items-center space-x-4">
+        {/* Блок справа - СДВИНУТ ВПРАВО */}
+        <div className="flex items-center space-x-4 ml-auto">
           {user ? (
             <>
               {/* Кликабельные аватар и имя пользователя */}
@@ -181,14 +227,14 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
 
               <Link
                 to="/cabinet"
-                className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
+                className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition whitespace-nowrap"
               >
                 Личный кабинет
               </Link>
 
               <button
                 onClick={handleLogout}
-                className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
+                className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition whitespace-nowrap"
               >
                 Выйти
               </button>
@@ -197,142 +243,105 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             <>
               <button
                 onClick={onLogin}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-4 rounded transition"
+                className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-4 rounded transition whitespace-nowrap"
               >
                 Войти
               </button>
               <button
                 onClick={onRegister}
-                className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition"
+                className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded transition whitespace-nowrap"
               >
                 Регистрация
               </button>
             </>
           )}
 
-          {/* Кнопка мобильного меню */}
+          {/* Кнопка быстрой навигации для ПК */}
           <button
-            className="md:hidden"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            aria-label="menu"
+            onClick={() => setIsQuickNavOpen(true)}
+            className="hidden lg:flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full transition-all duration-300 hover:scale-110 ml-2"
+            aria-label="Быстрая навигация"
+          >
+            <Compass className="w-6 h-6" />
+          </button>
+
+          {/* Кнопка мобильного меню - УБРАНА ИЗ ВИДИМОСТИ НА МОБИЛЬНЫХ */}
+          <button
+            className="lg:hidden opacity-0 pointer-events-none w-0"
+            aria-hidden="true"
           >
             <Menu className="text-xl" />
           </button>
         </div>
       </div>
 
-      {/* Мобильное меню */}
-      <div
-        className={`md:hidden bg-black py-4 px-4 border-t border-gray-800 ${
-          isMobileMenuOpen ? "block" : "hidden"
-        }`}
-      >
-        <div className="flex flex-col space-y-4">
-          {/* Основная навигация */}
+      {/* Горизонтальная навигация для планшетов */}
+      <nav className="lg:hidden bg-gray-900 border-t border-gray-800 overflow-x-auto">
+        <div className="flex space-x-6 px-4 py-2 whitespace-nowrap">
           <button 
             onClick={() => scrollToSection('about')}
-            className="hover:text-yellow-400 transition py-2 text-left"
+            className="hover:text-yellow-400 transition py-2 text-sm"
           >
             О проекте
           </button>
           <button 
             onClick={() => scrollToSection('how-it-works')}
-            className="hover:text-yellow-400 transition py-2 text-left"
+            className="hover:text-yellow-400 transition py-2 text-sm"
           >
             Как работает
           </button>
           <button 
             onClick={() => scrollToSection('partners')}
-            className="hover:text-yellow-400 transition py-2 text-left"
+            className="hover:text-yellow-400 transition py-2 text-sm"
           >
             Партнёры
           </button>
-          {/* Добавляем ссылку на страницу отзывов в мобильное меню */}
-          <Link 
-            to="/reviews" 
-            className="hover:text-yellow-400 transition py-2 text-left"
-            onClick={closeMobileMenu}
-          >
+          <Link to="/reviews" className="hover:text-yellow-400 transition py-2 text-sm">
             Отзывы
           </Link>
-
-          {/* Блок пользователя */}
-          {user ? (
-            <>
-              {/* Профиль пользователя */}
-              <div 
-                className="flex items-center gap-3 cursor-pointer py-3 border-t border-gray-800 pt-4"
-                onClick={() => {
-                  handleProfileClick();
-                  closeMobileMenu();
-                }}
-              >
-                <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center border-2 border-yellow-400">
-                  {profile?.avatar_url ? (
-                    <img
-                      src={profile.avatar_url}
-                      alt="avatar"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-black font-semibold text-sm">
-                      {(profile?.first_name?.[0] ?? user.email?.[0] ?? "U").toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-yellow-500 font-medium">
-                    {profile?.first_name || user.email || "Пользователь"}
-                  </span>
-                  <span className="text-gray-400 text-sm">Профиль</span>
-                </div>
-              </div>
-
-              <Link 
-                to="/cabinet" 
-                className="text-yellow-500 hover:text-yellow-400 transition py-2"
-                onClick={closeMobileMenu}
-              >
-                Личный кабинет
-              </Link>
-              
-              <button 
-                onClick={() => {
-                  handleLogout();
-                  closeMobileMenu();
-                }}
-                className="text-yellow-500 hover:text-yellow-400 transition text-left py-2"
-              >
-                Выйти
-              </button>
-            </>
-          ) : (
-            <>
-              {/* Кнопки авторизации для неавторизованных пользователей */}
-              <div className="border-t border-gray-800 pt-4 flex flex-col space-y-3">
-                <button 
-                  onClick={() => {
-                    onLogin();
-                    closeMobileMenu();
-                  }}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-3 px-4 rounded transition text-center"
-                >
-                  Войти
-                </button>
-                <button 
-                  onClick={() => {
-                    onRegister();
-                    closeMobileMenu();
-                  }}
-                  className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-3 px-4 rounded transition text-center"
-                >
-                  Регистрация
-                </button>
-              </div>
-            </>
+          <Link to="/courses" className="hover:text-yellow-400 transition py-2 text-sm">
+            Курсы
+          </Link>
+          {user && (
+            <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 text-sm">
+              Мои курсы
+            </Link>
           )}
         </div>
-      </div>
+      </nav>
+
+      {/* Модальное окно быстрой навигации для ПК */}
+      {isQuickNavOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 animate-scale-in">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-bold text-gray-900">Быстрая навигация</h3>
+              <button 
+                onClick={closeQuickNav}
+                className="text-gray-500 hover:text-gray-700 transition"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {quickNavItems.map((item, index) => {
+                const IconComponent = item.icon;
+                return (
+                  <button
+                    key={index}
+                    onClick={item.action}
+                    className="flex flex-col items-center p-6 bg-gray-50 rounded-xl hover:bg-yellow-50 transition-all duration-300 hover:scale-105"
+                  >
+                    <IconComponent className="w-8 h-8 text-yellow-600 mb-3" />
+                    <span className="text-base font-medium text-gray-700 text-center">{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };
