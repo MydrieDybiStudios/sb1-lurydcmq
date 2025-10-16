@@ -253,6 +253,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
 
+  // ИСПРАВЛЕННАЯ ФУНКЦИЯ - убедитесь, что try-catch-finally завершены правильно
   const handleDownloadCertificate = async () => {
     const isEligible = await checkCertificateEligibility();
     if (!isEligible) {
@@ -277,80 +278,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas не поддерживается");
 
-      // Функция для загрузки изображения логотипа
-      const loadImage = (src: string): Promise<HTMLImageElement> => {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.crossOrigin = "anonymous"; // Добавляем для CORS
-          img.onload = () => {
-            console.log('Логотип загружен успешно:', src, img.width, img.height);
-            resolve(img);
-          };
-          img.onerror = (e) => {
-            console.error('Ошибка загрузки логотипа:', src, e);
-            reject(e);
-          };
-          img.src = src;
-        });
-      };
-
       // Фон
       const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
       gradient.addColorStop(0, "#fffef5");
       gradient.addColorStop(1, "#fff9e5");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
-      // Логотип в левом верхнем углу - ИСПРАВЛЕННЫЙ ПУТЬ
-      try {
-        // Пробуем разные пути к логотипу
-        const logoPaths = [
-          '/logos/logo.png',
-          '/logo.png',
-          'logos/logo.png',
-          './logos/logo.png',
-          '../logos/logo.png'
-        ];
-        
-        let logoImg: HTMLImageElement | null = null;
-        let logoError = null;
-        
-        for (const path of logoPaths) {
-          try {
-            logoImg = await loadImage(path);
-            console.log(`Логотип найден по пути: ${path}`);
-            break;
-          } catch (e) {
-            logoError = e;
-            console.log(`Логотип не найден по пути: ${path}`);
-          }
-        }
-        
-        if (logoImg) {
-          const logoWidth = 180;
-          const logoHeight = (logoImg.height * logoWidth) / logoImg.width;
-          const logoX = padding + 40;
-          const logoY = padding + 40;
-          
-          console.log(`Отрисовка логотипа: ${logoX}x${logoY}, размер: ${logoWidth}x${logoHeight}`);
-          ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
-          
-          // Для отладки: рисуем рамку вокруг логотипа
-          ctx.strokeStyle = "red";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(logoX, logoY, logoWidth, logoHeight);
-        } else {
-          console.error('Все пути к логотипу не сработали:', logoError);
-          // Рисуем заглушку для отладки
-          ctx.fillStyle = "blue";
-          ctx.fillRect(padding + 40, padding + 40, 180, 60);
-          ctx.fillStyle = "white";
-          ctx.font = "20px Arial";
-          ctx.fillText("ЛОГОТИП", padding + 50, padding + 75);
-        }
-      } catch (e) {
-        console.error('Критическая ошибка при работе с логотипом:', e);
-      }
 
       // Рамка
       ctx.strokeStyle = "#D4AF37";
