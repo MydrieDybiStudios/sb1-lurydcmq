@@ -58,7 +58,7 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
         {user ? (
           <>
             <h2 className="text-3xl font-bold mb-4">
-              👋 Добро пожаловать, {profile?.first_name || "друзья"}!
+              Добро пожаловать, {profile?.first_name || "друзья"}!
             </h2>
             <p className="text-xl mb-8 max-w-2xl mx-auto">
               Успехов в обучении и отличных результатов на платформе{" "}
