@@ -250,21 +250,13 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             </>
           )}
 
-          {/* Кнопка быстрой навигации для ПК - ИСПРАВЛЕННЫЙ КОМПАС */}
+          {/* Кнопка быстрой навигации для всех устройств - ИСПРАВЛЕННЫЙ КОМПАС */}
           <button
             onClick={() => setIsQuickNavOpen(true)}
-            className="hidden lg:flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full transition-all duration-300 hover:scale-110 ml-2"
+            className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full transition-all duration-300 hover:scale-110 ml-2"
             aria-label="Быстрая навигация"
           >
-            <Compass className="w-6 h-6 flex-shrink-0" />
-          </button>
-
-          {/* Кнопка мобильного меню - УБРАНА ИЗ ВИДИМОСТИ НА МОБИЛЬНЫХ */}
-          <button
-            className="lg:hidden opacity-0 pointer-events-none w-0"
-            aria-hidden="true"
-          >
-            <Menu className="text-xl" />
+            <Compass className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
           </button>
         </div>
       </div>
@@ -301,12 +293,12 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
         </div>
       </nav>
 
-      {/* Модальное окно быстрой навигации для ПК */}
+      {/* Модальное окно быстрой навигации для всех устройств */}
       {isQuickNavOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 animate-scale-in">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-bold text-gray-900">Быстрая навигация</h3>
+          <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-2xl w-full mx-4 animate-scale-in">
+            <div className="flex justify-between items-center mb-6 sm:mb-8">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900">Быстрая навигация</h3>
               <button 
                 onClick={closeQuickNav}
                 className="text-gray-500 hover:text-gray-700 transition"
@@ -315,17 +307,17 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
               </button>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
               {quickNavItems.map((item, index) => {
                 const IconComponent = item.icon;
                 return (
                   <button
                     key={index}
                     onClick={item.action}
-                    className="flex flex-col items-center p-6 bg-gray-50 rounded-xl hover:bg-yellow-50 transition-all duration-300 hover:scale-105"
+                    className="flex flex-col items-center p-4 sm:p-6 bg-gray-50 rounded-xl hover:bg-yellow-50 transition-all duration-300 hover:scale-105"
                   >
-                    <IconComponent className="w-8 h-8 text-yellow-600 mb-3 flex-shrink-0" />
-                    <span className="text-base font-medium text-gray-700 text-center">{item.label}</span>
+                    <IconComponent className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600 mb-2 sm:mb-3 flex-shrink-0" />
+                    <span className="text-sm sm:text-base font-medium text-gray-700 text-center">{item.label}</span>
                   </button>
                 );
               })}
