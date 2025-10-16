@@ -281,8 +281,15 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       const loadImage = (src: string): Promise<HTMLImageElement> => {
         return new Promise((resolve, reject) => {
           const img = new Image();
-          img.onload = () => resolve(img);
-          img.onerror = reject;
+          img.crossOrigin = "anonymous"; // Добавляем для CORS
+          img.onload = () => {
+            console.log('Логотип загружен успешно:', src, img.width, img.height);
+            resolve(img);
+          };
+          img.onerror = (e) => {
+            console.error('Ошибка загрузки логотипа:', src, e);
+            reject(e);
+          };
           img.src = src;
         });
       };
@@ -294,18 +301,55 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      // Логотип в левом верхнем углу
+      // Логотип в левом верхнем углу - ИСПРАВЛЕННЫЙ ПУТЬ
       try {
-        const logoImg = await loadImage('logos/logo.png');
-        const logoWidth = 180;
-        const logoHeight = (logoImg.height * logoWidth) / logoImg.width;
-        const logoX = padding + 40;
-        const logoY = padding + 40;
+        // Пробуем разные пути к логотипу
+        const logoPaths = [
+          '/logos/logo.png',
+          '/logo.png',
+          'logos/logo.png',
+          './logos/logo.png',
+          '../logos/logo.png'
+        ];
         
-        ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+        let logoImg: HTMLImageElement | null = null;
+        let logoError = null;
+        
+        for (const path of logoPaths) {
+          try {
+            logoImg = await loadImage(path);
+            console.log(`Логотип найден по пути: ${path}`);
+            break;
+          } catch (e) {
+            logoError = e;
+            console.log(`Логотип не найден по пути: ${path}`);
+          }
+        }
+        
+        if (logoImg) {
+          const logoWidth = 180;
+          const logoHeight = (logoImg.height * logoWidth) / logoImg.width;
+          const logoX = padding + 40;
+          const logoY = padding + 40;
+          
+          console.log(`Отрисовка логотипа: ${logoX}x${logoY}, размер: ${logoWidth}x${logoHeight}`);
+          ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+          
+          // Для отладки: рисуем рамку вокруг логотипа
+          ctx.strokeStyle = "red";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(logoX, logoY, logoWidth, logoHeight);
+        } else {
+          console.error('Все пути к логотипу не сработали:', logoError);
+          // Рисуем заглушку для отладки
+          ctx.fillStyle = "blue";
+          ctx.fillRect(padding + 40, padding + 40, 180, 60);
+          ctx.fillStyle = "white";
+          ctx.font = "20px Arial";
+          ctx.fillText("ЛОГОТИП", padding + 50, padding + 75);
+        }
       } catch (e) {
-        console.error('Не удалось загрузить логотип:', e);
-        // Продолжаем без логотипа
+        console.error('Критическая ошибка при работе с логотипом:', e);
       }
 
       // Рамка
@@ -384,7 +428,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
 
       ctx.fillStyle = "#1E3A8A";
       ctx.font = "italic 36px Arial";
-      ctx.fillText("Команда разработчиков MydrieDybiStudio ", canvasWidth - padding - 80, canvasHeight - padding - 80);
+      ctx.fillText("Команда разработчиков MydrieDybiStudios", canvasWidth - padding - 80, canvasHeight - padding - 80);
 
       ctx.fillStyle = "#000";
       ctx.font = "400 30px Arial";
