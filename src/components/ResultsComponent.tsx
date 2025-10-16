@@ -253,7 +253,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
 
-  // ИСПРАВЛЕННАЯ ФУНКЦИЯ - убедитесь, что try-catch-finally завершены правильно
   const handleDownloadCertificate = async () => {
     const isEligible = await checkCertificateEligibility();
     if (!isEligible) {
@@ -278,12 +277,36 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas не поддерживается");
 
+      // Функция для загрузки изображения логотипа
+      const loadImage = (src: string): Promise<HTMLImageElement> => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = reject;
+          img.src = src;
+        });
+      };
+
       // Фон
       const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
       gradient.addColorStop(0, "#fffef5");
       gradient.addColorStop(1, "#fff9e5");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+      // Логотип в левом верхнем углу
+      try {
+        const logoImg = await loadImage('logos/logo.png');
+        const logoWidth = 180;
+        const logoHeight = (logoImg.height * logoWidth) / logoImg.width;
+        const logoX = padding + 40;
+        const logoY = padding + 40;
+        
+        ctx.drawImage(logoImg, logoX, logoY, logoWidth, logoHeight);
+      } catch (e) {
+        console.error('Не удалось загрузить логотип:', e);
+        // Продолжаем без логотипа
+      }
 
       // Рамка
       ctx.strokeStyle = "#D4AF37";
@@ -361,7 +384,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
 
       ctx.fillStyle = "#1E3A8A";
       ctx.font = "italic 36px Arial";
-      ctx.fillText("Р.И. Кузоваткин", canvasWidth - padding - 80, canvasHeight - padding - 80);
+      ctx.fillText("Команда разработчиков "MydrieDybiStudios" ", canvasWidth - padding - 80, canvasHeight - padding - 80);
 
       ctx.fillStyle = "#000";
       ctx.font = "400 30px Arial";
