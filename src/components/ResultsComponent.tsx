@@ -384,7 +384,7 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
 
       ctx.fillStyle = "#1E3A8A";
       ctx.font = "italic 36px Arial";
-      ctx.fillText("Команда разработчиков "MydrieDybiStudios" ", canvasWidth - padding - 80, canvasHeight - padding - 80);
+      ctx.fillText("Команда разработчиков MydrieDybiStudio ", canvasWidth - padding - 80, canvasHeight - padding - 80);
 
       ctx.fillStyle = "#000";
       ctx.font = "400 30px Arial";
