@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Clock, Award, Star, Users, BarChart3, GraduationCap, Info } from "lucide-react";
+import { Play, Clock, Award, Star, Users, BarChart3, GraduationCap, Info, X } from "lucide-react";
 import Footer from "../components/Footer";
 
 // Импортируем фото для VR модулей
@@ -18,19 +18,22 @@ import logo from "../logos/logo.png";
 const VRModule: React.FC = () => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedModule, setSelectedModule] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Все VR модули как самостоятельные элементы
   const vrModules = [
-      {
+    {
       id: 1,
       title: "Знакомство",
-      description: "Прохождение техники безопасности, Знакомство с виртуальным помощником. ",
+      description: "Прохождение техники безопасности, Знакомство с виртуальным помощником.",
       duration: "5-10 минут",
       difficulty: "Начальный",
       progress: 0,
       image: znakomstvo,
       features: ["Техника Безопасности", "Интерактивные сценарии", "Виртуальный гид", "Знакомство"],
-      type: "exploration"
+      type: "exploration",
+      fullDescription: "Этот модуль познакомит вас с основами работы в виртуальной реальности и техникой безопасности. Вы встретитесь с виртуальным помощником, который проведет вас через все этапы обучения."
     },
     {
       id: 2,
@@ -41,7 +44,8 @@ const VRModule: React.FC = () => {
       progress: 0,
       image: poisk,
       features: ["3D модели оборудования", "Интерактивные сценарии", "Виртуальный гид"],
-      type: "exploration"
+      type: "exploration",
+      fullDescription: "Исследуйте процесс поиска нефтяных месторождений с использованием современных технологий. Узнайте о методах геологоразведки и оборудовании, используемом для обнаружения запасов нефти."
     },
     {
       id: 3,
@@ -52,7 +56,8 @@ const VRModule: React.FC = () => {
       progress: 0,
       image: bur,
       features: ["Симуляция управления", "Анимация процессов", "Техника безопасности"],
-      type: "simulation"
+      type: "simulation",
+      fullDescription: "Погрузитесь в процесс запуска буровой установки. Управляйте оборудованием, следите за показателями и осваивайте технику безопасности при работе с буровыми системами."
     },
     {
       id: 4,
@@ -63,18 +68,20 @@ const VRModule: React.FC = () => {
       progress: 0,
       image: kach,
       features: ["Реалистичная физика", "Запуск качалки", "Процедуры устранения поломок"],
-      type: "simulation"
+      type: "simulation",
+      fullDescription: "Освойте работу насосных станций и принципы добычи нефти. Научитесь запускать и обслуживать насосы-качалки, а также устранять типичные неисправности."
     },
     {
       id: 5,
       title: "Авария на месторождении",
-      description: "Симуляция устранения аварии на месторождении ",
+      description: "Симуляция устранения аварии на месторождении",
       duration: "10-15 минут",
       difficulty: "Продвинутый",
       progress: 0,
       image: avaria,
       features: ["Процедуры устранения поломок", "Сварка", "Техническое обслуживание"],
-      type: "interactive"
+      type: "interactive",
+      fullDescription: "Отработайте действия в аварийной ситуации на нефтяном месторождении. Освойте процедуры устранения поломок, технику безопасности и методы быстрого реагирования."
     },
     {
       id: 6,
@@ -85,7 +92,8 @@ const VRModule: React.FC = () => {
       progress: 0,
       image: lab,
       features: ["Виртуальные эксперименты", "Анализ проб", "Исследовательские задачи"],
-      type: "interactive"
+      type: "interactive",
+      fullDescription: "Проводите химические анализы и эксперименты с нефтью в полностью безопасной виртуальной лаборатории. Изучайте свойства нефти и методы ее исследования."
     },
     {
       id: 7,
@@ -95,8 +103,9 @@ const VRModule: React.FC = () => {
       difficulty: "Начальный",
       progress: 0,
       image: museum,
-      features: ["Исторические реконструкции", "Интерактивные экспонаты", "3D хронология","Виртуальный гид"],
-      type: "educational"
+      features: ["Исторические реконструкции", "Интерактивные экспонаты", "3D хронология", "Виртуальный гид"],
+      type: "educational",
+      fullDescription: "Посетите виртуальный музей нефтяной промышленности. Изучите историю добычи нефти, интерактивные экспонаты и архивные материалы в immersive-среде."
     }
   ];
 
@@ -104,17 +113,17 @@ const VRModule: React.FC = () => {
   const exampleStats = [
     { label: "Общее время", value: "127 минут", icon: Clock, color: "text-blue-600" },
     { label: "Средний балл", value: "87%", icon: Award, color: "text-green-600" },
-    { label: "Пройдено модулей", value: "3 из 5", icon: BarChart3, color: "text-purple-600" },
+    { label: "Пройдено модулей", value: "3 из 7", icon: BarChart3, color: "text-purple-600" },
     { label: "Достижения", value: "7 из 15", icon: Star, color: "text-yellow-600" },
     { label: "Попыток", value: "12", icon: Users, color: "text-orange-600" },
-    { label: "Прогресс", value: "60%", icon: GraduationCap, color: "text-red-600" }
+    { label: "Прогресс", value: "43%", icon: GraduationCap, color: "text-red-600" }
   ];
 
   // Пустая статистика
   const emptyStats = [
     { label: "Общее время", value: "0 минут", icon: Clock, color: "text-blue-600" },
     { label: "Средний балл", value: "0%", icon: Award, color: "text-green-600" },
-    { label: "Пройдено модулей", value: "0 из 5", icon: BarChart3, color: "text-purple-600" },
+    { label: "Пройдено модулей", value: "0 из 7", icon: BarChart3, color: "text-purple-600" },
     { label: "Достижения", value: "0 из 15", icon: Star, color: "text-yellow-600" },
     { label: "Попыток", value: "0", icon: Users, color: "text-orange-600" },
     { label: "Прогресс", value: "0%", icon: GraduationCap, color: "text-red-600" }
@@ -140,10 +149,14 @@ const VRModule: React.FC = () => {
   };
 
   const handleModuleDetails = (module: any) => {
-    alert(`Детальная информация о VR-модуле: ${module.title}\n\nОписание: ${module.description}\n\nСтатистика модуля будет доступна после запуска в ближайшем будущем`);
+    setSelectedModule(module);
+    setIsModalOpen(true);
   };
 
-  const handleExitToMain = () => navigate("/");
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedModule(null);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -337,13 +350,12 @@ const VRModule: React.FC = () => {
           <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-8 mt-12 text-white">
             <div className="text-center mb-6">
               <h3 className="text-2xl font-bold mb-2">Готовы к погружению в VR?</h3>
-              <p className="text-blue-100">Испытайте профессию нефтяника на себе в виртуальной реальности</p>
+              <p className="text-blue-100 text-center">Испытайте профессию нефтяника на себе в виртуальной реальности</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             
-              <div>
-                <h4 className="font-semibold mb-3 text-lg">Рекомендации:</h4>
-                <ul className="space-y-2 text-blue-100">
+            <div className="flex justify-center">
+              <div className="text-center max-w-2xl">
+                <h4 className="font-semibold mb-4 text-lg">Рекомендации:</h4>
+                <ul className="space-y-2 text-blue-100 text-lg">
                   <li>• Свободное пространство 2x2 м</li>
                   <li>• Стабильное интернет-соединение</li>
                   <li>• Комфортный VR-шлем</li>
@@ -356,16 +368,118 @@ const VRModule: React.FC = () => {
           {/* Кнопка возврата */}
           <div className="text-center mt-8">
             <button
-              onClick={() => navigate("/cabinet")}
+              onClick={() => navigate("/")}
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-6 rounded-lg transition"
             >
-              Вернуться в кабинет
+              Вернуться в меню
             </button>
           </div>
         </div>
       </main>
 
       <Footer />
+
+      {/* Модальное окно для деталей модуля */}
+      {isModalOpen && selectedModule && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="relative">
+              {/* Кнопка закрытия */}
+              <button
+                onClick={closeModal}
+                className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              {/* Изображение модуля */}
+              <div className="relative h-64 md:h-80">
+                <img
+                  src={selectedModule.image}
+                  alt={selectedModule.title}
+                  className="w-full h-full object-cover rounded-t-2xl"
+                />
+                <div className="absolute bottom-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm">
+                  Модуль {selectedModule.id}
+                </div>
+                <div className="absolute bottom-4 right-4 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-semibold">
+                  {getTypeIcon(selectedModule.type)} VR
+                </div>
+              </div>
+
+              {/* Содержимое модального окна */}
+              <div className="p-6">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-6">
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedModule.title}</h2>
+                    <p className="text-gray-600 text-lg">{selectedModule.description}</p>
+                  </div>
+                  <span className={`text-sm font-medium px-3 py-1 rounded-full border ${getDifficultyColor(selectedModule.difficulty)} mt-2 md:mt-0`}>
+                    {selectedModule.difficulty}
+                  </span>
+                </div>
+
+                {/* Полное описание */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-3">Подробное описание</h3>
+                  <p className="text-gray-700 leading-relaxed">{selectedModule.fullDescription}</p>
+                </div>
+
+                {/* Особенности */}
+                <div className="mb-6">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-3">Особенности модуля</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {selectedModule.features.map((feature: string, idx: number) => (
+                      <div key={idx} className="flex items-center bg-blue-50 rounded-lg p-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                        <span className="text-blue-800">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Детали */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="bg-gray-50 rounded-xl p-4 text-center">
+                    <Clock className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                    <div className="text-lg font-bold text-gray-900">{selectedModule.duration}</div>
+                    <div className="text-sm text-gray-600">Длительность</div>
+                  </div>
+                  <div className="bg-gray-50 rounded-xl p-4 text-center">
+                    <GraduationCap className="w-8 h-8 mx-auto mb-2 text-green-600" />
+                    <div className="text-lg font-bold text-gray-900">{selectedModule.progress}%</div>
+                    <div className="text-sm text-gray-600">Прогресс</div>
+                  </div>
+                </div>
+
+                {/* Прогресс бар */}
+                <div className="mb-6">
+                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                    <span>Прогресс прохождения</span>
+                    <span>{selectedModule.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${selectedModule.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Кнопка закрытия в модальном окне */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={closeModal}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-3 px-8 rounded-lg transition"
+                  >
+                    Закрыть
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
