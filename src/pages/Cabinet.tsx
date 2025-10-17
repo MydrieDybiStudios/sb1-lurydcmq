@@ -27,7 +27,7 @@ const Cabinet: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<"courses" | "profile">("courses");
+  const [activeSection, setActiveSection] = useState<"courses" | "profile" | "ar" | "vr">("courses");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -90,6 +90,14 @@ const Cabinet: React.FC = () => {
 
   const handleGoToProfile = () => {
     setActiveSection("profile");
+  };
+
+  const handleNavigateToAR = () => {
+    navigate("/ar-module");
+  };
+
+  const handleNavigateToVR = () => {
+    navigate("/vr-module");
   };
 
   if (loading)
@@ -163,6 +171,18 @@ const Cabinet: React.FC = () => {
                     }`}
                   >
                     Профиль
+                  </button>
+                  <button
+                    onClick={handleNavigateToAR}
+                    className="px-4 py-2 rounded-lg font-medium transition text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  >
+                    AR-модуль
+                  </button>
+                  <button
+                    onClick={handleNavigateToVR}
+                    className="px-4 py-2 rounded-lg font-medium transition text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  >
+                    VR-модуль
                   </button>
                 </nav>
 
@@ -246,6 +266,24 @@ const Cabinet: React.FC = () => {
               >
                 Профиль
               </button>
+              <button
+                onClick={() => {
+                  handleNavigateToAR();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="px-4 py-2 rounded-lg font-medium text-left transition text-yellow-400 hover:bg-yellow-500 hover:text-black"
+              >
+                AR-модуль
+              </button>
+              <button
+                onClick={() => {
+                  handleNavigateToVR();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="px-4 py-2 rounded-lg font-medium text-left transition text-yellow-400 hover:bg-yellow-500 hover:text-black"
+              >
+                VR-модуль
+              </button>
             </nav>
           </div>
         )}
@@ -255,7 +293,7 @@ const Cabinet: React.FC = () => {
       <main className="flex-grow container mx-auto px-4 py-8">
         {user ? (
           <>
-            {activeSection === "courses" ? (
+            {activeSection === "courses" && (
               <>
                 <section id="courses" className="mb-16">
                   <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🎓 Мои курсы</h2>
@@ -267,9 +305,8 @@ const Cabinet: React.FC = () => {
                   <AchievementsSection />
                 </section>
               </>
-            ) : (
-              <Profile />
             )}
+            {activeSection === "profile" && <Profile />}
           </>
         ) : (
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl mx-auto p-10 text-center border border-yellow-300">
