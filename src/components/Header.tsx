@@ -109,7 +109,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
       // Если не на главной, переходим на главную и скроллим
       navigate("/");
       setTimeout(() => {
-        const element = document.getElementById(sectionId);
+        const element = document.getElementById(ssectionId);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
@@ -262,15 +262,134 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             <Compass className="w-6 h-6 flex-shrink-0" />
           </button>
 
-          {/* Кнопка мобильного меню - УБРАНА ИЗ ВИДИМОСТИ НА МОБИЛЬНЫХ */}
+          {/* Кнопка мобильного меню */}
           <button
-            className="lg:hidden opacity-0 pointer-events-none w-0"
-            aria-hidden="true"
+            className="lg:hidden"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="menu"
           >
-            <Menu className="text-xl" />
+            {isMobileMenuOpen ? <X className="text-xl" /> : <Menu className="text-xl" />}
           </button>
         </div>
       </div>
+
+      {/* Мобильное меню */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden bg-black border-t border-gray-700">
+          <div className="container mx-auto px-4 py-4">
+            <nav className="flex flex-col space-y-4">
+              {/* Основные ссылки */}
+              <button 
+                onClick={() => {
+                  scrollToSection('about');
+                  closeMobileMenu();
+                }}
+                className="text-left hover:text-yellow-400 transition py-2 text-lg"
+              >
+                О проекте
+              </button>
+              <button 
+                onClick={() => {
+                  scrollToSection('how-it-works');
+                  closeMobileMenu();
+                }}
+                className="text-left hover:text-yellow-400 transition py-2 text-lg"
+              >
+                Как работает
+              </button>
+              <button 
+                onClick={() => {
+                  scrollToSection('partners');
+                  closeMobileMenu();
+                }}
+                className="text-left hover:text-yellow-400 transition py-2 text-lg"
+              >
+                Партнёры
+              </button>
+              <Link 
+                to="/reviews" 
+                onClick={closeMobileMenu}
+                className="hover:text-yellow-400 transition py-2 text-lg"
+              >
+                Отзывы
+              </Link>
+
+              {/* Ссылки для авторизованных пользователей */}
+              {user && (
+                <>
+                  <Link 
+                    to="/cabinet" 
+                    onClick={closeMobileMenu}
+                    className="hover:text-yellow-400 transition py-2 text-lg"
+                  >
+                    Мои курсы
+                  </Link>
+                  <Link 
+                    to="/ar-module" 
+                    onClick={closeMobileMenu}
+                    className="hover:text-yellow-400 transition py-2 text-lg"
+                  >
+                    AR-модуль
+                  </Link>
+                  <Link 
+                    to="/vr-module" 
+                    onClick={closeMobileMenu}
+                    className="hover:text-yellow-400 transition py-2 text-lg"
+                  >
+                    VR-модуль
+                  </Link>
+                  <Link 
+                    to="/profile" 
+                    onClick={closeMobileMenu}
+                    className="hover:text-yellow-400 transition py-2 text-lg"
+                  >
+                    Мой профиль
+                  </Link>
+                </>
+              )}
+
+              {/* Кнопки входа/регистрации для неавторизованных */}
+              {!user && (
+                <div className="flex flex-col space-y-3 pt-4 border-t border-gray-600">
+                  <button
+                    onClick={() => {
+                      onLogin();
+                      closeMobileMenu();
+                    }}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-3 px-4 rounded transition text-lg"
+                  >
+                    Войти
+                  </button>
+                  <button
+                    onClick={() => {
+                      onRegister();
+                      closeMobileMenu();
+                    }}
+                    className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-3 px-4 rounded transition text-lg"
+                  >
+                    Регистрация
+                  </button>
+                </div>
+              )}
+
+              {/* Кнопка выхода для авторизованных */}
+              {user && (
+                <div className="pt-4 border-t border-gray-600">
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      closeMobileMenu();
+                    }}
+                    className="w-full border border-red-500 hover:bg-red-500 hover:text-white text-red-500 font-medium py-3 px-4 rounded transition text-lg"
+                  >
+                    Выйти
+                  </button>
+                </div>
+              )}
+            </nav>
+          </div>
+        </div>
+      )}
 
       {/* Горизонтальная навигация для планшетов */}
       <nav className="lg:hidden bg-gray-900 border-t border-gray-800 overflow-x-auto">
@@ -292,14 +411,22 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             className="hover:text-yellow-400 transition py-2 text-sm"
           >
             Партнёры
-          </button>
+          </Link>
           <Link to="/reviews" className="hover:text-yellow-400 transition py-2 text-sm">
             Отзывы
           </Link>
           {user && (
-            <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 text-sm">
-              Мои курсы
-            </Link>
+            <>
+              <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 text-sm">
+                Мои курсы
+              </Link>
+              <Link to="/ar-module" className="hover:text-yellow-400 transition py-2 text-sm">
+                AR-модуль
+              </Link>
+              <Link to="/vr-module" className="hover:text-yellow-400 transition py-2 text-sm">
+                VR-модуль
+              </Link>
+            </>
           )}
         </div>
       </nav>
