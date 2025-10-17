@@ -109,7 +109,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
       // Если не на главной, переходим на главную и скроллим
       navigate("/");
       setTimeout(() => {
-        const element = document.getElementById(ssectionId);
+        const element = document.getElementById(sectionId);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
@@ -411,7 +411,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             className="hover:text-yellow-400 transition py-2 text-sm"
           >
             Партнёры
-          </Link>
+          </button>
           <Link to="/reviews" className="hover:text-yellow-400 transition py-2 text-sm">
             Отзывы
           </Link>
