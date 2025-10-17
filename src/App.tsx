@@ -7,7 +7,9 @@ import Cabinet from "./pages/Cabinet";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import MainPage from "./pages/MainPage";
-import ReviewsPage from "./pages/ReviewsPage"; // Импортируем страницу отзывов
+import ReviewsPage from "./pages/ReviewsPage";
+import ARModule from "./pages/ARModule";
+import VRModule from "./pages/VRModule";
 import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
 
@@ -56,6 +58,10 @@ function App() {
 
           {/* Страница отзывов */}
           <Route path="/reviews" element={<ReviewsPage />} />
+
+          {/* Новые страницы */}
+          <Route path="/ar-module" element={<ARModule />} />
+          <Route path="/vr-module" element={<VRModule />} />
 
           {/* Политика конфиденциальности */}
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
