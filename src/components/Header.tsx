@@ -119,25 +119,26 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
     closeQuickNav();
   };
 
-  // Элементы быстрой навигации
-  const quickNavItems = [
+  // Базовые элементы быстрой навигации для всех пользователей
+  const baseQuickNavItems = [
     { icon: Compass, label: "Главная", action: () => navigate("/") },
     { icon: Compass, label: "О проекте", action: () => scrollToSection("about") },
     { icon: Compass, label: "Как работает", action: () => scrollToSection("how-it-works") },
     { icon: Compass, label: "Партнёры", action: () => scrollToSection("partners") },
     { icon: Compass, label: "Контакты", action: () => scrollToSection("cta") },
     { icon: Compass, label: "Отзывы", action: () => navigate("/reviews") },
-    { icon: Compass, label: "AR-модуль", action: () => navigate("/ar-module") },
-    { icon: Compass, label: "VR-модуль", action: () => navigate("/vr-module") },
   ];
 
-  // Если пользователь авторизован, добавляем ссылки на профиль
-  if (user) {
-    quickNavItems.push(
-      { icon: Compass, label: "Личный кабинет", action: () => navigate("/cabinet") },
-      { icon: Compass, label: "Мой профиль", action: () => navigate("/profile") }
-    );
-  }
+  // Элементы быстрой навигации для авторизованных пользователей
+  const userQuickNavItems = user ? [
+    { icon: Compass, label: "AR-модуль", action: () => navigate("/ar-module") },
+    { icon: Compass, label: "VR-модуль", action: () => navigate("/vr-module") },
+    { icon: Compass, label: "Личный кабинет", action: () => navigate("/cabinet") },
+    { icon: Compass, label: "Мой профиль", action: () => navigate("/profile") }
+  ] : [];
+
+  // Объединяем элементы навигации
+  const quickNavItems = [...baseQuickNavItems, ...userQuickNavItems];
 
   return (
     <header className="bg-black text-white shadow-lg relative">
@@ -187,17 +188,9 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             Отзывы
           </Link>
           {user && (
-            <>
-              <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
-                Мои курсы
-              </Link>
-              <Link to="/ar-module" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
-                AR-модуль
-              </Link>
-              <Link to="/vr-module" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
-                VR-модуль
-              </Link>
-            </>
+            <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
+              Мои курсы
+            </Link>
           )}
         </nav>
 
@@ -304,17 +297,9 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             Отзывы
           </Link>
           {user && (
-            <>
-              <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 text-sm">
-                Мои курсы
-              </Link>
-              <Link to="/ar-module" className="hover:text-yellow-400 transition py-2 text-sm">
-                AR-модуль
-              </Link>
-              <Link to="/vr-module" className="hover:text-yellow-400 transition py-2 text-sm">
-                VR-модуль
-              </Link>
-            </>
+            <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 text-sm">
+              Мои курсы
+            </Link>
           )}
         </div>
       </nav>
