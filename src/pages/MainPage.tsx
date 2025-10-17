@@ -11,6 +11,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import school1Logo from "../logos/school1-logo.png";
 import educationDepartmentLogo from "../logos/education-department-logo.png";
 import rnYuganskLogo from "../logos/rn-yugansk-logo.png";
+import varwinLogo from "../logos/varwin-logo.png"; // Добавлен импорт логотипа Varwin
 
 // Компонент путеводителя для мобильных устройств
 const MobileGuide: React.FC = () => {
@@ -245,6 +246,13 @@ const PartnersSection: React.FC = () => {
       description: "Ведущее нефтегазодобывающее предприятие региона, предоставляющее экспертизу и материалы для образовательных курсов",
       logo: rnYuganskLogo,
       icon: "⛽"
+    },
+    {
+      name: "Varwin",
+      type: "Технический партнёр",
+      description: "Платформа для создания VR-решений без программирования, предоставляющая технологии для образовательного контента",
+      logo: varwinLogo,
+      icon: "🛠️"
     }
   ];
 
@@ -263,7 +271,7 @@ const PartnersSection: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 md:mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8 mb-8 md:mb-16">
           {partners.map((partner, index) => (
             <div key={index} className="bg-gray-50 rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-4 sm:p-6 text-center hover:shadow-lg sm:hover:shadow-xl transition-shadow w-full">
               <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-full flex items-center justify-center">
@@ -273,6 +281,8 @@ const PartnersSection: React.FC = () => {
                   className={`object-contain ${
                     partner.name === "РН-Юганскнефтегаз" 
                       ? "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" 
+                      : partner.name === "Varwin"
+                      ? "w-14 h-14 sm:w-16 sm:h-16 p-1" // Добавлен padding для Varwin
                       : "w-14 h-14 sm:w-16 sm:h-16"
                   }`}
                 />
@@ -285,6 +295,8 @@ const PartnersSection: React.FC = () => {
                   ? "bg-blue-100 text-blue-800"
                   : partner.type.includes("Образовательный")
                   ? "bg-green-100 text-green-800"
+                  : partner.type.includes("Технический")
+                  ? "bg-orange-100 text-orange-800"
                   : "bg-purple-100 text-purple-800"
               }`}>
                 {partner.type}
