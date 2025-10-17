@@ -127,6 +127,8 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
     { icon: Compass, label: "Партнёры", action: () => scrollToSection("partners") },
     { icon: Compass, label: "Контакты", action: () => scrollToSection("cta") },
     { icon: Compass, label: "Отзывы", action: () => navigate("/reviews") },
+    { icon: Compass, label: "AR-модуль", action: () => navigate("/ar-module") },
+    { icon: Compass, label: "VR-модуль", action: () => navigate("/vr-module") },
   ];
 
   // Если пользователь авторизован, добавляем ссылки на профиль
@@ -185,9 +187,17 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             Отзывы
           </Link>
           {user && (
-            <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
-              Мои курсы
-            </Link>
+            <>
+              <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
+                Мои курсы
+              </Link>
+              <Link to="/ar-module" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
+                AR-модуль
+              </Link>
+              <Link to="/vr-module" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
+                VR-модуль
+              </Link>
+            </>
           )}
         </nav>
 
@@ -294,9 +304,17 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             Отзывы
           </Link>
           {user && (
-            <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 text-sm">
-              Мои курсы
-            </Link>
+            <>
+              <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 text-sm">
+                Мои курсы
+              </Link>
+              <Link to="/ar-module" className="hover:text-yellow-400 transition py-2 text-sm">
+                AR-модуль
+              </Link>
+              <Link to="/vr-module" className="hover:text-yellow-400 transition py-2 text-sm">
+                VR-модуль
+              </Link>
+            </>
           )}
         </div>
       </nav>
