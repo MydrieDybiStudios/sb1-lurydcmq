@@ -21,6 +21,7 @@ export interface Course {
   icon?: string;
   lessons: Lesson[];
   test: Test;
+  directions: string[]; // массив идентификаторов направлений, для которых подходит курс
 }
 
 export interface UserCourseProgress {
