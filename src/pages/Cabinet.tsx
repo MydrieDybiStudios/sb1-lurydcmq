@@ -8,6 +8,8 @@ import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
 import { Menu } from "lucide-react";
 import coursesData from "../data/coursesData";
+import { directions } from "../data/directionsData";
+import DirectionSelector from "../components/DirectionSelector";
 
 // Импортируем круглый логотип
 import logo from "../logos/logo.png";
@@ -18,6 +20,7 @@ interface ProfileData {
   class_num: number;
   class_range: "1-8" | "8-11";
   avatar_url: string | null;
+  direction?: string | null; // добавлено поле направления
 }
 
 const Cabinet: React.FC = () => {
@@ -28,6 +31,7 @@ const Cabinet: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<"courses" | "profile" | "ar" | "vr">("courses");
+  const [isDirectionModalOpen, setIsDirectionModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,6 +49,12 @@ const Cabinet: React.FC = () => {
             .single();
 
           setProfile(profileData);
+        } else {
+          // Для неавторизованных проверяем localStorage
+          const savedDirection = localStorage.getItem('preferredDirection');
+          if (savedDirection) {
+            setProfile({ direction: savedDirection } as ProfileData); // частичный профиль для направления
+          }
         }
       } catch (err) {
         console.error("Ошибка получения данных:", err);
@@ -61,7 +71,6 @@ const Cabinet: React.FC = () => {
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        // Обновляем профиль при изменении состояния аутентификации
         const { data: profileData } = await supabase
           .from("profiles")
           .select("*")
@@ -77,6 +86,26 @@ const Cabinet: React.FC = () => {
       authListener?.subscription.unsubscribe();
     };
   }, []);
+
+  const handleDirectionSelect = async (directionId: string) => {
+    if (user) {
+      // Сохраняем в БД
+      const { error } = await supabase
+        .from('profiles')
+        .update({ direction: directionId })
+        .eq('id', user.id);
+      if (error) {
+        console.error('Ошибка сохранения направления:', error);
+        return;
+      }
+      // Обновляем локальный profile
+      setProfile(prev => prev ? { ...prev, direction: directionId } : { direction: directionId } as ProfileData);
+    } else {
+      // Для неавторизованных сохраняем в localStorage
+      localStorage.setItem('preferredDirection', directionId);
+      setProfile(prev => prev ? { ...prev, direction: directionId } : { direction: directionId } as ProfileData);
+    }
+  };
 
   const handleExitToMain = () => navigate("/");
 
@@ -296,8 +325,26 @@ const Cabinet: React.FC = () => {
             {activeSection === "courses" && (
               <>
                 <section id="courses" className="mb-16">
-                  <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">🎓 Мои курсы</h2>
-                  <CoursesSection onStartCourse={handleStartCourse} />
+                  <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-3xl font-bold text-gray-800">
+                      🎓 Мои курсы
+                      {profile?.direction && (
+                        <span className="text-base font-normal text-gray-600 ml-4">
+                          (направление: {directions.find(d => d.id === profile.direction)?.name || profile.direction})
+                        </span>
+                      )}
+                    </h2>
+                    <button
+                      onClick={() => setIsDirectionModalOpen(true)}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Сменить направление
+                    </button>
+                  </div>
+                  <CoursesSection 
+                    onStartCourse={handleStartCourse} 
+                    selectedDirection={profile?.direction}
+                  />
                 </section>
 
                 <section id="achievements">
@@ -339,6 +386,13 @@ const Cabinet: React.FC = () => {
         isOpen={isCourseModalOpen} 
         onClose={() => setIsCourseModalOpen(false)} 
         course={selectedCourse} 
+      />
+
+      <DirectionSelector
+        isOpen={isDirectionModalOpen}
+        onClose={() => setIsDirectionModalOpen(false)}
+        onSelect={handleDirectionSelect}
+        currentDirection={profile?.direction || undefined}
       />
     </div>
   );
