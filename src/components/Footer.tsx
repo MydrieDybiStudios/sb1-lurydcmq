@@ -1,3 +1,5 @@
+// src/components/Footer.tsx
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, MapPin, School, MessageCircle, Send } from 'lucide-react';
@@ -67,47 +69,38 @@ const Footer: React.FC = () => {
             <h4 className="font-bold mb-6 text-yellow-400 text-xl border-b border-yellow-400 pb-2">Навигация</h4>
             <ul className="space-y-4">
               <li>
-                <Link 
-                  to="/" 
-                  className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group"
-                >
+                <Link to="/" className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group">
                   <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3 group-hover:scale-150 transition-transform"></span>
                   Главная страница
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/reviews" 
-                  className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group"
-                >
+                <Link to="/reviews" className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group">
                   <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3 group-hover:scale-150 transition-transform"></span>
                   Отзывы учеников
                 </Link>
               </li>
-              {/* Новая ссылка на Вузы и ЕГЭ */}
+              {/* НОВЫЕ ССЫЛКИ */}
               <li>
-                <Link 
-                  to="/universities" 
-                  className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group"
-                >
+                <Link to="/universities" className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group">
                   <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3 group-hover:scale-150 transition-transform"></span>
                   Вузы и ЕГЭ
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/cabinet" 
-                  className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group"
-                >
+                <Link to="/career-test" className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group">
+                  <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3 group-hover:scale-150 transition-transform"></span>
+                  Тест на профессию
+                </Link>
+              </li>
+              <li>
+                <Link to="/cabinet" className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group">
                   <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3 group-hover:scale-150 transition-transform"></span>
                   Личный кабинет
                 </Link>
               </li>
               <li>
-                <Link 
-                  to="/profile" 
-                  className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group"
-                >
+                <Link to="/profile" className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group">
                   <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3 group-hover:scale-150 transition-transform"></span>
                   Мой профиль
                 </Link>
@@ -125,10 +118,7 @@ const Footer: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Email</p>
-                  <a 
-                    href="mailto:virtuallearningcomplex@gmail.com" 
-                    className="text-gray-300 hover:text-yellow-400 transition-colors duration-200 text-lg font-medium"
-                  >
+                  <a href="mailto:virtuallearningcomplex@gmail.com" className="text-gray-300 hover:text-yellow-400 transition-colors duration-200 text-lg font-medium">
                     virtuallearningcomplex@gmail.com
                   </a>
                 </div>
@@ -158,7 +148,6 @@ const Footer: React.FC = () => {
         {/* Нижняя часть */}
         <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col lg:flex-row justify-between items-center">
           <div className="text-center lg:text-left mb-6 lg:mb-0">
-            {/* Обновлён год на 2026 */}
             <p className="text-gray-400 text-lg">
               © 2026 Цифровая образовательная платформа "Югра.Нефть"
             </p>
@@ -167,16 +156,10 @@ const Footer: React.FC = () => {
             </p>
           </div>
           <div className="flex space-x-8">
-            <Link 
-              to="/privacy-policy" 
-              className="text-gray-400 hover:text-yellow-400 text-lg transition-all duration-200 hover:underline"
-            >
+            <Link to="/privacy-policy" className="text-gray-400 hover:text-yellow-400 text-lg transition-all duration-200 hover:underline">
               Политика конфиденциальности
             </Link>
-            <Link 
-              to="/terms-of-service" 
-              className="text-gray-400 hover:text-yellow-400 text-lg transition-all duration-200 hover:underline"
-            >
+            <Link to="/terms-of-service" className="text-gray-400 hover:text-yellow-400 text-lg transition-all duration-200 hover:underline">
               Условия использования
             </Link>
           </div>
