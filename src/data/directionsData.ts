@@ -1,4 +1,11 @@
-import { Direction } from '../types/course';
+// src/data/directionsData.ts
+
+export interface Direction {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
 
 export const directions: Direction[] = [
   {
@@ -24,11 +31,17 @@ export const directions: Direction[] = [
     name: 'Энергетика',
     description: 'Энергообеспечение, альтернативная энергетика',
     icon: '⚡'
+  },
+  {
+    id: 'it',
+    name: 'IT в нефтегазовой отрасли',
+    description: 'Автоматизация, цифровизация, программирование',
+    icon: '💻'
+  },
+  {
+    id: 'ecology',
+    name: 'Экология и безопасность',
+    description: 'Охрана окружающей среды, промышленная безопасность',
+    icon: '🌿'
   }
 ];
-
-// Вспомогательная функция для получения названия направления по id
-export const getDirectionName = (id: string): string => {
-  const direction = directions.find(d => d.id === id);
-  return direction ? direction.name : id;
-};
