@@ -6,6 +6,7 @@ const coursesData: Course[] = [
     id: 1,
     title: "Введение в нефтегазовую отрасль",
     description: "Основные понятия и компоненты нефтегазовой отрасли.",
+    directions: ['oil-gas', 'geology', 'chemistry', 'energy'],
     lessons: [
       {
         title: "Что такое нефть и газ?",
@@ -322,6 +323,7 @@ const coursesData: Course[] = [
     id: 2,
     title: "История нефтедобычи в России",
     description: "Развитие нефтедобычи от первых скважин до современных технологий.",
+    directions: ['oil-gas', 'geology'],
     lessons: [
       {
         title: "Первые упоминания о нефти в России",
@@ -650,6 +652,7 @@ const coursesData: Course[] = [
     id: 3,
     title: "Геология нефти и газа",
     description: "Геологические процессы формирования месторождений нефти и газа.",
+    directions: ['geology', 'oil-gas'],
     lessons: [
       {
         title: "Введение в геологию нефти и газа",
@@ -1087,6 +1090,7 @@ const coursesData: Course[] = [
     id: 4,
     title: "Методы добычи нефти",
     description: "Современные технологии и методы добычи нефтяных ресурсов.",
+    directions: ['oil-gas'],
     lessons: [
       {
         title: "Основы добычи нефти",
@@ -1577,6 +1581,7 @@ const coursesData: Course[] = [
     id: 5,
     title: "Транспортировка нефти и газа",
     description: "Способы транспортировки нефтегазовых продуктов.",
+    directions: ['oil-gas'],
     lessons: [
       {
         title: "Основные способы транспортировки нефти и газа",
@@ -2220,6 +2225,7 @@ const coursesData: Course[] = [
     id: 6,
     title: "Экология в нефтегазовой отрасли",
     description: "Экологические аспекты и защита окружающей среды.",
+    directions: ['oil-gas', 'geology', 'chemistry', 'energy'],
     lessons: [
       {
         title: "Экологические аспекты нефтегазовой отрасли",
@@ -2866,6 +2872,7 @@ const coursesData: Course[] = [
     id: 7,
     title: "Химия нефти и газа",
     description: "Изучение химического состава и свойств нефти и газа.",
+    directions: ['chemistry', 'oil-gas'],
     lessons: [
       {
         title: "Химический состав нефти",
