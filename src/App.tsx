@@ -12,6 +12,7 @@ import ARModule from "./pages/ARModule";
 import VRModule from "./pages/VRModule";
 import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
+import UniversitiesPage from "./pages/UniversitiesPage";
 
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
@@ -68,6 +69,7 @@ function App() {
 
           {/* Условия использования */}
           <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/universities" element={<UniversitiesPage />} />
         </Routes>
 
         {/* Модальные окна - рендерятся поверх всех страниц */}
