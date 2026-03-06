@@ -13,20 +13,26 @@ import { Course } from '../types/course';
 
 interface CoursesSectionProps {
   onStartCourse: (courseId: number) => void;
+  selectedDirection?: string | null;
 }
 
-const CoursesSection: React.FC<CoursesSectionProps> = ({ onStartCourse }) => {
+const CoursesSection: React.FC<CoursesSectionProps> = ({ onStartCourse, selectedDirection }) => {
   const [visibleCourses, setVisibleCourses] = useState<Course[]>([]);
+
+  // Фильтрация курсов по направлению
+  const filteredCourses = selectedDirection
+    ? coursesData.filter(course => course.directions.includes(selectedDirection))
+    : coursesData;
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setVisibleCourses(coursesData);
+      setVisibleCourses(filteredCourses);
     }, 300);
     return () => clearTimeout(timer);
-  }, []);
+  }, [filteredCourses]);
 
   // Иконки по id курса
-  const courseIcons = {
+  const courseIcons: { [key: number]: JSX.Element } = {
     1: <Oil className="text-yellow-400 text-6xl" />,
     2: <History className="text-yellow-400 text-6xl" />,
     3: <Mountain className="text-yellow-400 text-6xl" />,
@@ -36,9 +42,17 @@ const CoursesSection: React.FC<CoursesSectionProps> = ({ onStartCourse }) => {
     7: <Flask className="text-yellow-400 text-6xl" />,
   };
 
+  if (filteredCourses.length === 0) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-gray-500">Нет курсов для выбранного направления.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {coursesData.map((course, index) => (
+      {filteredCourses.map((course, index) => (
         <div
           key={course.id}
           className={`course-card bg-white rounded-lg shadow-md overflow-hidden transform transition duration-500 ${
