@@ -127,6 +127,8 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
     { icon: Compass, label: "Партнёры", action: () => scrollToSection("partners") },
     { icon: Compass, label: "Контакты", action: () => scrollToSection("cta") },
     { icon: Compass, label: "Отзывы", action: () => navigate("/reviews") },
+    // Добавляем пункт "Вузы и ЕГЭ"
+    { icon: Compass, label: "Вузы и ЕГЭ", action: () => navigate("/universities") },
   ];
 
   // Элементы быстрой навигации для авторизованных пользователей
@@ -143,7 +145,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
   return (
     <header className="bg-black text-white shadow-lg relative">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Логотип и название - КРУГЛЫЙ ЛОГОТИП */}
+        {/* Логотип и название */}
         <div className="flex items-center space-x-3">
           <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
             <img 
@@ -187,6 +189,10 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
           <Link to="/reviews" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
             Отзывы
           </Link>
+          {/* Новая ссылка на Вузы и ЕГЭ */}
+          <Link to="/universities" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
+            Вузы и ЕГЭ
+          </Link>
           {user && (
             <Link to="/cabinet" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
               Мои курсы
@@ -194,11 +200,11 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
           )}
         </nav>
 
-        {/* Блок справа - СДВИНУТ ВПРАВО с улучшенным отступом */}
+        {/* Блок справа */}
         <div className="flex items-center space-x-4 ml-8">
           {user ? (
             <>
-              {/* Кликабельные аватар и имя пользователя - СДВИНУТО ВПРАВО */}
+              {/* Кликабельные аватар и имя пользователя */}
               <div 
                 className="flex items-center gap-3 cursor-pointer group ml-auto"
                 onClick={handleProfileClick}
@@ -253,7 +259,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
             </>
           )}
 
-          {/* Кнопка быстрой навигации для ПК - ИСПРАВЛЕННЫЙ КОМПАС */}
+          {/* Кнопка быстрой навигации для ПК */}
           <button
             onClick={() => setIsQuickNavOpen(true)}
             className="hidden lg:flex items-center justify-center w-12 h-12 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full transition-all duration-300 hover:scale-110 ml-2"
@@ -312,6 +318,14 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
                 className="hover:text-yellow-400 transition py-2 text-lg"
               >
                 Отзывы
+              </Link>
+              {/* Новая ссылка на Вузы и ЕГЭ */}
+              <Link 
+                to="/universities" 
+                onClick={closeMobileMenu}
+                className="hover:text-yellow-400 transition py-2 text-lg"
+              >
+                Вузы и ЕГЭ
               </Link>
 
               {/* Ссылки для авторизованных пользователей */}
@@ -414,6 +428,10 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
           </button>
           <Link to="/reviews" className="hover:text-yellow-400 transition py-2 text-sm">
             Отзывы
+          </Link>
+          {/* Новая ссылка на Вузы и ЕГЭ для планшетов */}
+          <Link to="/universities" className="hover:text-yellow-400 transition py-2 text-sm">
+            Вузы и ЕГЭ
           </Link>
           {user && (
             <>
