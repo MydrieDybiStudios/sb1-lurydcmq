@@ -84,6 +84,16 @@ const Footer: React.FC = () => {
                   Отзывы учеников
                 </Link>
               </li>
+              {/* Новая ссылка на Вузы и ЕГЭ */}
+              <li>
+                <Link 
+                  to="/universities" 
+                  className="text-gray-300 hover:text-yellow-400 transition-all duration-200 text-lg flex items-center group"
+                >
+                  <span className="w-2 h-2 bg-yellow-400 rounded-full mr-3 group-hover:scale-150 transition-transform"></span>
+                  Вузы и ЕГЭ
+                </Link>
+              </li>
               <li>
                 <Link 
                   to="/cabinet" 
@@ -148,8 +158,9 @@ const Footer: React.FC = () => {
         {/* Нижняя часть */}
         <div className="border-t border-gray-700 mt-12 pt-8 flex flex-col lg:flex-row justify-between items-center">
           <div className="text-center lg:text-left mb-6 lg:mb-0">
+            {/* Обновлён год на 2026 */}
             <p className="text-gray-400 text-lg">
-              © 2025 Цифровая образовательная платформа "Югра.Нефть"
+              © 2026 Цифровая образовательная платформа "Югра.Нефть"
             </p>
             <p className="text-gray-500 text-sm mt-2">
               Все права защищены. Проект разработан учащимися Роснефть-класса МОБУ СОШ №1.
