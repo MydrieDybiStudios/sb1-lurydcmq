@@ -3,14 +3,6 @@ import React from 'react';
 const HeroSection: React.FC = () => {
   return (
     <section className="relative bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-black overflow-hidden py-20 md:py-28">
-      {/* Анимированные чёрные круги на фоне */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-10 left-10 w-64 h-64 bg-black rounded-full mix-blend-overlay filter blur-3xl animate-float"></div>
-        <div className="absolute bottom-10 right-10 w-80 h-80 bg-black rounded-full mix-blend-overlay filter blur-3xl animate-float-delayed"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-black rounded-full mix-blend-overlay filter blur-3xl animate-pulse-slow"></div>
-        <div className="absolute top-20 right-20 w-48 h-48 bg-black rounded-full mix-blend-overlay filter blur-2xl animate-spin-slow"></div>
-        <div className="absolute bottom-20 left-20 w-40 h-40 bg-black rounded-full mix-blend-overlay filter blur-2xl animate-bounce-slow"></div>
-      </div>
 
       {/* Волнистый чёрный элемент внизу */}
       <div className="absolute bottom-0 left-0 right-0 text-black">
