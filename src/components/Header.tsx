@@ -1,7 +1,11 @@
+// src/components/Header.tsx
+
 import React, { useState, useEffect } from "react";
 import { Menu, X, Compass } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+
+// Импортируем круглый логотип
 import logo from "../logos/logo.png";
 
 interface HeaderProps {
@@ -115,6 +119,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
     closeQuickNav();
   };
 
+  // Базовые элементы быстрой навигации для всех пользователей
   const baseQuickNavItems = [
     { icon: Compass, label: "Главная", action: () => navigate("/") },
     { icon: Compass, label: "О проекте", action: () => scrollToSection("about") },
@@ -126,6 +131,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
     { icon: Compass, label: "Тест профессии", action: () => navigate("/career-test") },
   ];
 
+  // Элементы быстрой навигации для авторизованных пользователей
   const userQuickNavItems = user ? [
     { icon: Compass, label: "AR-модуль", action: () => navigate("/ar-module") },
     { icon: Compass, label: "VR-модуль", action: () => navigate("/vr-module") },
@@ -138,20 +144,20 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
   return (
     <header className="bg-black text-white shadow-lg relative">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        {/* Логотип и название (исправленная версия) */}
-        <div className="flex items-center space-x-2 sm:space-x-3">
+        {/* Логотип и название */}
+        <div className="flex items-center space-x-3">
           <Link to="/" className="flex items-center space-x-2 sm:space-x-3">
             <img 
               src={logo} 
               alt="Югра.Нефть" 
               className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0 object-cover border-2 border-yellow-400"
             />
-            <div className="flex flex-col">
-              <span className="text-sm sm:text-lg md:text-xl font-bold leading-tight whitespace-nowrap">
+            <div className="max-w-[180px] sm:max-w-none">
+              <h1 className="text-sm sm:text-lg md:text-xl font-bold leading-tight">
                 <span className="hidden sm:inline">Цифровая Образовательная Платформа </span>
-                <span className="sm:hidden">ЦОП </span>
-                «Югра.Нефть»
-              </span>
+                <span className="sm:hidden">Платформа </span>
+                "Югра.Нефть"
+              </h1>
               <p className="text-xs text-gray-300 hidden md:block">
                 Интерактивные курсы, тесты и достижения
               </p>
@@ -173,6 +179,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
           <Link to="/reviews" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
             Отзывы
           </Link>
+          {/* НОВЫЕ ССЫЛКИ */}
           <Link to="/universities" className="hover:text-yellow-400 transition py-2 whitespace-nowrap">
             Вузы и ЕГЭ
           </Link>
@@ -240,7 +247,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
         </div>
       </div>
 
-      {/* Мобильное меню (остаётся без изменений) */}
+      {/* Мобильное меню */}
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-black border-t border-gray-700">
           <div className="container mx-auto px-4 py-4">
@@ -338,7 +345,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
         </div>
       </nav>
 
-      {/* Модальное окно быстрой навигации */}
+      {/* Модальное окно быстрой навигации для ПК */}
       {isQuickNavOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 animate-scale-in">
@@ -348,13 +355,14 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
                 <X className="w-6 h-6" />
               </button>
             </div>
+            
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {quickNavItems.map((item, index) => {
                 const IconComponent = item.icon;
                 return (
                   <button
                     key={index}
-                    onClick={() => { item.action(); closeQuickNav(); }}
+                    onClick={item.action}
                     className="flex flex-col items-center p-6 bg-gray-50 rounded-xl hover:bg-yellow-50 transition-all duration-300 hover:scale-105"
                   >
                     <IconComponent className="w-8 h-8 text-yellow-600 mb-3 flex-shrink-0" />
