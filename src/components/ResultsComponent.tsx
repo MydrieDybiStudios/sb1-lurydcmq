@@ -12,6 +12,7 @@ interface ResultsComponentProps {
   onRestart: () => void;
 }
 
+// Расширенный маппинг для всех 14 курсов
 const courseKeyMapping: Record<number, string> = {
   1: 'course_1',
   2: 'course_2', 
@@ -19,7 +20,14 @@ const courseKeyMapping: Record<number, string> = {
   4: 'course_4',
   5: 'course_5',
   6: 'course_6',
-  7: 'course_7'
+  7: 'course_7',
+  8: 'course_8',
+  9: 'course_9',
+  10: 'course_10',
+  11: 'course_11',
+  12: 'course_12',
+  13: 'course_13',
+  14: 'course_14'
 };
 
 const ResultsComponent: React.FC<ResultsComponentProps> = ({ 
@@ -85,7 +93,8 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         return false;
       }
 
-      if (completedCourses && completedCourses.length >= 7) {
+      // Проверяем, что пройдено не менее 14 курсов (или сколько у вас)
+      if (completedCourses && completedCourses.length >= 14) {
         const { data: allAchievement, error: allError } = await supabase
           .from('achievements')
           .select('id')
@@ -253,7 +262,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
   const safeFileName = (s: string) =>
     s ? s.replace(/[^a-zA-Z0-9\u0400-\u04FF\s\-_,.()]/g, "").replace(/\s+/g, "_") : "unknown";
 
-  // ИСПРАВЛЕННАЯ ФУНКЦИЯ - убедитесь, что try-catch-finally завершены правильно
   const handleDownloadCertificate = async () => {
     const isEligible = await checkCertificateEligibility();
     if (!isEligible) {
@@ -278,14 +286,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       const ctx = canvas.getContext("2d");
       if (!ctx) throw new Error("Canvas не поддерживается");
 
-      // Фон
       const gradient = ctx.createLinearGradient(0, 0, canvasWidth, canvasHeight);
       gradient.addColorStop(0, "#fffef5");
       gradient.addColorStop(1, "#fff9e5");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-      // Рамка
       ctx.strokeStyle = "#D4AF37";
       ctx.lineWidth = 40;
       roundRect(
@@ -299,7 +305,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         true
       );
 
-      // Заголовок
       ctx.fillStyle = "#D4AF37";
       ctx.font = "bold 110px Arial";
       ctx.textAlign = "center";
@@ -309,12 +314,10 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       ctx.font = "600 60px Arial";
       ctx.fillText("о завершении курса", canvasWidth / 2, padding + 280);
 
-      // Имя
       ctx.fillStyle = "#000";
       ctx.font = "bold 90px Arial";
       ctx.fillText(userName, canvasWidth / 2, padding + 460);
 
-      // Курс
       ctx.font = "400 50px Arial";
       ctx.fillText(
         `успешно завершил(а) курс «${courseName}»`,
@@ -322,7 +325,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         padding + 550
       );
 
-      // Результаты
       const { score, total, percentage } = results;
       const incorrect = total - score;
 
@@ -336,14 +338,12 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       ctx.fillText(`Ошибок: ${incorrect}`, canvasWidth / 2, padding + 860);
       ctx.fillText(`Успешность: ${percentage}%`, canvasWidth / 2, padding + 920);
 
-      // Подпись и дата
       const dateStr = new Date().toLocaleDateString("ru-RU");
       ctx.font = "400 36px Arial";
       ctx.textAlign = "left";
       ctx.fillStyle = "#000";
       ctx.fillText(`Дата выдачи: ${dateStr}`, padding + 40, canvasHeight - padding - 160);
 
-      // Подпись
       ctx.textAlign = "right";
       ctx.strokeStyle = "#1E3A8A";
       ctx.lineWidth = 3;
@@ -367,7 +367,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
       ctx.font = "400 30px Arial";
       ctx.fillText("Подпись", canvasWidth - padding - 230, canvasHeight - padding - 40);
 
-      // Организация
       ctx.textAlign = "center";
       ctx.fillStyle = "#444";
       ctx.font = "italic 36px Arial";
@@ -377,7 +376,6 @@ const ResultsComponent: React.FC<ResultsComponentProps> = ({
         canvasHeight - padding + 10
       );
 
-      // Сохранение PDF
       const pngBlob: Blob | null = await new Promise((res) =>
         canvas.toBlob((b) => res(b), "image/png", 1)
       );
