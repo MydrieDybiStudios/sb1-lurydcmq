@@ -1,3 +1,4 @@
+// src/components/CoursesSection.tsx
 import React, { useState, useEffect } from 'react';
 import {
   File as Oil,
@@ -7,6 +8,13 @@ import {
   Truck,
   Leaf,
   FlaskRound as Flask,
+  Cpu,
+  Database,
+  Layers,
+  Shield,
+  TreePine,
+  Wind,
+  ClipboardList,
 } from 'lucide-react';
 import coursesData from '../data/coursesData';
 import { Course } from '../types/course';
@@ -19,7 +27,6 @@ interface CoursesSectionProps {
 const CoursesSection: React.FC<CoursesSectionProps> = ({ onStartCourse, selectedDirection }) => {
   const [visibleCourses, setVisibleCourses] = useState<Course[]>([]);
 
-  // Фильтрация курсов по направлению
   const filteredCourses = selectedDirection
     ? coursesData.filter(course => course.directions.includes(selectedDirection))
     : coursesData;
@@ -31,7 +38,7 @@ const CoursesSection: React.FC<CoursesSectionProps> = ({ onStartCourse, selected
     return () => clearTimeout(timer);
   }, [filteredCourses]);
 
-  // Иконки по id курса
+  // Иконки для всех курсов (id от 1 до 14)
   const courseIcons: { [key: number]: JSX.Element } = {
     1: <Oil className="text-yellow-400 text-6xl" />,
     2: <History className="text-yellow-400 text-6xl" />,
@@ -40,6 +47,13 @@ const CoursesSection: React.FC<CoursesSectionProps> = ({ onStartCourse, selected
     5: <Truck className="text-yellow-400 text-6xl" />,
     6: <Leaf className="text-yellow-400 text-6xl" />,
     7: <Flask className="text-yellow-400 text-6xl" />,
+    8: <Cpu className="text-yellow-400 text-6xl" />,
+    9: <Database className="text-yellow-400 text-6xl" />,
+    10: <Layers className="text-yellow-400 text-6xl" />,
+    11: <Shield className="text-yellow-400 text-6xl" />,
+    12: <TreePine className="text-yellow-400 text-6xl" />,
+    13: <Wind className="text-yellow-400 text-6xl" />,
+    14: <ClipboardList className="text-yellow-400 text-6xl" />,
   };
 
   if (filteredCourses.length === 0) {
@@ -63,7 +77,7 @@ const CoursesSection: React.FC<CoursesSectionProps> = ({ onStartCourse, selected
           style={{ transitionDelay: `${index * 100}ms` }}
         >
           <div className="h-48 bg-gray-800 flex items-center justify-center">
-            {courseIcons[course.id as keyof typeof courseIcons]}
+            {courseIcons[course.id] || <Oil className="text-yellow-400 text-6xl" />}
           </div>
 
           <div className="p-6">
