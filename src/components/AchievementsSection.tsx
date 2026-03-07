@@ -14,7 +14,18 @@ import {
   Compass,
   CheckCircle,
   Lock,
-  RefreshCw
+  RefreshCw,
+  BookOpen,
+  History,
+  Truck,
+  Cpu,
+  Database,
+  Layers,
+  Shield,
+  TreePine,
+  Wind,
+  ClipboardList,
+  Award
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
@@ -29,7 +40,18 @@ const iconsMap: Record<string, any> = {
   'drill': Drill,
   'leaf': Leaf,
   'flask': FlaskConical,
-  'compass': Compass
+  'compass': Compass,
+  'book': BookOpen,
+  'history': History,
+  'truck': Truck,
+  'cpu': Cpu,
+  'database': Database,
+  'layers': Layers,
+  'shield': Shield,
+  'tree': TreePine,
+  'wind': Wind,
+  'clipboard': ClipboardList,
+  'award': Award
 };
 
 interface Achievement {
@@ -49,14 +71,12 @@ const AchievementsSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Получаем пользователя и данные параллельно для оптимизации
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Получаем пользователя
         const { data: userData, error: userError } = await supabase.auth.getUser();
         
         if (userError) throw userError;
@@ -64,7 +84,6 @@ const AchievementsSection: React.FC = () => {
         if (userData?.user) {
           setUserId(userData.user.id);
           
-          // Параллельно загружаем достижения и полученные ачивки
           const [achievementsResponse, earnedResponse] = await Promise.all([
             supabase.from("achievements").select("*").order("id", { ascending: true }),
             supabase.from("user_achievements").select("achievement_id").eq("user_id", userData.user.id)
@@ -89,7 +108,6 @@ const AchievementsSection: React.FC = () => {
     loadData();
   }, []);
 
-  // Обновляем достижения при изменении (для real-time)
   useEffect(() => {
     if (!userId) return;
 
@@ -104,7 +122,6 @@ const AchievementsSection: React.FC = () => {
           filter: `user_id=eq.${userId}`
         },
         async () => {
-          // Обновляем список полученных достижений
           const { data, error } = await supabase
             .from("user_achievements")
             .select("achievement_id")
@@ -122,7 +139,6 @@ const AchievementsSection: React.FC = () => {
     };
   }, [userId]);
 
-  // Функция для перезагрузки достижений
   const refetchAchievements = async () => {
     if (!userId) return;
     
@@ -202,7 +218,6 @@ const AchievementsSection: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Статистика */}
             <div className="mb-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200 max-w-2xl mx-auto">
               <div className="flex justify-between items-center">
                 <div className="text-center">
@@ -228,7 +243,6 @@ const AchievementsSection: React.FC = () => {
               </div>
             </div>
 
-            {/* Сетка достижений */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {achievements.map(({ id, title, description, icon }) => {
                 const earnedNow = earned.includes(id);
@@ -271,7 +285,6 @@ const AchievementsSection: React.FC = () => {
               })}
             </div>
 
-            {/* Кнопка обновления */}
             <div className="text-center mt-8">
               <button
                 onClick={refetchAchievements}
