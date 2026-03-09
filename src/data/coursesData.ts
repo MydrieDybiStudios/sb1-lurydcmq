@@ -501,30 +501,6 @@ const coursesData: Course[] = [
             </div>
           </div>
         `
-      },
-      {
-        title: "Видеоурок: История нефтедобычи в России",
-        content: `
-          <div class="mb-6">
-            <h4 class="text-xl font-bold mb-4">История нефтедобычи в России</h4>
-            <div class="aspect-w-16 aspect-h-9 mb-4">
-              <iframe class="w-full h-96" src="https://www.youtube.com/embed/kTYfP7MKy5k" frameborder="0" allowfullscreen></iframe>
-            </div>
-            <p class="text-gray-700">
-              В этом видео вы узнаете об основных этапах развития нефтедобычи в России - от первых упоминаний о нефти до современного состояния отрасли. Особое внимание уделено роли Бакинского нефтяного района, вкладу братьев Нобель и освоению сибирских месторождений.
-            </p>
-          </div>
-          <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4">
-            <h5 class="font-bold mb-2">Ключевые моменты видео:</h5>
-            <ul class="list-disc pl-5 text-gray-700">
-              <li>Первые нефтяные промыслы в России</li>
-              <li>Роль Баку в мировой нефтедобыче</li>
-              <li>Вклад братьев Нобель</li>
-              <li>Развитие отрасли в советский период</li>
-              <li>Современное состояние российской нефтяной промышленности</li>
-            </ul>
-          </div>
-        `
       }
     ],
     test: {
