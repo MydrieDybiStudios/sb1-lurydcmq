@@ -25,10 +25,14 @@ import {
   TreePine,
   Wind,
   ClipboardList,
-  Award
+  Award,
+  Trophy,
+  Sparkles,
+  Target
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
+// Карта иконок (расширена новыми)
 const iconsMap: Record<string, any> = {
   'star': Star,
   'mountain': Mountain,
@@ -51,7 +55,10 @@ const iconsMap: Record<string, any> = {
   'tree': TreePine,
   'wind': Wind,
   'clipboard': ClipboardList,
-  'award': Award
+  'award': Award,
+  'trophy': Trophy,
+  'sparkles': Sparkles,
+  'target': Target
 };
 
 interface Achievement {
@@ -157,35 +164,51 @@ const AchievementsSection: React.FC = () => {
     }
   };
 
+  // Анимированный счётчик (для красоты можно добавить, но пока оставим просто числа)
+  const earnedCount = earned.length;
+  const totalCount = achievements.length;
+  const progressPercent = totalCount > 0 ? Math.round((earnedCount / totalCount) * 100) : 0;
+
   if (loading) {
     return (
-      <div className="py-16 bg-gray-50">
+      <section className="py-16 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500 mb-4"></div>
-            <p className="text-gray-500">Загрузка достижений...</p>
+            <div className="relative inline-block">
+              <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-yellow-500 animate-pulse" />
+              </div>
+            </div>
+            <p className="mt-4 text-gray-600 font-medium">Загружаем ваши достижения...</p>
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <section id="achievements" className="py-12 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Достижения</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Получайте достижения за прохождение курсов и демонстрируйте свой прогресс в обучении
+    <section id="achievements" className="py-16 bg-gradient-to-b from-gray-50 to-white relative overflow-hidden">
+      {/* Декоративные фоновые элементы */}
+      <div className="absolute top-0 left-0 w-64 h-64 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute bottom-0 right-0 w-64 h-64 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 inline-block bg-clip-text text-transparent bg-gradient-to-r from-yellow-600 to-yellow-400">
+            Достижения
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+            Получайте награды за прохождение курсов и демонстрируйте свой прогресс в обучении
           </p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-center">
+          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-xl text-center max-w-md mx-auto backdrop-blur-sm">
             <p className="text-red-700 mb-2">{error}</p>
             <button
               onClick={refetchAchievements}
-              className="text-red-600 hover:text-red-800 underline text-sm"
+              className="text-red-600 hover:text-red-800 underline text-sm font-medium"
             >
               Попробовать снова
             </button>
@@ -193,89 +216,146 @@ const AchievementsSection: React.FC = () => {
         )}
 
         {!userId ? (
-          <div className="text-center py-8">
-            <div className="bg-white rounded-lg p-8 max-w-md mx-auto border-2 border-dashed border-gray-300">
-              <Crown className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          <div className="text-center py-12">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-10 max-w-md mx-auto border border-gray-200 shadow-xl">
+              <div className="relative">
+                <Crown className="w-20 h-20 text-gray-400 mx-auto mb-6" />
+                <div className="absolute -top-2 -right-2">
+                  <Sparkles className="w-6 h-6 text-yellow-400 animate-ping" />
+                </div>
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-800 mb-3">
                 Войдите в аккаунт
               </h3>
-              <p className="text-gray-500 mb-4">
-                Чтобы увидеть свои достижения, войдите в систему
+              <p className="text-gray-500 mb-6">
+                Чтобы увидеть свои достижения и следить за прогрессом, войдите в систему
               </p>
             </div>
           </div>
         ) : achievements.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="bg-white rounded-lg p-8 max-w-md mx-auto border-2 border-dashed border-gray-300">
-              <GraduationCap className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          <div className="text-center py-12">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-10 max-w-md mx-auto border border-gray-200 shadow-xl">
+              <GraduationCap className="w-20 h-20 text-gray-400 mx-auto mb-6" />
+              <h3 className="text-2xl font-semibold text-gray-800 mb-3">
                 Достижений пока нет
               </h3>
               <p className="text-gray-500">
-                Начните проходить курсы, чтобы получить первые достижения!
+                Начните проходить курсы, чтобы получить первые награды!
               </p>
             </div>
           </div>
         ) : (
           <>
-            <div className="mb-8 bg-white rounded-lg p-6 shadow-sm border border-gray-200 max-w-2xl mx-auto">
-              <div className="flex justify-between items-center">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{earned.length}</div>
-                  <div className="text-sm text-gray-600">Получено</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{achievements.length}</div>
-                  <div className="text-sm text-gray-600">Всего достижений</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {Math.round((earned.length / achievements.length) * 100)}%
+            {/* Статистика */}
+            <div className="mb-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200 transform hover:scale-105 transition-transform duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500 text-sm">Получено</p>
+                    <p className="text-3xl font-bold text-gray-900">{earnedCount}</p>
                   </div>
-                  <div className="text-sm text-gray-600">Прогресс</div>
+                  <div className="bg-yellow-100 p-3 rounded-full">
+                    <Trophy className="w-8 h-8 text-yellow-600" />
+                  </div>
                 </div>
               </div>
-              <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-yellow-500 h-2 rounded-full transition-all duration-500" 
-                  style={{ width: `${(earned.length / achievements.length) * 100}%` }}
-                ></div>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200 transform hover:scale-105 transition-transform duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500 text-sm">Всего</p>
+                    <p className="text-3xl font-bold text-gray-900">{totalCount}</p>
+                  </div>
+                  <div className="bg-yellow-100 p-3 rounded-full">
+                    <Target className="w-8 h-8 text-yellow-600" />
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-gray-200 transform hover:scale-105 transition-transform duration-300">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-500 text-sm">Прогресс</p>
+                    <p className="text-3xl font-bold text-gray-900">{progressPercent}%</p>
+                  </div>
+                  <div className="bg-yellow-100 p-3 rounded-full">
+                    <Sparkles className="w-8 h-8 text-yellow-600" />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Прогресс-бар */}
+            <div className="mb-12 max-w-2xl mx-auto">
+              <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <span>Прогресс</span>
+                <span>{earnedCount} из {totalCount}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                <div 
+                  className="bg-gradient-to-r from-yellow-400 to-yellow-600 h-3 rounded-full transition-all duration-1000 ease-out relative"
+                  style={{ width: `${progressPercent}%` }}
+                >
+                  <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Сетка достижений */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {achievements.map(({ id, title, description, icon }) => {
                 const earnedNow = earned.includes(id);
                 const Icon = iconsMap[icon] || Crown;
+
                 return (
                   <div
                     key={id}
-                    className={`p-6 rounded-xl text-center transition-all duration-300 transform hover:scale-105 ${
+                    className={`group relative rounded-2xl p-6 transition-all duration-500 transform hover:-translate-y-2 ${
                       earnedNow
-                        ? "bg-gradient-to-br from-yellow-100 to-yellow-200 border-2 border-yellow-400 shadow-lg shadow-yellow-200"
-                        : "bg-white border border-gray-200 opacity-80 hover:opacity-100"
+                        ? "bg-gradient-to-br from-yellow-100 via-yellow-50 to-white border-2 border-yellow-400 shadow-xl shadow-yellow-200/50"
+                        : "bg-white/80 backdrop-blur-sm border border-gray-200 shadow-lg hover:shadow-xl"
                     }`}
                   >
-                    <div
-                      className={`rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 transition-all ${
-                        earnedNow
-                          ? "bg-gradient-to-br from-yellow-400 to-yellow-600 text-white shadow-lg shadow-yellow-400 scale-110"
-                          : "bg-gray-200 text-gray-400"
-                      }`}
-                    >
-                      <Icon className="w-10 h-10" />
+                    {/* Блеск для полученных */}
+                    {earnedNow && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 to-transparent rounded-2xl"></div>
+                        <div className="absolute -top-2 -right-2">
+                          <Sparkles className="w-5 h-5 text-yellow-500 animate-ping" />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Иконка */}
+                    <div className="relative mb-4">
+                      <div
+                        className={`rounded-full w-20 h-20 flex items-center justify-center mx-auto transition-all duration-500 ${
+                          earnedNow
+                            ? "bg-gradient-to-br from-yellow-400 to-yellow-600 text-white shadow-lg shadow-yellow-400/50 group-hover:scale-110 group-hover:rotate-3"
+                            : "bg-gray-200 text-gray-400 group-hover:bg-gray-300 group-hover:text-gray-600"
+                        }`}
+                      >
+                        <Icon className="w-10 h-10" />
+                      </div>
+                      {earnedNow && (
+                        <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full p-1 border-2 border-white">
+                          <CheckCircle className="w-4 h-4 text-white" />
+                        </div>
+                      )}
                     </div>
-                    <h3 className="font-bold text-lg mb-2 text-gray-900">{title}</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed mb-4">{description}</p>
-                    <div className={`mt-3 text-xs font-medium ${earnedNow ? 'text-yellow-600' : 'text-gray-400'}`}>
+
+                    {/* Текст */}
+                    <h3 className="font-bold text-lg mb-2 text-gray-900 text-center">{title}</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed text-center mb-4">{description}</p>
+
+                    {/* Статус */}
+                    <div className={`mt-3 text-xs font-medium text-center ${earnedNow ? 'text-yellow-600' : 'text-gray-400'}`}>
                       {earnedNow ? (
-                        <span className="flex items-center justify-center">
-                          <CheckCircle className="w-4 h-4 mr-1" />
+                        <span className="flex items-center justify-center bg-yellow-50 py-1 px-3 rounded-full w-fit mx-auto">
+                          <CheckCircle className="w-3 h-3 mr-1" />
                           Получено
                         </span>
                       ) : (
-                        <span className="flex items-center justify-center">
-                          <Lock className="w-4 h-4 mr-1" />
+                        <span className="flex items-center justify-center bg-gray-100 py-1 px-3 rounded-full w-fit mx-auto">
+                          <Lock className="w-3 h-3 mr-1" />
                           Не получено
                         </span>
                       )}
@@ -285,12 +365,13 @@ const AchievementsSection: React.FC = () => {
               })}
             </div>
 
-            <div className="text-center mt-8">
+            {/* Кнопка обновления */}
+            <div className="text-center mt-12">
               <button
                 onClick={refetchAchievements}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium py-2 px-6 rounded-lg transition flex items-center mx-auto"
+                className="bg-black hover:bg-gray-900 text-yellow-400 font-medium py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg flex items-center mx-auto group"
               >
-                <RefreshCw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-4 h-4 mr-2 group-hover:rotate-180 transition-transform duration-500" />
                 Обновить достижения
               </button>
             </div>
