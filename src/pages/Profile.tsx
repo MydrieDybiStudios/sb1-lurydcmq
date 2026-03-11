@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import * as LucideIcons from "lucide-react";
-import { Camera } from "lucide-react";
+import { Camera, Award, BookOpen, Calendar, TrendingUp, Sparkles } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
-import coursesData from "../data/coursesData"; // <-- импорт данных курсов
+import coursesData from "../data/coursesData";
 
 // ---------- Типы ----------
 interface ProfileData {
@@ -44,11 +44,14 @@ const Toast: React.FC<{
 
   return (
     <div
-      className={`fixed top-5 right-5 min-w-[220px] px-4 py-2 rounded-lg shadow-lg text-white font-medium transition-transform transform ${
-        type === "success" ? "bg-green-500" : "bg-red-500"
+      className={`fixed top-5 right-5 min-w-[220px] px-4 py-3 rounded-lg shadow-2xl text-white font-medium z-50 animate-slideInRight ${
+        type === "success" ? "bg-gradient-to-r from-green-500 to-emerald-600" : "bg-gradient-to-r from-red-500 to-pink-600"
       }`}
     >
-      {message}
+      <div className="flex items-center gap-2">
+        {type === "success" ? <Sparkles className="w-5 h-5" /> : <LucideIcons.AlertCircle className="w-5 h-5" />}
+        {message}
+      </div>
     </div>
   );
 };
@@ -65,11 +68,9 @@ const Profile: React.FC = () => {
   const [toastType, setToastType] = useState<"success" | "error">("success");
 
   const navigate = useNavigate();
-
-  // Создаём словарь для быстрого получения названия курса по ID
   const courseTitleMap = new Map(coursesData.map(c => [c.id, c.title]));
 
-  // ---------- Загрузка профиля, достижений и прогресса ----------
+  // ---------- Загрузка данных ----------
   useEffect(() => {
     const fetchProfileData = async () => {
       const {
@@ -105,7 +106,7 @@ const Profile: React.FC = () => {
           .select();
       } else setProfile(profileData as ProfileData);
 
-      // Прогресс по курсам
+      // Прогресс
       const { data: progressData } = await supabase
         .from("progress")
         .select("*")
@@ -222,7 +223,15 @@ const Profile: React.FC = () => {
 
   const handleBackToMenu = () => navigate("/");
 
-  if (loading) return <div className="p-8 text-center">Загрузка...</div>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+      <div className="text-center">
+        <div className="w-20 h-20 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-white text-lg">Загружаем ваш профиль...</p>
+      </div>
+    </div>
+  );
+  
   if (!profile) return null;
 
   const classOptions =
@@ -231,206 +240,229 @@ const Profile: React.FC = () => {
       : Array.from({ length: 4 }, (_, i) => i + 8);
 
   return (
-    <div className="max-w-3xl mx-auto mt-10 p-8 bg-gradient-to-br from-white to-yellow-50 rounded-3xl shadow-2xl border border-yellow-200 relative">
-      {toastMessage && (
-        <Toast
-          message={toastMessage}
-          type={toastType}
-          onClose={() => setToastMessage(null)}
-        />
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black py-10 px-4">
+      <div className="max-w-3xl mx-auto">
+        {toastMessage && (
+          <Toast
+            message={toastMessage}
+            type={toastType}
+            onClose={() => setToastMessage(null)}
+          />
+        )}
 
-      <div className="flex flex-col items-center gap-6">
-        {/* ---------- Аватар с камерой ---------- */}
-        <div className="relative group">
-          {avatarLoading ? (
-            <div className="w-28 h-28 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
-              <svg
-                className="w-6 h-6 text-gray-400 animate-spin"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  strokeWidth="4"
-                  strokeDasharray="31.4"
-                  strokeLinecap="round"
-                />
-              </svg>
+        {/* Основная карточка профиля */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 overflow-hidden">
+          {/* Верхний градиентный акцент */}
+          <div className="h-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"></div>
+          
+          <div className="p-8">
+            {/* Аватар и имя */}
+            <div className="flex flex-col items-center mb-8">
+              <div className="relative mb-4">
+                {avatarLoading ? (
+                  <div className="w-32 h-32 rounded-full bg-gray-700 animate-pulse flex items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : (
+                  <>
+                    <img
+                      src={profile.avatar_url || "https://via.placeholder.com/150"}
+                      alt="Avatar"
+                      className="w-32 h-32 rounded-full object-cover ring-4 ring-yellow-400/50 ring-offset-2 ring-offset-gray-900 shadow-2xl"
+                    />
+                    <label className="absolute bottom-0 right-0 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-full p-3 cursor-pointer shadow-lg transform hover:scale-110 transition-all duration-200">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarUpload}
+                      />
+                      <Camera className="w-5 h-5" />
+                    </label>
+                  </>
+                )}
+              </div>
+              
+              <h1 className="text-3xl font-bold text-white mb-1">
+                {profile.first_name} {profile.last_name}
+              </h1>
+              <p className="text-yellow-400 font-medium flex items-center gap-1">
+                <Sparkles className="w-4 h-4" />
+                {profile.class_num} класс
+              </p>
             </div>
-          ) : (
-            <img
-              src={profile.avatar_url || "https://via.placeholder.com/100"}
-              alt="Avatar"
-              className="w-28 h-28 rounded-full object-cover shadow-lg border-4 border-yellow-400 group-hover:scale-105 transition-transform duration-300"
-            />
-          )}
-          <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer transition transform hover:scale-110 shadow-md">
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleAvatarUpload}
-            />
-            <Camera className="w-5 h-5" />
-          </label>
-        </div>
 
-        <h1 className="text-2xl font-bold text-gray-800">
-          {profile.first_name} {profile.last_name}
-        </h1>
-
-        {/* ---------- Поля ---------- */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            placeholder="Имя"
-            value={profile.first_name}
-            onChange={(e) =>
-              setProfile((p) => p && { ...p, first_name: e.target.value })
-            }
-            className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent shadow-sm"
-          />
-          <input
-            type="text"
-            placeholder="Фамилия"
-            value={profile.last_name}
-            onChange={(e) =>
-              setProfile((p) => p && { ...p, last_name: e.target.value })
-            }
-            className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent shadow-sm"
-          />
-        </div>
-
-        {/* ---------- Переключатель классов ---------- */}
-        <div className="flex items-center gap-4 w-full justify-between">
-          <span className="font-medium text-gray-700">1–8</span>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              className="sr-only peer"
-              checked={profile.class_range === "8-11"}
-              onChange={() =>
-                setProfile((p) =>
-                  p && {
-                    ...p,
-                    class_range: p.class_range === "1-8" ? "8-11" : "1-8",
-                    class_num: p.class_range === "1-8" ? 8 : 1,
+            {/* Поля ввода */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Имя</label>
+                <input
+                  type="text"
+                  value={profile.first_name}
+                  onChange={(e) =>
+                    setProfile((p) => p && { ...p, first_name: e.target.value })
                   }
-                )
-              }
-            />
-            <div className="w-14 h-7 bg-gray-200 rounded-full peer peer-checked:bg-yellow-500 transition-colors"></div>
-            <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full shadow transition-transform peer-checked:translate-x-7"></div>
-          </label>
-          <span className="font-medium text-gray-700">8–11</span>
-        </div>
+                  className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+                  placeholder="Имя"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">Фамилия</label>
+                <input
+                  type="text"
+                  value={profile.last_name}
+                  onChange={(e) =>
+                    setProfile((p) => p && { ...p, last_name: e.target.value })
+                  }
+                  className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+                  placeholder="Фамилия"
+                />
+              </div>
+            </div>
 
-        <select
-          value={profile.class_num}
-          onChange={(e) =>
-            setProfile((p) => p && { ...p, class_num: Number(e.target.value) })
-          }
-          className="w-full border p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent shadow-sm"
-        >
-          {classOptions.map((num) => (
-            <option key={num} value={num}>
-              {num} класс
-            </option>
-          ))}
-        </select>
+            {/* Переключатель классов */}
+            <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
+              <p className="text-sm font-medium text-gray-300 mb-3">Диапазон классов</p>
+              <div className="flex items-center justify-between">
+                <span className={`text-sm ${profile.class_range === "1-8" ? "text-yellow-400 font-bold" : "text-gray-400"}`}>1–8</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={profile.class_range === "8-11"}
+                    onChange={() =>
+                      setProfile((p) =>
+                        p && {
+                          ...p,
+                          class_range: p.class_range === "1-8" ? "8-11" : "1-8",
+                          class_num: p.class_range === "1-8" ? 8 : 1,
+                        }
+                      )
+                    }
+                  />
+                  <div className="w-14 h-7 bg-gray-700 rounded-full peer peer-checked:bg-gradient-to-r peer-checked:from-yellow-500 peer-checked:to-yellow-600 transition-all"></div>
+                  <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full shadow transition-transform peer-checked:translate-x-7"></div>
+                </label>
+                <span className={`text-sm ${profile.class_range === "8-11" ? "text-yellow-400 font-bold" : "text-gray-400"}`}>8–11</span>
+              </div>
+            </div>
 
-        {/* ---------- Кнопки ---------- */}
-        <div className="flex gap-4 w-full">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold py-3 rounded-lg transition-all disabled:opacity-50 shadow-lg hover:shadow-xl"
-          >
-            {saving ? "Сохранение..." : "Сохранить"}
-          </button>
-          <button
-            onClick={handleBackToMenu}
-            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 rounded-lg transition-all shadow hover:shadow-md"
-          >
-            Главное меню
-          </button>
-        </div>
+            {/* Выбор класса */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-300 mb-1">Класс</label>
+              <select
+                value={profile.class_num}
+                onChange={(e) =>
+                  setProfile((p) => p && { ...p, class_num: Number(e.target.value) })
+                }
+                className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+              >
+                {classOptions.map((num) => (
+                  <option key={num} value={num} className="bg-gray-800">
+                    {num} класс
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {/* ---------- Прогресс ---------- */}
-        <div className="w-full mt-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-yellow-200 shadow-xl">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            📘 Прогресс по курсам
-          </h2>
-          {progress.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center">Пока нет данных 😅</p>
-          ) : (
-            <div className="space-y-3">
-              {progress.map((p) => (
-                <div
-                  key={p.course_id}
-                  className="flex justify-between bg-white border rounded-xl p-4 shadow-md hover:shadow-lg transition"
-                >
-                  <div>
-                    {/* Заменяем course_id на название курса */}
-                    <p className="font-semibold">
-                      {courseTitleMap.get(+p.course_id) || `Курс ${p.course_id}`}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Баллы: {p.score}/{p.total}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-yellow-600">{p.percentage}%</p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(p.updated_at).toLocaleDateString()}
-                    </p>
-                  </div>
+            {/* Кнопки */}
+            <div className="flex gap-4 mb-8">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-yellow-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? "Сохранение..." : "Сохранить изменения"}
+              </button>
+              <button
+                onClick={handleBackToMenu}
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-4 rounded-xl border border-white/20 hover:border-white/30 transition-all duration-200"
+              >
+                Главное меню
+              </button>
+            </div>
+
+            {/* Прогресс */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <BookOpen className="text-yellow-400" />
+                Прогресс по курсам
+              </h2>
+              {progress.length === 0 ? (
+                <div className="bg-white/5 rounded-xl p-8 text-center border border-white/10">
+                  <TrendingUp className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+                  <p className="text-gray-400">Пока нет данных о прогрессе</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* ---------- Достижения ---------- */}
-        <div className="w-full mt-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-yellow-200 shadow-xl">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            🏆 Мои достижения
-          </h2>
-
-          {achievements.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center">Пока нет достижений 😅</p>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {achievements.map((a, index) => {
-                const IconComponent =
-                  (LucideIcons as any)[a.icon] || LucideIcons.Award;
-                return (
-                  <div
-                    key={a.id}
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                    className="relative flex flex-col items-center bg-gradient-to-br from-white to-yellow-50 p-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105 animate-fade-in-up border border-yellow-100"
-                  >
-                    <div className="bg-yellow-100 p-2 rounded-full mb-2">
-                      <IconComponent className="w-8 h-8 text-yellow-600" />
+              ) : (
+                <div className="space-y-3">
+                  {progress.map((p) => (
+                    <div
+                      key={p.course_id}
+                      className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-yellow-400/30 transition-all duration-200 group"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-white group-hover:text-yellow-400 transition">
+                          {courseTitleMap.get(+p.course_id) || `Курс ${p.course_id}`}
+                        </h3>
+                        <span className="text-sm text-yellow-400 font-bold">{p.percentage}%</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-400 mb-2">
+                        <span>Баллы: {p.score}/{p.total}</span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(p.updated_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full transition-all duration-500"
+                          style={{ width: `${p.percentage}%` }}
+                        ></div>
+                      </div>
                     </div>
-                    <p className="text-sm font-bold text-gray-800 text-center">
-                      {a.title}
-                    </p>
-                    <p className="text-xs text-gray-600 text-center">
-                      {a.description}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      {new Date(a.earned_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Достижения */}
+            <div>
+              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Award className="text-yellow-400" />
+                Достижения
+              </h2>
+              {achievements.length === 0 ? (
+                <div className="bg-white/5 rounded-xl p-8 text-center border border-white/10">
+                  <Award className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+                  <p className="text-gray-400">Пока нет достижений</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {achievements.map((a, index) => {
+                    const IconComponent = (LucideIcons as any)[a.icon] || LucideIcons.Award;
+                    return (
+                      <div
+                        key={a.id}
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                        className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 border border-white/10 hover:border-yellow-400/30 transition-all duration-200 group animate-fadeIn"
+                      >
+                        <div className="flex flex-col items-center text-center">
+                          <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                            <IconComponent className="w-6 h-6 text-yellow-400" />
+                          </div>
+                          <p className="font-semibold text-white text-sm mb-1">{a.title}</p>
+                          <p className="text-xs text-gray-400">{a.description}</p>
+                          <p className="text-[10px] text-yellow-400/70 mt-2">
+                            {new Date(a.earned_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
