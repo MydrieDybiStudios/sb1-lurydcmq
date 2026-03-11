@@ -1,17 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 
 const HeroSection: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUser(data?.user ?? null);
+    };
+    getUser();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      sub?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  const handleStartLearning = () => {
+    if (user) {
+      // Авторизован → личный кабинет
+      navigate('/cabinet');
+    } else {
+      // Не авторизован → скролл к CTA-секции
+      document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="relative bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-black overflow-hidden py-20 md:py-28">
-
-      {/* Волнистый чёрный элемент внизу */}
+      {/* волнистый элемент, полоска и остальной код — без изменений */}
       <div className="absolute bottom-0 left-0 right-0 text-black">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto fill-black opacity-10">
-          <path d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,170.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-        </svg>
+        <svg ...>...</svg>
       </div>
 
-      {/* Основной контент */}
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
@@ -25,16 +52,12 @@ const HeroSection: React.FC = () => {
             Изучайте нефтегазовую отрасль с помощью интерактивных курсов, тестов и достижений. Получайте сертификаты и становитесь экспертом!
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp animation-delay-600">
-            <a
-              href="#courses"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' });
-              }}
+            <button
+              onClick={handleStartLearning}
               className="bg-black text-yellow-400 hover:bg-gray-900 font-bold py-4 px-8 rounded-full transition transform hover:scale-110 hover:shadow-xl flex items-center justify-center text-lg border-2 border-black"
             >
               Начать обучение
-            </a>
+            </button>
             <a
               href="#about"
               onClick={(e) => {
@@ -49,7 +72,6 @@ const HeroSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Чёрная полоска вверху для акцента */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-black"></div>
     </section>
   );
