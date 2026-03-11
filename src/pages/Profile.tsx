@@ -224,10 +224,10 @@ const Profile: React.FC = () => {
   const handleBackToMenu = () => navigate("/");
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
       <div className="text-center">
-        <div className="w-20 h-20 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-white text-lg">Загружаем ваш профиль...</p>
+        <div className="w-20 h-20 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-700 text-lg">Загружаем ваш профиль...</p>
       </div>
     </div>
   );
@@ -240,7 +240,7 @@ const Profile: React.FC = () => {
       : Array.from({ length: 4 }, (_, i) => i + 8);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black py-10 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-yellow-50 py-10 px-4">
       <div className="max-w-3xl mx-auto">
         {toastMessage && (
           <Toast
@@ -251,7 +251,7 @@ const Profile: React.FC = () => {
         )}
 
         {/* Основная карточка профиля */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 overflow-hidden">
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-yellow-100 overflow-hidden">
           {/* Верхний градиентный акцент */}
           <div className="h-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"></div>
           
@@ -260,15 +260,15 @@ const Profile: React.FC = () => {
             <div className="flex flex-col items-center mb-8">
               <div className="relative mb-4">
                 {avatarLoading ? (
-                  <div className="w-32 h-32 rounded-full bg-gray-700 animate-pulse flex items-center justify-center">
-                    <div className="w-12 h-12 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-32 h-32 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 ) : (
                   <>
                     <img
                       src={profile.avatar_url || "https://via.placeholder.com/150"}
                       alt="Avatar"
-                      className="w-32 h-32 rounded-full object-cover ring-4 ring-yellow-400/50 ring-offset-2 ring-offset-gray-900 shadow-2xl"
+                      className="w-32 h-32 rounded-full object-cover ring-4 ring-yellow-300 ring-offset-2 ring-offset-white shadow-xl"
                     />
                     <label className="absolute bottom-0 right-0 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-full p-3 cursor-pointer shadow-lg transform hover:scale-110 transition-all duration-200">
                       <input
@@ -283,10 +283,10 @@ const Profile: React.FC = () => {
                 )}
               </div>
               
-              <h1 className="text-3xl font-bold text-white mb-1">
+              <h1 className="text-3xl font-bold text-gray-800 mb-1">
                 {profile.first_name} {profile.last_name}
               </h1>
-              <p className="text-yellow-400 font-medium flex items-center gap-1">
+              <p className="text-yellow-600 font-medium flex items-center gap-1">
                 <Sparkles className="w-4 h-4" />
                 {profile.class_num} класс
               </p>
@@ -295,36 +295,36 @@ const Profile: React.FC = () => {
             {/* Поля ввода */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Имя</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Имя</label>
                 <input
                   type="text"
                   value={profile.first_name}
                   onChange={(e) =>
                     setProfile((p) => p && { ...p, first_name: e.target.value })
                   }
-                  className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition"
                   placeholder="Имя"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Фамилия</label>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Фамилия</label>
                 <input
                   type="text"
                   value={profile.last_name}
                   onChange={(e) =>
                     setProfile((p) => p && { ...p, last_name: e.target.value })
                   }
-                  className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition"
                   placeholder="Фамилия"
                 />
               </div>
             </div>
 
             {/* Переключатель классов */}
-            <div className="mb-6 p-4 bg-white/5 rounded-xl border border-white/10">
-              <p className="text-sm font-medium text-gray-300 mb-3">Диапазон классов</p>
+            <div className="mb-6 p-4 bg-yellow-50/50 rounded-xl border border-yellow-100">
+              <p className="text-sm font-medium text-gray-700 mb-3">Диапазон классов</p>
               <div className="flex items-center justify-between">
-                <span className={`text-sm ${profile.class_range === "1-8" ? "text-yellow-400 font-bold" : "text-gray-400"}`}>1–8</span>
+                <span className={`text-sm ${profile.class_range === "1-8" ? "text-yellow-600 font-bold" : "text-gray-400"}`}>1–8</span>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
@@ -340,25 +340,25 @@ const Profile: React.FC = () => {
                       )
                     }
                   />
-                  <div className="w-14 h-7 bg-gray-700 rounded-full peer peer-checked:bg-gradient-to-r peer-checked:from-yellow-500 peer-checked:to-yellow-600 transition-all"></div>
+                  <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-gradient-to-r peer-checked:from-yellow-500 peer-checked:to-yellow-600 transition-all"></div>
                   <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full shadow transition-transform peer-checked:translate-x-7"></div>
                 </label>
-                <span className={`text-sm ${profile.class_range === "8-11" ? "text-yellow-400 font-bold" : "text-gray-400"}`}>8–11</span>
+                <span className={`text-sm ${profile.class_range === "8-11" ? "text-yellow-600 font-bold" : "text-gray-400"}`}>8–11</span>
               </div>
             </div>
 
             {/* Выбор класса */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-1">Класс</label>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Класс</label>
               <select
                 value={profile.class_num}
                 onChange={(e) =>
                   setProfile((p) => p && { ...p, class_num: Number(e.target.value) })
                 }
-                className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition"
               >
                 {classOptions.map((num) => (
-                  <option key={num} value={num} className="bg-gray-800">
+                  <option key={num} value={num} className="bg-white">
                     {num} класс
                   </option>
                 ))}
@@ -370,13 +370,13 @@ const Profile: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-yellow-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-yellow-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? "Сохранение..." : "Сохранить изменения"}
               </button>
               <button
                 onClick={handleBackToMenu}
-                className="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-4 rounded-xl border border-white/20 hover:border-white/30 transition-all duration-200"
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-200"
               >
                 Главное меню
               </button>
@@ -384,38 +384,38 @@ const Profile: React.FC = () => {
 
             {/* Прогресс */}
             <div className="mb-8">
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <BookOpen className="text-yellow-400" />
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <BookOpen className="text-yellow-600" />
                 Прогресс по курсам
               </h2>
               {progress.length === 0 ? (
-                <div className="bg-white/5 rounded-xl p-8 text-center border border-white/10">
-                  <TrendingUp className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-                  <p className="text-gray-400">Пока нет данных о прогрессе</p>
+                <div className="bg-yellow-50/50 rounded-xl p-8 text-center border border-yellow-100">
+                  <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">Пока нет данных о прогрессе</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {progress.map((p) => (
                     <div
                       key={p.course_id}
-                      className="bg-white/5 rounded-xl p-4 border border-white/10 hover:border-yellow-400/30 transition-all duration-200 group"
+                      className="bg-white rounded-xl p-4 border border-gray-200 hover:border-yellow-400 transition-all duration-200 group shadow-sm"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-semibold text-white group-hover:text-yellow-400 transition">
+                        <h3 className="font-semibold text-gray-800 group-hover:text-yellow-600 transition">
                           {courseTitleMap.get(+p.course_id) || `Курс ${p.course_id}`}
                         </h3>
-                        <span className="text-sm text-yellow-400 font-bold">{p.percentage}%</span>
+                        <span className="text-sm text-yellow-600 font-bold">{p.percentage}%</span>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-400 mb-2">
+                      <div className="flex justify-between text-sm text-gray-500 mb-2">
                         <span>Баллы: {p.score}/{p.total}</span>
                         <span className="flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
                           {new Date(p.updated_at).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full transition-all duration-500"
+                          className="h-full bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full transition-all duration-500"
                           style={{ width: `${p.percentage}%` }}
                         ></div>
                       </div>
@@ -427,14 +427,14 @@ const Profile: React.FC = () => {
 
             {/* Достижения */}
             <div>
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Award className="text-yellow-400" />
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Award className="text-yellow-600" />
                 Достижения
               </h2>
               {achievements.length === 0 ? (
-                <div className="bg-white/5 rounded-xl p-8 text-center border border-white/10">
-                  <Award className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-                  <p className="text-gray-400">Пока нет достижений</p>
+                <div className="bg-yellow-50/50 rounded-xl p-8 text-center border border-yellow-100">
+                  <Award className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">Пока нет достижений</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -444,15 +444,15 @@ const Profile: React.FC = () => {
                       <div
                         key={a.id}
                         style={{ animationDelay: `${index * 0.1}s` }}
-                        className="bg-gradient-to-br from-white/10 to-white/5 rounded-xl p-4 border border-white/10 hover:border-yellow-400/30 transition-all duration-200 group animate-fadeIn"
+                        className="bg-gradient-to-br from-yellow-50 to-white rounded-xl p-4 border border-yellow-200 hover:border-yellow-400 transition-all duration-200 group animate-fadeIn shadow-sm"
                       >
                         <div className="flex flex-col items-center text-center">
-                          <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center mb-3 group-hover:scale-110 transition">
-                            <IconComponent className="w-6 h-6 text-yellow-400" />
+                          <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                            <IconComponent className="w-6 h-6 text-yellow-600" />
                           </div>
-                          <p className="font-semibold text-white text-sm mb-1">{a.title}</p>
-                          <p className="text-xs text-gray-400">{a.description}</p>
-                          <p className="text-[10px] text-yellow-400/70 mt-2">
+                          <p className="font-semibold text-gray-800 text-sm mb-1">{a.title}</p>
+                          <p className="text-xs text-gray-600">{a.description}</p>
+                          <p className="text-[10px] text-yellow-600/70 mt-2">
                             {new Date(a.earned_at).toLocaleDateString()}
                           </p>
                         </div>
