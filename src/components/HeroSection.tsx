@@ -16,7 +16,8 @@ const HeroSection: React.FC = () => {
           <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight">
             <span className="inline-block animate-fadeInUp">Цифровая образовательная платформа</span>
             <br />
-            <span className="bg-black text-yellow-400 px-4 py-2 rounded-lg inline-block mt-2 shadow-2xl animate-fadeInUp animation-delay-200">
+            {/* Увеличен фон надписи: px-4 заменён на px-8 */}
+            <span className="bg-black text-yellow-400 px-8 py-2 rounded-lg inline-block mt-2 shadow-2xl animate-fadeInUp animation-delay-200">
               «Югра.Нефть»
             </span>
           </h1>
@@ -24,14 +25,14 @@ const HeroSection: React.FC = () => {
             Изучайте нефтегазовую отрасль с помощью интерактивных курсов, тестов и достижений. Получайте сертификаты и становитесь экспертом!
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp animation-delay-600">
-            {/* Кнопка "Узнать больше" — единственная */}
+            {/* Кнопка изменена: теперь всегда чёрная с жёлтым текстом */}
             <a
               href="#about"
               onClick={(e) => {
                 e.preventDefault();
                 document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="border-2 border-black bg-transparent hover:bg-black hover:text-yellow-400 font-bold py-4 px-8 rounded-full transition transform hover:scale-110 hover:shadow-xl flex items-center justify-center text-lg"
+              className="bg-black text-yellow-400 hover:bg-gray-900 font-bold py-4 px-8 rounded-full transition transform hover:scale-110 hover:shadow-xl flex items-center justify-center text-lg border-2 border-black"
             >
               Узнать больше
             </a>
