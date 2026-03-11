@@ -26,7 +26,14 @@ const HeroSection: React.FC = () => {
     if (user) {
       navigate('/cabinet');
     } else {
-      document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' });
+      const ctaElement = document.getElementById('cta');
+      if (ctaElement) {
+        ctaElement.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        console.warn('Элемент с id "cta" не найден на странице. Убедитесь, что компонент CtaSection отрендерен и содержит id="cta".');
+        // Можно добавить запасной вариант, например, переход на страницу регистрации:
+        // navigate('/register');
+      }
     }
   };
 
