@@ -1,42 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient';
+import React from 'react';
 
 const HeroSection: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data?.user ?? null);
-    };
-    getUser();
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => {
-      sub?.subscription?.unsubscribe();
-    };
-  }, []);
-
-  const handleStartLearning = () => {
-    if (user) {
-      navigate('/cabinet');
-    } else {
-      const ctaElement = document.getElementById('cta');
-      if (ctaElement) {
-        ctaElement.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        console.warn('Элемент с id "cta" не найден на странице. Убедитесь, что компонент CtaSection отрендерен и содержит id="cta".');
-        // Можно добавить запасной вариант, например, переход на страницу регистрации:
-        // navigate('/register');
-      }
-    }
-  };
-
   return (
     <section className="relative bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-black overflow-hidden py-20 md:py-28">
       {/* Волнистый чёрный элемент внизу */}
@@ -60,12 +24,7 @@ const HeroSection: React.FC = () => {
             Изучайте нефтегазовую отрасль с помощью интерактивных курсов, тестов и достижений. Получайте сертификаты и становитесь экспертом!
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 animate-fadeInUp animation-delay-600">
-            <button
-              onClick={handleStartLearning}
-              className="bg-black text-yellow-400 hover:bg-gray-900 font-bold py-4 px-8 rounded-full transition transform hover:scale-110 hover:shadow-xl flex items-center justify-center text-lg border-2 border-black"
-            >
-              Начать обучение
-            </button>
+            {/* Кнопка "Узнать больше" — единственная */}
             <a
               href="#about"
               onClick={(e) => {
