@@ -264,85 +264,102 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
         </div>
       </div>
 
-      {/* Мобильное меню */}
-      <div className={`lg:hidden transition-all duration-300 overflow-hidden ${isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'}`}>
-        <div className="bg-gray-900/95 backdrop-blur-sm border-t border-gray-700">
-          <div className="container mx-auto px-4 py-4">
-            <nav className="flex flex-col space-y-2">
-              {[
-                { label: "О проекте", action: () => scrollToSection('about') },
-                { label: "Как работает", action: () => scrollToSection('how-it-works') },
-                { label: "Партнёры", action: () => scrollToSection('partners') },
-                { label: "Отзывы", action: () => navigate("/reviews") },
-                { label: "Вузы и ЕГЭ", action: () => navigate("/universities") },
-                { label: "Тест профессии", action: () => navigate("/career-test") },
-              ].map((item, idx) => (
+      {/* Мобильное меню с затемнённым фоном */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden fixed inset-0 z-50">
+          {/* Затемнение фона */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={closeMobileMenu}
+          />
+          
+          {/* Панель меню */}
+          <div className="absolute top-0 left-0 w-full bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 shadow-2xl animate-slideDown">
+            <div className="container mx-auto px-4 py-6">
+              <div className="flex justify-end mb-4">
                 <button
-                  key={idx}
-                  onClick={() => { item.action(); closeMobileMenu(); }}
-                  className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
+                  onClick={closeMobileMenu}
+                  className="p-2 rounded-lg hover:bg-white/10 transition-colors"
                 >
-                  {item.label}
+                  <X className="w-6 h-6 text-white" />
                 </button>
-              ))}
-              {user && (
-                <>
+              </div>
+              <nav className="flex flex-col space-y-3">
+                {[
+                  { label: "О проекте", action: () => scrollToSection('about') },
+                  { label: "Как работает", action: () => scrollToSection('how-it-works') },
+                  { label: "Партнёры", action: () => scrollToSection('partners') },
+                  { label: "Отзывы", action: () => navigate("/reviews") },
+                  { label: "Вузы и ЕГЭ", action: () => navigate("/universities") },
+                  { label: "Тест профессии", action: () => navigate("/career-test") },
+                ].map((item, idx) => (
                   <button
-                    onClick={() => { navigate("/cabinet"); closeMobileMenu(); }}
+                    key={idx}
+                    onClick={() => { item.action(); closeMobileMenu(); }}
                     className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
                   >
-                    Мои курсы
+                    {item.label}
                   </button>
-                  <button
-                    onClick={() => { navigate("/ar-module"); closeMobileMenu(); }}
-                    className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
-                  >
-                    AR-модуль
-                  </button>
-                  <button
-                    onClick={() => { navigate("/vr-module"); closeMobileMenu(); }}
-                    className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
-                  >
-                    VR-модуль
-                  </button>
-                  <button
-                    onClick={() => { navigate("/profile"); closeMobileMenu(); }}
-                    className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
-                  >
-                    Мой профиль
-                  </button>
-                </>
-              )}
-              {!user ? (
-                <div className="flex flex-col space-y-2 pt-4 border-t border-gray-700">
-                  <button
-                    onClick={() => { onLogin(); closeMobileMenu(); }}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-3 px-4 rounded-lg transition text-lg"
-                  >
-                    Войти
-                  </button>
-                  <button
-                    onClick={() => { onRegister(); closeMobileMenu(); }}
-                    className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-3 px-4 rounded-lg transition text-lg"
-                  >
-                    Регистрация
-                  </button>
-                </div>
-              ) : (
-                <div className="pt-4 border-t border-gray-700">
-                  <button
-                    onClick={() => { handleLogout(); closeMobileMenu(); }}
-                    className="w-full flex items-center justify-center space-x-2 border border-red-500 hover:bg-red-500 hover:text-white text-red-400 font-medium py-3 px-4 rounded-lg transition text-lg"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    <span>Выйти</span>
-                  </button>
-                </div>
-              )}
-            </nav>
+                ))}
+                {user && (
+                  <>
+                    <button
+                      onClick={() => { navigate("/cabinet"); closeMobileMenu(); }}
+                      className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
+                    >
+                      Мои курсы
+                    </button>
+                    <button
+                      onClick={() => { navigate("/ar-module"); closeMobileMenu(); }}
+                      className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
+                    >
+                      AR-модуль
+                    </button>
+                    <button
+                      onClick={() => { navigate("/vr-module"); closeMobileMenu(); }}
+                      className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
+                    >
+                      VR-модуль
+                    </button>
+                    <button
+                      onClick={() => { navigate("/profile"); closeMobileMenu(); }}
+                      className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
+                    >
+                      Мой профиль
+                    </button>
+                  </>
+                )}
+                {!user ? (
+                  <div className="flex flex-col space-y-2 pt-4 border-t border-gray-700">
+                    <button
+                      onClick={() => { onLogin(); closeMobileMenu(); }}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-3 px-4 rounded-lg transition text-lg"
+                    >
+                      Войти
+                    </button>
+                    <button
+                      onClick={() => { onRegister(); closeMobileMenu(); }}
+                      className="border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-3 px-4 rounded-lg transition text-lg"
+                    >
+                      Регистрация
+                    </button>
+                  </div>
+                ) : (
+                  <div className="pt-4 border-t border-gray-700">
+                    <button
+                      onClick={() => { handleLogout(); closeMobileMenu(); }}
+                      className="w-full flex items-center justify-center space-x-2 border border-red-500 hover:bg-red-500 hover:text-white text-red-400 font-medium py-3 px-4 rounded-lg transition text-lg"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>Выйти</span>
+                    </button>
+                  </div>
+                )}
+              </nav>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Горизонтальная навигация для планшетов (оставляем для удобства) */}
       <nav className="lg:hidden bg-gray-800/50 backdrop-blur-sm border-t border-gray-700 overflow-x-auto">
@@ -381,10 +398,16 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
         </div>
       </nav>
 
-      {/* Модальное окно быстрой навигации для ПК */}
+      {/* Модальное окно быстрой навигации для ПК (уменьшена прозрачность, добавлен клик по фону) */}
       {isQuickNavOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center animate-fadeIn">
-          <div className="bg-white/10 backdrop-blur-2xl rounded-3xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-white/20">
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center animate-fadeIn"
+          onClick={closeQuickNav}
+        >
+          <div 
+            className="bg-white/10 backdrop-blur-2xl rounded-3xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-white/20"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex justify-between items-center mb-8">
               <h3 className="text-2xl font-bold text-white">Быстрая навигация</h3>
               <button 
