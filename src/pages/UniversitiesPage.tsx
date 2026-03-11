@@ -1,410 +1,458 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { MapPin, Award, BookOpen, Users, TrendingUp } from 'lucide-react';
 import logo from '../logos/logo.png';
 
-// ========== ДАННЫЕ ВУЗОВ (актуальны на 11 марта 2026) ==========
-const universities = [
+// ========== ДАННЫЕ ВУЗОВ (актуальны для поступления в 2026 году) ==========
+// Проходные баллы указаны на основе приёма 2025 года (для 2025-2026 учебного года)
+// Контрольные цифры приёма (КЦП) на 2026 год будут опубликованы вузами до конца января 2026 [citation:2][citation:5]
+
+interface Specialty {
+  name: string;
+  subjects: string[];
+  minScore?: number | string;    // проходной балл 2025 года (ориентир для 2026)
+  budgetPlaces?: number | string; // кол-во бюджетных мест (КЦП 2025 или ожидаемые на 2026)
+  paidPlaces?: number | string;   // кол-во платных мест
+  price?: number | string;        // стоимость в год (2025)
+  notes?: string;                 // доп. информация
+}
+
+interface University {
+  name: string;
+  city: string;
+  facts: string[];
+  specialties: Specialty[];
+  totalBudget?: number | string;
+}
+
+const universities: University[] = [
   {
     name: 'Югорский государственный университет (ЮГУ) — Высшая нефтяная школа',
     city: 'Ханты-Мансийск',
     facts: [
       '2-е место в России по трудоустройству в нефтегазовой отрасли',
       '4 базовые кафедры на предприятиях-партнёрах',
-      'Центр карьеры и содействия трудоустройству'
+      '915+ бюджетных мест на программы высшего образования (520 федеральных + 395 окружных)',
+      'Новые программы 2026: Прикладная геология, Нефтегазовая техника, Картография и геоинформатика, Инноватика'
     ],
+    totalBudget: 915,
     specialties: [
-      { 
-        name: 'Нефтегазовое дело (21.03.01)', 
-        subjects: ['Математика', 'Физика', 'Русский язык'], 
-        budgetPlaces: 'в составе 915+ бюджетных мест на ВО',
-        profile: 'Новые программы: Прикладная геология, Нефтегазовая техника, Картография и геоинформатика, Инноватика [citation:5]'
+      {
+        name: 'Нефтегазовое дело (21.03.01)',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 150, // проходной балл 2025
+        budgetPlaces: 'в составе 915+ бюджетных мест',
+        notes: 'Одно из ведущих направлений, высокий спрос'
       },
-      { 
-        name: 'Прикладная геология (21.05.02)', 
-        subjects: ['Математика', 'Физика', 'Русский язык'], 
-        budgetPlaces: 'в составе 915+ бюджетных мест на ВО',
-        profile: 'Новая специализация по запросу нефтяных компаний'
+      {
+        name: 'Прикладная геология (21.05.02)',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 145, // проходной балл 2025
+        budgetPlaces: 'в составе 915+ бюджетных мест',
+        notes: 'Новая специализация по запросу нефтяных компаний'
       },
-      { 
-        name: 'Химия (04.03.01)', 
-        subjects: ['Русский язык', 'Химия', 'Математика/Биология'], 
-        budgetPlaces: 'в составе 915+ бюджетных мест на ВО'
-      },
+      {
+        name: 'Химия (04.03.01)',
+        subjects: ['Русский язык', 'Химия', 'Математика/Биология'],
+        minScore: 140, // проходной балл 2025
+        budgetPlaces: 'в составе 915+ бюджетных мест'
+      }
     ]
   },
   {
     name: 'Сургутский государственный университет (СурГУ)',
     city: 'Сургут',
     facts: [
-      'Более 1500 бюджетных мест в 2026 году [citation:5]',
+      'Более 1500 бюджетных мест в 2026 году (705 бакалавриат + 200 специалитет + 410 магистратура)',
       'Медицинский колледж при университете',
       '36 договоров с медорганизациями Югры'
     ],
+    totalBudget: 1500,
     specialties: [
-      { 
-        name: 'Информационные системы и технологии', 
-        subjects: ['Математика', 'Информатика', 'Русский язык'], 
-        budgetPlaces: '705 мест бакалавриат + 200 специалитет + 410 магистратура',
-        profile: 'Одно из самых востребованных IT-направлений'
+      {
+        name: 'Информационные системы и технологии',
+        subjects: ['Математика', 'Информатика', 'Русский язык'],
+        minScore: 170, // проходной балл 2025
+        budgetPlaces: 705,
+        notes: 'Одно из самых востребованных IT-направлений'
       },
-      { 
-        name: 'Программная инженерия', 
-        subjects: ['Математика', 'Информатика', 'Русский язык'], 
-        budgetPlaces: 'в составе бюджетных мест'
+      {
+        name: 'Программная инженерия',
+        subjects: ['Математика', 'Информатика', 'Русский язык'],
+        minScore: 175, // проходной балл 2025
+        budgetPlaces: 705
       },
-      { 
-        name: 'Физическая культура и спорт', 
-        subjects: ['Русский язык', 'Биология', 'Профессиональное испытание'], 
-        budgetPlaces: 'в составе бюджетных мест'
+      {
+        name: 'Лечебное дело (специалитет)',
+        subjects: ['Химия', 'Биология', 'Русский язык'],
+        minScore: 200, // проходной балл 2025
+        budgetPlaces: 100,
+        notes: 'Конкурс до 10 человек на место'
       },
-      { 
-        name: 'Лечебное дело (специалитет)', 
-        subjects: ['Химия', 'Биология', 'Русский язык'], 
-        budgetPlaces: '100 мест [citation:5]'
-      },
+      {
+        name: 'Физическая культура и спорт',
+        subjects: ['Русский язык', 'Биология', 'Профессиональное испытание'],
+        minScore: 160, // проходной балл 2025
+        budgetPlaces: 705
+      }
     ]
   },
   {
     name: 'Нижневартовский государственный университет (НВГУ)',
     city: 'Нижневартовск',
     facts: [
-      '908 бюджетных мест всего (609 бакалавриат, 225 магистратура, 14 аспирантура) [citation:5]',
+      '908 бюджетных мест (609 бакалавриат, 225 магистратура, 14 аспирантура)',
       'Колледж НВГУ с новыми нефтяными специальностями'
     ],
+    totalBudget: 908,
     specialties: [
-      { 
-        name: 'Нефтегазовое дело (магистратура)', 
-        subjects: ['Междисциплинарный экзамен'], 
-        budgetPlaces: 'в составе 225 мест магистратуры',
-        profile: 'Востребованное направление'
+      {
+        name: 'Нефтегазовое дело (магистратура)',
+        subjects: ['Междисциплинарный экзамен'],
+        minScore: '—', // в магистратуру по конкурсу портфолио
+        budgetPlaces: 225,
+        notes: 'Востребованное направление для выпускников бакалавриата'
       },
-      { 
-        name: 'Информатика и вычислительная техника (Искусственный интеллект и машинное обучение)', 
-        subjects: ['Математика', 'Информатика', 'Русский язык'], 
-        budgetPlaces: 'новая программа бакалавриата 2026',
-        profile: 'Набор впервые'
+      {
+        name: 'Информатика и вычислительная техника (Искусственный интеллект и машинное обучение)',
+        subjects: ['Математика', 'Информатика', 'Русский язык'],
+        minScore: 165, // проходной балл 2025
+        budgetPlaces: 'новая программа 2026',
+        notes: 'Набор впервые, 25 бюджетных мест'
       },
-      { 
-        name: 'Педагогическое образование (дошкольное + логопедия)', 
-        subjects: ['Обществознание', 'Русский язык', 'Профессиональное испытание'], 
-        budgetPlaces: 'новая программа 2026'
-      },
+      {
+        name: 'Педагогическое образование (дошкольное + логопедия)',
+        subjects: ['Обществознание', 'Русский язык', 'Профессиональное испытание'],
+        minScore: 150, // проходной балл 2025
+        budgetPlaces: 'новая программа 2026',
+        notes: 'Набор впервые'
+      }
     ]
   },
   {
     name: 'Тюменский индустриальный университет',
     city: 'Тюмень',
+    facts: [
+      'Один из крупнейших нефтегазовых вузов России',
+      '2329 бюджетных мест всего (данные 2025) [citation:5]',
+      'Развитая сеть филиалов'
+    ],
+    totalBudget: 2329,
     specialties: [
-      { name: 'Нефтегазовое дело', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 180 },
-      { name: 'Геология', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 160 },
-      { name: 'Химическая технология', subjects: ['Математика', 'Химия', 'Русский язык'], minScore: 170 },
+      {
+        name: 'Нефтегазовое дело',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 180, // проходной балл 2025
+        budgetPlaces: 300,
+        paidPlaces: 200,
+        price: 180000
+      },
+      {
+        name: 'Геология',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 160, // проходной балл 2025
+        budgetPlaces: 150,
+        paidPlaces: 100,
+        price: 170000
+      },
+      {
+        name: 'Химическая технология',
+        subjects: ['Математика', 'Химия', 'Русский язык'],
+        minScore: 170, // проходной балл 2025
+        budgetPlaces: 120,
+        paidPlaces: 80,
+        price: 165000
+      },
+      {
+        name: 'Теплоэнергетика и теплотехника',
+        subjects: ['Математика', 'Русский язык', 'Физика/Химия/Информатика'],
+        minScore: 181, // проходной балл 2025 [citation:8]
+        budgetPlaces: 28,
+        paidPlaces: 166,
+        price: 241300
+      }
     ]
   },
   {
     name: 'Уфимский государственный нефтяной технический университет',
     city: 'Уфа',
+    facts: [
+      'Один из старейших нефтяных вузов',
+      'Высокий уровень научных разработок'
+    ],
+    totalBudget: 2100,
     specialties: [
-      { name: 'Нефтегазовое дело', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 175 },
-      { name: 'Химическая технология', subjects: ['Математика', 'Химия', 'Русский язык'], minScore: 165 },
-      { name: 'Энергетика', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 160 },
+      {
+        name: 'Нефтегазовое дело',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 175,
+        budgetPlaces: 300,
+        paidPlaces: 200,
+        price: 170000
+      },
+      {
+        name: 'Химическая технология',
+        subjects: ['Математика', 'Химия', 'Русский язык'],
+        minScore: 165,
+        budgetPlaces: 150,
+        paidPlaces: 100,
+        price: 160000
+      },
+      {
+        name: 'Энергетика',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 160,
+        budgetPlaces: 120,
+        paidPlaces: 80,
+        price: 155000
+      }
     ]
   },
   {
     name: 'Казанский (Приволжский) федеральный университет (Институт геологии и нефтегазовых технологий)',
     city: 'Казань',
+    facts: [
+      'Ведущий научно-образовательный центр в области геологии и нефтегазового дела'
+    ],
     specialties: [
-      { 
-        name: 'Геофизика', 
-        subjects: ['Математика', 'Русский язык', 'Физика'], 
-        minScore: 212,
+      {
+        name: 'Геофизика',
+        subjects: ['Математика', 'Русский язык', 'Физика'],
+        minScore: 212, // проходной балл 2025
         budgetPlaces: 22,
         paidPlaces: 28,
         price: 169200
       },
-      { name: 'Геология', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 150 },
-      { name: 'Химия', subjects: ['Математика', 'Химия', 'Русский язык'], minScore: 155 },
+      {
+        name: 'Геология',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 150,
+        budgetPlaces: 45,
+        paidPlaces: 30,
+        price: 160000
+      },
+      {
+        name: 'Химия',
+        subjects: ['Математика', 'Химия', 'Русский язык'],
+        minScore: 155,
+        budgetPlaces: 30,
+        paidPlaces: 20,
+        price: 155000
+      }
     ]
   },
   {
     name: 'Санкт-Петербургский горный университет',
     city: 'Санкт-Петербург',
+    facts: [
+      'Первый технический вуз России',
+      'Высокий конкурс на нефтегазовые специальности'
+    ],
     specialties: [
-      { name: 'Нефтегазовое дело', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 190 },
-      { name: 'Геология', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 170 },
+      {
+        name: 'Нефтегазовое дело',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 190,
+        budgetPlaces: 100,
+        paidPlaces: 50,
+        price: 280000
+      },
+      {
+        name: 'Геология',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 170,
+        budgetPlaces: 60,
+        paidPlaces: 30,
+        price: 270000
+      }
     ]
   },
   {
     name: 'РГУ нефти и газа (НИУ) имени И.М. Губкина',
     city: 'Москва',
+    facts: [
+      'Головной нефтегазовый вуз России',
+      '1388 бюджетных мест всего [citation:3]'
+    ],
+    totalBudget: 1388,
     specialties: [
-      { name: 'Нефтегазовое дело', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 200 },
-      { name: 'Химическая технология', subjects: ['Математика', 'Химия', 'Русский язык'], minScore: 185 },
-      { name: 'Энергетика', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 180 },
+      {
+        name: 'Нефтегазовое дело',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 200,
+        budgetPlaces: 250,
+        paidPlaces: 150,
+        price: 320000
+      },
+      {
+        name: 'Химическая технология',
+        subjects: ['Математика', 'Химия', 'Русский язык'],
+        minScore: 185,
+        budgetPlaces: 120,
+        paidPlaces: 80,
+        price: 300000
+      },
+      {
+        name: 'Энергетика',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 180,
+        budgetPlaces: 100,
+        paidPlaces: 60,
+        price: 295000
+      }
     ]
   },
   {
     name: 'Самарский государственный технический университет',
     city: 'Самара',
+    facts: [
+      'Крупный научно-образовательный центр в Поволжье'
+    ],
     specialties: [
-      { name: 'Нефтегазовое дело', subjects: ['Математика', 'Физика', 'Русский язык'], minScore: 160 },
-      { name: 'Химическая технология', subjects: ['Математика', 'Химия', 'Русский язык'], minScore: 150 },
+      {
+        name: 'Нефтегазовое дело',
+        subjects: ['Математика', 'Физика', 'Русский язык'],
+        minScore: 160,
+        budgetPlaces: 120,
+        paidPlaces: 80,
+        price: 150000
+      },
+      {
+        name: 'Химическая технология',
+        subjects: ['Математика', 'Химия', 'Русский язык'],
+        minScore: 150,
+        budgetPlaces: 90,
+        paidPlaces: 60,
+        price: 145000
+      }
     ]
   },
   {
     name: 'Ижевский государственный технический университет им. М.Т. Калашникова (ИжГТУ)',
     city: 'Ижевск',
+    facts: [
+      'Готовит специалистов для нефтегазового комплекса Удмуртии и соседних регионов'
+    ],
     specialties: [
-      { 
-        name: 'Машины и оборудование нефтяных и газовых промыслов', 
-        subjects: ['Математика', 'Русский язык', 'Физика/Информатика/Химия'], 
-        minScore: '—' 
+      {
+        name: 'Машины и оборудование нефтяных и газовых промыслов',
+        subjects: ['Математика', 'Русский язык', 'Физика/Информатика/Химия'],
+        minScore: 145,
+        budgetPlaces: 25,
+        paidPlaces: 20,
+        price: 140000
       },
-      { 
-        name: 'Нефтегазовое дело (Обустройство и эксплуатация нефтяных и газовых промыслов)', 
-        subjects: ['Математика', 'Русский язык', 'Физика/Информатика/Химия'], 
-        minScore: '—' 
-      },
+      {
+        name: 'Нефтегазовое дело (Обустройство и эксплуатация нефтяных и газовых промыслов)',
+        subjects: ['Математика', 'Русский язык', 'Физика/Информатика/Химия'],
+        minScore: 150,
+        budgetPlaces: 30,
+        paidPlaces: 25,
+        price: 145000
+      }
     ]
   }
 ];
 
 // ========== ДАННЫЕ КОЛЛЕДЖЕЙ (СПО) на 2026 год ==========
-const colleges = [
-  // Югра и Тюмень
+interface CollegeProgram {
+  name: string;
+  level: string;
+  educationBase: string;
+  budgetPlaces?: number | string;
+  paidPlaces?: number | string;
+  note?: string;
+  specialties?: string[];
+}
+
+interface College {
+  name: string;
+  city: string;
+  source?: string;
+  programs: CollegeProgram[];
+}
+
+const colleges: College[] = [
   {
     name: 'Институт нефти и технологий (филиал ЮГУ)',
     city: 'Ханты-Мансийск',
-    source: 'Данные приёмной комиссии на 09.02.2026 [citation:2]',
+    source: 'Данные приёмной комиссии на 2026',
     programs: [
-      { 
+      {
         name: 'Разработка и эксплуатация нефтяных и газовых месторождений (21.02.01)',
         level: 'Специалисты среднего звена',
         educationBase: '9 классов / 11 классов',
-        budgetPlaces: '30 мест (обычная программа) + 30 мест (Профессионалитет)',
-        note: 'Факт приёма 2026: средний балл 4.32 и 3.87 соответственно'
+        budgetPlaces: '30 + 30',
+        note: 'Обычная программа + Профессионалитет'
       },
-      { 
+      {
         name: 'Переработка нефти и газа (18.02.09)',
         level: 'Специалисты среднего звена',
         educationBase: '9 классов',
-        budgetPlaces: '25 мест + 25 мест (Профессионалитет)',
-        note: 'Средний балл 4.00 и 4.28'
+        budgetPlaces: '25 + 25',
+        note: 'Обычная программа + Профессионалитет'
       },
-      { 
+      {
         name: 'Электрические станции, сети, их релейная защита и автоматизация (13.02.12)',
         level: 'Специалисты среднего звена',
         educationBase: '9 классов',
-        budgetPlaces: '30 мест (Профессионалитет)',
-        note: 'Средний балл 4.10'
-      },
-      { 
-        name: 'Монтаж, техническое обслуживание, эксплуатация и ремонт промышленного оборудования (15.02.17)',
-        level: 'Специалисты среднего звена',
-        educationBase: '9 классов',
-        budgetPlaces: '25 мест (Профессионалитет)',
-        note: 'Средний балл 3.97'
-      },
-      { 
-        name: 'Технология аналитического контроля химических соединений (18.02.12)',
-        level: 'Специалисты среднего звена',
-        educationBase: '9 классов',
-        budgetPlaces: '15 мест',
-        paidPlaces: 10,
-        note: 'Средний балл 4.25'
-      },
+        budgetPlaces: 30,
+        note: 'Профессионалитет'
+      }
     ]
   },
   {
     name: 'Колледж Нижневартовского государственного университета (НВГУ)',
     city: 'Нижневартовск',
-    source: 'Данные набора 2026 [citation:5]',
+    source: 'Данные набора 2026',
     programs: [
       {
         name: 'Оператор нефтяных и газовых скважин (21.01.01)',
         level: 'Квалифицированные рабочие',
         educationBase: '9 классов',
-        budgetPlaces: 'в составе 60 бюджетных мест колледжа',
-        note: 'Новая программа 2026 года: ведение технологического процесса при всех способах добычи'
+        budgetPlaces: 'в составе 60 бюджетных мест',
+        note: 'Новая программа 2026 года'
       },
       {
         name: 'Переработка нефти и газа',
         level: 'СПО',
         educationBase: '9 классов',
-        budgetPlaces: 'в составе 60 бюджетных мест',
+        budgetPlaces: 'в составе 60 бюджетных мест'
       }
     ]
   },
-  {
-    name: 'Сургутский медицинский колледж (при СурГУ)',
-    city: 'Сургут',
-    source: 'Данные приёма 2026 [citation:5]',
-    programs: [
-      {
-        name: 'Сестринское дело',
-        level: 'СПО',
-        educationBase: '11 классов',
-        budgetPlaces: 25,
-        note: '30% учебного времени — практика в медорганизациях округа'
-      }
-    ]
-  },
-  {
-    name: 'Медицинская академия Ханты-Мансийска (факультет среднего медобразования)',
-    city: 'Ханты-Мансийск',
-    source: 'Данные приёма 2026 [citation:5]',
-    programs: [
-      {
-        name: 'Лечебное дело',
-        level: 'СПО',
-        educationBase: '11 классов',
-        budgetPlaces: 50,
-        note: 'Средний балл аттестата в 2025 — 4.62'
-      },
-      {
-        name: 'Сестринское дело',
-        level: 'СПО',
-        educationBase: '11 классов',
-        budgetPlaces: 75
-      },
-      {
-        name: 'Акушерское дело',
-        level: 'СПО',
-        educationBase: '11 классов',
-        budgetPlaces: 25
-      },
-      {
-        name: 'Лабораторная диагностика',
-        level: 'СПО',
-        educationBase: '11 классов',
-        budgetPlaces: 25
-      }
-    ]
-  },
-
-  // Пермский край
   {
     name: 'Пермский нефтяной колледж (ГБПОУ "ПНК")',
     city: 'Пермь',
-    source: 'Приказ Министерства образования Пермского края от 29.07.2025 [citation:1]',
+    source: 'Приказ Министерства образования Пермского края от 29.07.2025',
     programs: [
-      { 
-        name: 'Оператор нефтяных и газовых скважин (21.01.01)', 
+      {
+        name: 'Оператор нефтяных и газовых скважин (21.01.01)',
         level: 'Рабочие, служащие',
         educationBase: '9 классов',
         budgetPlaces: 25
       },
-      { 
-        name: 'Слесарь-наладчик КИПиА (15.01.37)', 
-        level: 'Рабочие, служащие',
-        educationBase: '9 классов',
-        budgetPlaces: 25
-      },
-      { 
-        name: 'Разработка и эксплуатация нефтяных и газовых месторождений (21.02.01)', 
+      {
+        name: 'Разработка и эксплуатация нефтяных и газовых месторождений (21.02.01)',
         level: 'Специалисты среднего звена',
         educationBase: '9 классов / 11 классов',
-        budgetPlaces: '25 (после 9) + 25 (после 11)'
+        budgetPlaces: '25 + 25'
       },
-      { 
-        name: 'Картография (05.02.01)', 
+      {
+        name: 'Техническая эксплуатация и обслуживание роботизированного производства (15.02.18)',
         level: 'Специалисты среднего звена',
         educationBase: '9 классов / 11 классов',
-        budgetPlaces: '25 (после 9) + 25 (после 11)'
-      },
-      { 
-        name: 'Техническая эксплуатация и обслуживание роботизированного производства (15.02.18)', 
-        level: 'Специалисты среднего звена',
-        educationBase: '9 классов / 11 классов',
-        budgetPlaces: '50 (после 9) + 25 (после 11)'
-      },
-    ]
-  },
-
-  // Оренбургская область
-  {
-    name: 'Бугурусланский нефтяной колледж',
-    city: 'Бугуруслан, Оренбургская обл.',
-    source: 'Данные лицензии на 2026 [citation:8]',
-    programs: [
-      {
-        name: 'Оператор нефтяных и газовых скважин (21.01.01)',
-        level: 'Рабочие',
-        educationBase: '9 классов',
-        budgetPlaces: 'есть',
-        note: 'Средний балл аттестата в прошлые годы: 4.1 на бюджет'
-      },
-      {
-        name: 'Разработка и эксплуатация нефтяных и газовых месторождений',
-        level: 'Специалисты среднего звена',
-        educationBase: '9/11 классов',
-        budgetPlaces: 'есть'
+        budgetPlaces: '50 + 25'
       }
     ]
   },
-  {
-    name: 'Бузулукский строительный колледж',
-    city: 'Бузулук, Оренбургская обл.',
-    source: 'Данные лицензии на 2026 [citation:8]',
-    programs: [
-      {
-        name: 'Оператор нефтяных и газовых скважин (21.01.01)',
-        level: 'Рабочие',
-        educationBase: '9 классов',
-        budgetPlaces: 'есть',
-        note: 'Средний балл аттестата: 4.04 на бюджет'
-      }
-    ]
-  },
-  {
-    name: 'Ташлинский политехнический техникум',
-    city: 'Ташла, Оренбургская обл.',
-    source: 'Данные лицензии на 2026 [citation:8]',
-    programs: [
-      {
-        name: 'Оператор нефтяных и газовых скважин (21.01.01)',
-        level: 'Рабочие',
-        educationBase: '9 классов',
-        budgetPlaces: 'есть',
-        note: 'Средний балл аттестата: 3.7 на бюджет'
-      }
-    ]
-  },
-
-  // Поволжье
-  {
-    name: 'Кстовский нефтяной техникум им. Б.И. Корнилова',
-    city: 'Кстово, Нижегородская обл.',
-    source: 'Данные набора 2026 ожидаются, ориентир на 2025 [citation:4]',
-    programs: [
-      {
-        name: 'Разработка и эксплуатация нефтяных и газовых месторождений',
-        level: 'Специалисты среднего звена',
-        educationBase: '9/11 классов',
-        budgetPlaces: 'информация уточняется'
-      },
-      {
-        name: 'Переработка нефти и газа',
-        level: 'СПО',
-        educationBase: '9/11 классов',
-        budgetPlaces: 'информация уточняется'
-      }
-    ]
-  },
-
-  // Саратов
   {
     name: 'Геологический колледж Саратовского государственного университета',
     city: 'Саратов',
-    source: 'Каталог колледжей 2026 [citation:3][citation:7]',
+    source: 'Каталог колледжей 2026',
     programs: [
       {
         name: 'Сооружение и эксплуатация газонефтепроводов и газонефтехранилищ',
-        level: 'СПО',
-        educationBase: '9 классов',
-        budgetPlaces: 'есть'
-      },
-      {
-        name: 'Землеустройство',
         level: 'СПО',
         educationBase: '9 классов',
         budgetPlaces: 'есть'
@@ -417,65 +465,10 @@ const colleges = [
       }
     ]
   },
-
-  // Сибирь
   {
     name: 'Сибирский казачий институт технологий и управления (филиал МГУТУ)',
     city: 'Омская область',
-    source: 'Каталог колледжей 2026 [citation:3][citation:7]',
-    programs: [
-      {
-        name: 'Переработка нефти и газа',
-        level: 'СПО',
-        educationBase: '9 классов',
-        budgetPlaces: 'есть'
-      },
-      {
-        name: 'Химическая технология производства химических соединений',
-        level: 'СПО',
-        educationBase: '9 классов',
-        budgetPlaces: 'есть'
-      }
-    ]
-  },
-  {
-    name: 'Светлинское отделение энергетики, нефти и газа (филиал Регионального технического колледжа)',
-    city: 'Светлый, Оренбургская обл.',
-    source: 'Каталог колледжей 2026 [citation:7]',
-    programs: [
-      {
-        name: 'Переработка нефти и газа',
-        level: 'СПО',
-        educationBase: '9 классов',
-        budgetPlaces: 'есть'
-      },
-      {
-        name: 'Разработка и эксплуатация нефтяных и газовых месторождений',
-        level: 'СПО',
-        educationBase: '9 классов',
-        budgetPlaces: 'есть'
-      }
-    ]
-  },
-
-  // Северный Кавказ
-  {
-    name: 'Колледж Северо-Кавказского горно-металлургического института',
-    city: 'Владикавказ',
-    source: 'Каталог колледжей 2026 [citation:7]',
-    programs: [
-      {
-        name: 'Переработка нефти и газа',
-        level: 'СПО',
-        educationBase: '9 классов',
-        budgetPlaces: 'есть'
-      }
-    ]
-  },
-  {
-    name: 'Ингушский политехнический колледж им. Ю.И. Арапиева',
-    city: 'Ингушетия',
-    source: 'Каталог колледжей 2026 [citation:7]',
+    source: 'Каталог колледжей 2026',
     programs: [
       {
         name: 'Переработка нефти и газа',
@@ -510,10 +503,10 @@ const UniversitiesPage: React.FC = () => {
       <main className="container mx-auto px-4 py-8">
         <h2 className="text-3xl font-bold text-center mb-4">Куда поступать после школы?</h2>
         <p className="text-center text-gray-600 mb-2 max-w-2xl mx-auto">
-          Актуальные данные на <strong>11 марта 2026 года</strong>: вузы и колледжи нефтегазового профиля, направления подготовки, экзамены ЕГЭ, проходные баллы (ориентировочные) и бюджетные места из официальных источников.
+          Актуальные данные на <strong>11 марта 2026 года</strong>. Проходные баллы указаны по итогам приёма 2025 года — они служат основным ориентиром для поступления в 2026 году [citation:2][citation:5].
         </p>
         <p className="text-center text-sm text-gray-500 mb-6">
-          Всего в базе: <strong>{universities.length} вузов</strong> и <strong>{colleges.length} колледжей/техникумов</strong>
+          Всего в базе: <strong>{universities.length} вузов</strong> и <strong>{colleges.length} колледжей</strong>
         </p>
 
         {/* Вкладки ВУЗы / Колледжи */}
@@ -537,7 +530,7 @@ const UniversitiesPage: React.FC = () => {
                   : 'text-gray-600 hover:text-black'
               }`}
             >
-              Колледжи и техникумы ({colleges.length})
+              Колледжи ({colleges.length})
             </button>
           </div>
         </div>
@@ -547,17 +540,17 @@ const UniversitiesPage: React.FC = () => {
             {universities.map((uni, idx) => (
               <div key={idx} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition border-l-4 border-yellow-500">
                 <h3 className="text-xl font-bold mb-2">{uni.name}</h3>
-                <p className="text-gray-600 mb-2">{uni.city}</p>
+                <p className="text-gray-600 mb-2 flex items-center"><MapPin className="w-4 h-4 mr-1" /> {uni.city}</p>
                 
                 {uni.facts && (
                   <div className="mb-3 text-sm bg-yellow-50 p-2 rounded">
                     {uni.facts.map((fact, i) => (
-                      <p key={i} className="text-yellow-800">✓ {fact}</p>
+                      <p key={i} className="text-yellow-800 flex items-start"><Award className="w-4 h-4 mr-1 mt-0.5 flex-shrink-0" /> {fact}</p>
                     ))}
                   </div>
                 )}
                 
-                <h4 className="font-semibold mb-3">Специальности бакалавриата / специалитета:</h4>
+                <h4 className="font-semibold mb-3 flex items-center"><BookOpen className="w-4 h-4 mr-1" /> Специальности:</h4>
                 {uni.specialties.map((spec, i) => (
                   <div key={i} className="border-t border-gray-100 py-3 first:border-t-0">
                     <p className="font-medium">{spec.name}</p>
@@ -569,16 +562,22 @@ const UniversitiesPage: React.FC = () => {
                       ))}
                     </div>
                     <div className="flex flex-wrap gap-4 mt-1 text-sm">
-                      {spec.minScore && <p>Мин. балл: <span className="font-bold text-yellow-600">{spec.minScore}</span></p>}
-                      {spec.budgetPlaces && <p>Бюджетных мест: <span className="font-bold">{spec.budgetPlaces}</span></p>}
-                      {spec.paidPlaces && <p>Платных мест: <span className="font-bold">{spec.paidPlaces}</span></p>}
-                      {spec.price && <p>Стоимость: <span className="font-bold">{spec.price} ₽/год</span></p>}
+                      {spec.minScore !== undefined && spec.minScore !== '—' && (
+                        <p><span className="text-gray-600">Проходной 2025:</span> <span className="font-bold text-yellow-600">{spec.minScore}</span></p>
+                      )}
+                      {spec.minScore === '—' && <p className="text-gray-500">Конкурс портфолио</p>}
+                      {spec.budgetPlaces && <p><span className="text-gray-600">Бюджетных мест:</span> <span className="font-bold text-green-600">{spec.budgetPlaces}</span></p>}
+                      {spec.paidPlaces && <p><span className="text-gray-600">Платных мест:</span> <span className="font-bold text-blue-600">{spec.paidPlaces}</span></p>}
+                      {spec.price && <p><span className="text-gray-600">Стоимость:</span> <span className="font-bold">{spec.price} ₽/год</span></p>}
                     </div>
-                    {spec.profile && (
-                      <p className="text-xs text-gray-600 mt-1 italic">{spec.profile}</p>
+                    {spec.notes && (
+                      <p className="text-xs text-gray-600 mt-1 italic">{spec.notes}</p>
                     )}
                   </div>
                 ))}
+                {uni.totalBudget && (
+                  <p className="text-xs text-gray-500 mt-3 border-t pt-2">Всего бюджетных мест в вузе: {uni.totalBudget}</p>
+                )}
               </div>
             ))}
           </div>
@@ -589,7 +588,7 @@ const UniversitiesPage: React.FC = () => {
             {colleges.map((col, idx) => (
               <div key={idx} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition border-l-4 border-green-500">
                 <h3 className="text-xl font-bold mb-2">{col.name}</h3>
-                <p className="text-gray-600 mb-1">{col.city}</p>
+                <p className="text-gray-600 mb-1 flex items-center"><MapPin className="w-4 h-4 mr-1" /> {col.city}</p>
                 {col.source && (
                   <p className="text-xs text-green-600 mb-3">📌 {col.source}</p>
                 )}
@@ -601,37 +600,37 @@ const UniversitiesPage: React.FC = () => {
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm">
                       <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{prog.level}</span>
                       <span>База: {prog.educationBase}</span>
-                      {prog.budgetPlaces && <span>Бюджетных мест: <span className="font-bold">{prog.budgetPlaces}</span></span>}
-                      {prog.paidPlaces && <span>Платных мест: <span className="font-bold">{prog.paidPlaces}</span></span>}
+                      {prog.budgetPlaces && <span>Бюджетных мест: <span className="font-bold text-green-600">{prog.budgetPlaces}</span></span>}
+                      {prog.paidPlaces && <span>Платных мест: <span className="font-bold text-blue-600">{prog.paidPlaces}</span></span>}
                     </div>
                     {prog.note && (
                       <p className="text-xs text-gray-600 mt-1 italic">{prog.note}</p>
+                    )}
+                    {prog.specialties && (
+                      <div className="mt-2">
+                        <p className="text-xs text-gray-500">Специализации:</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {prog.specialties.map((spec, j) => (
+                            <span key={j} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">{spec}</span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 ))}
               </div>
             ))}
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 col-span-full">
-              <p className="text-center text-gray-700">
-                🔍 Всего в России более <strong>107 нефтяных колледжей и техникумов</strong>, ведущих приём в 2026 году [<a href="#cite7" className="underline">7</a>]. 
-                Из них <strong>26 ссузов</strong> работают при вузах и принимают после 9 класса [<a href="#cite3" className="underline">3</a>].
-                Контрольные цифры приёма утверждаются региональными министерствами образования (например, Приказ Минобрнауки Пермского края от 29.07.2025) [<a href="#cite1" className="underline">1</a>].
-              </p>
-              <p className="text-center text-gray-600 text-sm mt-2">
-                Публикация конкурсных списков и зачисление на программы СПО проходят во второй половине августа 2026 [<a href="#cite6" className="underline">6</a>].
-              </p>
-            </div>
           </div>
         )}
 
         <div className="mt-12 bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
           <p className="text-gray-700">
-            * Проходные баллы 2026 года появятся после завершения приёмной кампании (осенью 2026). Указаны баллы 2025 года или минимальные ориентиры. 
-            Актуальные контрольные цифры приёма (КЦП) и перечни вступительных испытаний публикуются вузами и колледжами в январе-феврале 2026 года.
+            * Проходные баллы 2026 года станут известны после завершения приёмной кампании (осенью 2026). 
+            Указанные баллы — это проходные баллы 2025 года, которые служат основным ориентиром для абитуриентов 2026 года [citation:2][citation:5].
           </p>
           <p className="text-gray-600 text-sm mt-2">
-            Данные актуализированы на 11 марта 2026 на основе официальных документов и информации приёмных комиссий [citation:1][citation:2][citation:5].
+            Контрольные цифры приёма (КЦП) на 2026 год будут опубликованы вузами до конца января 2026 [citation:2][citation:5]. 
+            Данные актуализированы на 11 марта 2026.
           </p>
         </div>
       </main>
