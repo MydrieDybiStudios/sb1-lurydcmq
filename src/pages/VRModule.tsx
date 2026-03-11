@@ -125,6 +125,26 @@ const VRModule: React.FC = () => {
     }
   ];
 
+  // Пример заполненной статистики (для демонстрации)
+  const exampleStats = [
+    { label: "Общее время", value: "127 минут", icon: Clock, color: "from-blue-500 to-cyan-500" },
+    { label: "Средний балл", value: "87%", icon: Award, color: "from-green-500 to-emerald-500" },
+    { label: "Пройдено модулей", value: "3 из 7", icon: BarChart3, color: "from-purple-500 to-pink-500" },
+    { label: "Достижения", value: "7 из 15", icon: Star, color: "from-yellow-500 to-orange-500" },
+    { label: "Попыток", value: "12", icon: Users, color: "from-orange-500 to-red-500" },
+    { label: "Прогресс", value: "43%", icon: GraduationCap, color: "from-red-500 to-rose-500" }
+  ];
+
+  // Пустая статистика (текущая)
+  const emptyStats = [
+    { label: "Общее время", value: "0 минут", icon: Clock, color: "from-gray-500 to-gray-600" },
+    { label: "Средний балл", value: "0%", icon: Award, color: "from-gray-500 to-gray-600" },
+    { label: "Пройдено модулей", value: "0 из 7", icon: BarChart3, color: "from-gray-500 to-gray-600" },
+    { label: "Достижения", value: "0 из 15", icon: Star, color: "from-gray-500 to-gray-600" },
+    { label: "Попыток", value: "0", icon: Users, color: "from-gray-500 to-gray-600" },
+    { label: "Прогресс", value: "0%", icon: GraduationCap, color: "from-gray-500 to-gray-600" }
+  ];
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Начальный": return "bg-gradient-to-r from-green-500 to-emerald-600 text-white";
@@ -255,27 +275,41 @@ const VRModule: React.FC = () => {
             <div className="mb-12">
               <h3 className="text-2xl font-bold text-yellow-400 mb-6 text-center">Текущая статистика</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {[...Array(6)].map((_, index) => (
-                  <div key={index} className="group bg-gray-800 rounded-2xl p-6 text-center shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-700">
-                    <div className="w-16 h-16 bg-gradient-to-r from-gray-600 to-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                      {index === 0 && <Clock className="w-8 h-8 text-yellow-400" />}
-                      {index === 1 && <Award className="w-8 h-8 text-yellow-400" />}
-                      {index === 2 && <BarChart3 className="w-8 h-8 text-yellow-400" />}
-                      {index === 3 && <Star className="w-8 h-8 text-yellow-400" />}
-                      {index === 4 && <Users className="w-8 h-8 text-yellow-400" />}
-                      {index === 5 && <GraduationCap className="w-8 h-8 text-yellow-400" />}
+                {emptyStats.map((stat, index) => {
+                  const IconComponent = stat.icon;
+                  return (
+                    <div key={index} className="group bg-gray-800 rounded-2xl p-6 text-center shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-700">
+                      <div className={`w-16 h-16 bg-gradient-to-r ${stat.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                        <IconComponent className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="text-2xl font-bold text-white mb-2">{stat.value}</div>
+                      <div className="text-sm text-gray-400 font-medium uppercase tracking-wide">
+                        {stat.label}
+                      </div>
                     </div>
-                    <div className="text-2xl font-bold text-white mb-2">0</div>
-                    <div className="text-sm text-gray-400 font-medium uppercase tracking-wide">
-                      {index === 0 && "Общее время"}
-                      {index === 1 && "Средний балл"}
-                      {index === 2 && "Пройдено модулей"}
-                      {index === 3 && "Достижения"}
-                      {index === 4 && "Попыток"}
-                      {index === 5 && "Прогресс"}
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Example Stats */}
+            <div>
+              <h3 className="text-2xl font-bold text-yellow-400 mb-6 text-center">Пример статистики (будет доступно в будущем)</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {exampleStats.map((stat, index) => {
+                  const IconComponent = stat.icon;
+                  return (
+                    <div key={index} className="group bg-gray-800 rounded-2xl p-6 text-center shadow-xl hover:shadow-2xl transition-all duration-500 border border-yellow-500/30">
+                      <div className={`w-16 h-16 bg-gradient-to-r ${stat.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                        <IconComponent className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="text-2xl font-bold text-white mb-2">{stat.value}</div>
+                      <div className="text-sm text-gray-400 font-medium uppercase tracking-wide">
+                        {stat.label}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -292,7 +326,7 @@ const VRModule: React.FC = () => {
 
             {/* Горизонтальный скролл на мобильных, сетка на десктопе */}
             <div className="lg:grid lg:grid-cols-2 gap-8">
-              {/* На мобильных — flex с горизонтальным скроллом, карточки на всю ширину экрана с отступами */}
+              {/* На мобильных — flex с горизонтальным скроллом, карточки занимают почти всю ширину экрана */}
               <div 
                 ref={scrollContainerRef}
                 className="flex lg:grid lg:grid-cols-2 gap-6 overflow-x-auto pb-4 lg:overflow-visible lg:pb-0 scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-800"
