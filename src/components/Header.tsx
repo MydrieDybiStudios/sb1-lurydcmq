@@ -398,21 +398,25 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
         </div>
       </nav>
 
-      {/* Модальное окно быстрой навигации для ПК (уменьшена прозрачность, добавлен клик по фону) */}
+      {/* Модальное окно быстрой навигации для ПК (аналог мобильного – плотный фон, закрытие по клику вне) */}
       {isQuickNavOpen && (
         <div 
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center animate-fadeIn"
+          className="fixed inset-0 z-50 flex items-center justify-center"
           onClick={closeQuickNav}
         >
+          {/* Затемнение фона */}
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+          
+          {/* Панель меню */}
           <div 
-            className="bg-white/10 backdrop-blur-2xl rounded-3xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-white/20"
+            className="relative bg-gray-900 rounded-3xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-yellow-500/30"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-bold text-white">Быстрая навигация</h3>
+              <h3 className="text-2xl font-bold text-yellow-400">Быстрая навигация</h3>
               <button 
                 onClick={closeQuickNav}
-                className="text-white/80 hover:text-white p-2 rounded-full hover:bg-white/10 transition"
+                className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -425,10 +429,10 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
                   <button
                     key={index}
                     onClick={() => { item.action(); closeQuickNav(); }}
-                    className="flex flex-col items-center p-6 bg-white/10 rounded-2xl hover:bg-yellow-500/20 hover:scale-105 transition-all duration-300 border border-white/10 hover:border-yellow-400/30"
+                    className="flex flex-col items-center p-6 bg-gray-800 rounded-2xl hover:bg-yellow-500 hover:text-black transition-all duration-300 border border-gray-700 hover:border-yellow-400 group"
                   >
-                    <IconComponent className="w-8 h-8 text-yellow-400 mb-3" />
-                    <span className="text-sm font-medium text-white text-center">{item.label}</span>
+                    <IconComponent className="w-8 h-8 text-yellow-400 group-hover:text-black mb-3" />
+                    <span className="text-sm font-medium text-white group-hover:text-black text-center">{item.label}</span>
                   </button>
                 );
               })}
