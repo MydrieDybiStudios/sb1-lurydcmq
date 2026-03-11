@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Clock, Award, Star, Users, BarChart3, GraduationCap, Info, X, Video, Headphones, Zap, Shield, Download } from "lucide-react";
+import { Play, Clock, Award, Star, Users, BarChart3, GraduationCap, Info, X, Video, Headphones, Zap, Shield, Download, PlusCircle, MinusCircle } from "lucide-react";
 import Footer from "../components/Footer";
 
 // Импортируем фото для VR модулей
@@ -20,6 +20,7 @@ const VRModule: React.FC = () => {
   const [selectedModule, setSelectedModule] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState<{[key: string]: boolean}>({});
+  const [zoomLevel, setZoomLevel] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Все VR модули как самостоятельные элементы
@@ -146,11 +147,21 @@ const VRModule: React.FC = () => {
   const handleModuleDetails = (module: any) => {
     setSelectedModule(module);
     setIsModalOpen(true);
+    setZoomLevel(1);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedModule(null);
+    setZoomLevel(1);
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.5, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.5, 1));
   };
 
   const handleImageLoad = (id: number) => {
@@ -281,7 +292,7 @@ const VRModule: React.FC = () => {
 
             {/* Горизонтальный скролл на мобильных, сетка на десктопе */}
             <div className="lg:grid lg:grid-cols-2 gap-8">
-              {/* На мобильных — flex с горизонтальным скроллом, карточки не сужаются */}
+              {/* На мобильных — flex с горизонтальным скроллом, карточки на всю ширину экрана с отступами */}
               <div 
                 ref={scrollContainerRef}
                 className="flex lg:grid lg:grid-cols-2 gap-6 overflow-x-auto pb-4 lg:overflow-visible lg:pb-0 scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-800"
@@ -292,7 +303,7 @@ const VRModule: React.FC = () => {
                   return (
                     <div 
                       key={module.id}
-                      className="flex-shrink-0 w-full sm:w-[400px] lg:w-auto lg:flex-shrink-0 group bg-gray-800 rounded-3xl shadow-2xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-700 hover:border-yellow-500/30"
+                      className="flex-shrink-0 w-[calc(100vw-2rem)] sm:w-[400px] lg:w-auto lg:flex-shrink-0 group bg-gray-800 rounded-3xl shadow-2xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-700 hover:border-yellow-500/30"
                     >
                       <div className="relative overflow-hidden">
                         <div 
@@ -501,21 +512,22 @@ const VRModule: React.FC = () => {
         <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
           <div className="max-w-6xl max-h-[90vh] w-full animate-scaleIn">
             <div className="relative bg-gray-900 rounded-3xl overflow-hidden border border-yellow-500/20 shadow-2xl flex flex-col max-h-[90vh]">
+              {/* Кнопка закрытия справа вверху */}
               <button
                 onClick={closeModal}
-                className="absolute top-6 right-6 text-white hover:text-yellow-400 transition-colors z-20 bg-black/50 hover:bg-black/70 rounded-full p-3 backdrop-blur-sm border border-yellow-500/30"
+                className="absolute top-6 right-6 text-white hover:text-yellow-400 transition-colors z-30 bg-black/50 hover:bg-black/70 rounded-full p-3 backdrop-blur-sm border border-yellow-500/30"
               >
                 <X className="w-6 h-6" />
               </button>
               
-              {/* Тег VR модуль теперь слева от крестика, не перекрывает его */}
-              <div className="absolute top-6 left-6 z-20 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center space-x-1">
+              {/* Тег VR модуль слева вверху */}
+              <div className="absolute top-6 left-6 z-30 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center space-x-1">
                 <span>{getTypeIcon(selectedModule.type)}</span>
                 <span>VR Модуль</span>
               </div>
               
               <div className="p-8 overflow-y-auto flex-grow">
-                {/* Header */}
+                {/* Header (с отступом сверху, чтобы не наезжать на теги) */}
                 <div className="flex items-start justify-between mb-8 mt-12">
                   <div className="flex items-center space-x-4">
                     <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center shadow-lg">
@@ -530,13 +542,32 @@ const VRModule: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Image */}
+                {/* Image with zoom controls */}
                 <div className="relative rounded-2xl overflow-hidden mb-8 border border-yellow-500/20">
-                  <img
-                    src={selectedModule.image}
-                    alt={selectedModule.title}
-                    className="w-full h-64 object-cover"
-                  />
+                  <div className="absolute top-4 right-4 flex space-x-2 z-20">
+                    <button
+                      onClick={handleZoomIn}
+                      className="bg-yellow-500 hover:bg-yellow-400 text-black rounded-full p-2 shadow-lg transition-all duration-200"
+                      title="Увеличить"
+                    >
+                      <PlusCircle className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={handleZoomOut}
+                      className="bg-yellow-500 hover:bg-yellow-400 text-black rounded-full p-2 shadow-lg transition-all duration-200"
+                      title="Уменьшить"
+                    >
+                      <MinusCircle className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="flex justify-center bg-black p-4 overflow-auto max-h-80">
+                    <img
+                      src={selectedModule.image}
+                      alt={selectedModule.title}
+                      style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s' }}
+                      className="object-contain rounded-lg"
+                    />
+                  </div>
                   <div className="absolute bottom-4 left-4 bg-black/80 text-white px-3 py-1.5 rounded-full text-sm border border-yellow-500/30">
                     Модуль {selectedModule.id}
                   </div>
