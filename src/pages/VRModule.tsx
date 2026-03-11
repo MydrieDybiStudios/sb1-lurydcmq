@@ -325,149 +325,146 @@ const VRModule: React.FC = () => {
             </div>
 
             {/* Горизонтальный скролл на мобильных, сетка на десктопе */}
-            <div className="lg:grid lg:grid-cols-2 gap-8">
-              {/* На мобильных — flex с горизонтальным скроллом, карточки занимают почти всю ширину экрана */}
-              <div 
-                ref={scrollContainerRef}
-                className="flex lg:grid lg:grid-cols-2 gap-6 overflow-x-auto pb-4 lg:overflow-visible lg:pb-0 scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-800"
-                style={{ scrollbarWidth: 'thin' }}
-              >
-                {vrModules.map((module) => {
-                  const IconComponent = module.icon;
-                  return (
-                    <div 
-                      key={module.id}
-                      className="flex-shrink-0 w-[calc(100vw-2rem)] sm:w-[400px] lg:w-auto lg:flex-shrink-0 group bg-gray-800 rounded-3xl shadow-2xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-700 hover:border-yellow-500/30"
-                    >
-                      <div className="relative overflow-hidden">
-                        <div 
-                          className="aspect-video bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center cursor-pointer relative"
-                          onClick={() => handleModuleDetails(module)}
-                        >
-                          {!imageLoaded[module.id] && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
-                            </div>
-                          )}
-                          <img
-                            src={module.image}
-                            alt={module.title}
-                            className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
-                              imageLoaded[module.id] ? 'opacity-100' : 'opacity-0'
-                            }`}
-                            onLoad={() => handleImageLoad(module.id)}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500">
-                            <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                              <div className="flex items-center space-x-2 mb-2">
-                                <Info className="w-5 h-5 text-yellow-400" />
-                                <span className="text-sm font-medium">Нажмите для подробностей</span>
-                              </div>
-                            </div>
+            <div 
+              ref={scrollContainerRef}
+              className="flex lg:grid lg:grid-cols-2 gap-6 overflow-x-auto pb-4 lg:overflow-visible lg:pb-0 scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-800"
+              style={{ scrollbarWidth: 'thin' }}
+            >
+              {vrModules.map((module) => {
+                const IconComponent = module.icon;
+                return (
+                  <div 
+                    key={module.id}
+                    className="flex-shrink-0 w-[calc(100vw-2rem)] sm:w-[400px] lg:w-full group bg-gray-800 rounded-3xl shadow-2xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-700 hover:border-yellow-500/30"
+                  >
+                    <div className="relative overflow-hidden">
+                      <div 
+                        className="aspect-video bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center cursor-pointer relative"
+                        onClick={() => handleModuleDetails(module)}
+                      >
+                        {!imageLoaded[module.id] && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
                           </div>
-                          
-                          {/* Badges */}
-                          <div className="absolute top-4 left-4 bg-black/80 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm border border-yellow-500/30">
-                            Модуль {module.id}
-                          </div>
-                          <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-3 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center space-x-1">
-                            <span>{getTypeIcon(module.type)}</span>
-                            <span>VR</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center shadow-lg">
-                              <IconComponent className="w-6 h-6 text-black" />
-                            </div>
-                            <div>
-                              <h3 className="text-2xl font-bold text-white group-hover:text-yellow-400 transition-colors">
-                                {module.title}
-                              </h3>
-                              <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getDifficultyColor(module.difficulty)}`}>
-                                {module.difficulty}
-                              </span>
+                        )}
+                        <img
+                          src={module.image}
+                          alt={module.title}
+                          className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
+                            imageLoaded[module.id] ? 'opacity-100' : 'opacity-0'
+                          }`}
+                          onLoad={() => handleImageLoad(module.id)}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500">
+                          <div className="absolute bottom-4 left-4 right-4 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Info className="w-5 h-5 text-yellow-400" />
+                              <span className="text-sm font-medium">Нажмите для подробностей</span>
                             </div>
                           </div>
                         </div>
-
-                        <p className="text-gray-400 mb-4 leading-relaxed line-clamp-2">
-                          {module.description}
-                        </p>
-
-                        {/* Features */}
-                        <div className="mb-4">
-                          <div className="flex flex-wrap gap-2">
-                            {module.features.slice(0, 3).map((feature, idx) => (
-                              <span key={idx} className="text-xs bg-gray-700 text-gray-300 px-3 py-2 rounded-xl border border-gray-600 font-medium">
-                                {feature}
-                              </span>
-                            ))}
-                            {module.features.length > 3 && (
-                              <span className="text-xs bg-gray-700 text-gray-300 px-3 py-2 rounded-xl border border-gray-600 font-medium">
-                                +{module.features.length - 3}
-                              </span>
-                            )}
-                          </div>
+                        
+                        {/* Badges */}
+                        <div className="absolute top-4 left-4 bg-black/80 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm border border-yellow-500/30">
+                          Модуль {module.id}
                         </div>
-
-                        {/* Details and Actions */}
-                        <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-                          <div className="flex items-center space-x-4">
-                            <div className="text-center">
-                              <Clock className="w-5 h-5 text-gray-500 mx-auto mb-1" />
-                              <div className="text-sm font-semibold text-white">{module.duration}</div>
-                              <div className="text-xs text-gray-500">Длительность</div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-sm font-semibold text-white mb-1">{module.progress}%</div>
-                              <div className="text-xs text-gray-500">Прогресс</div>
-                            </div>
-                          </div>
-                          
-                          <div className="flex space-x-2">
-                            <a
-                              href={module.downloadLink}
-                              className="bg-gray-700 hover:bg-gray-600 text-white font-bold p-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md"
-                              title="Скачать сцену"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                alert('Ссылка на скачивание будет добавлена позже');
-                              }}
-                            >
-                              <Download className="w-5 h-5" />
-                            </a>
-                            <button
-                              onClick={() => handleModuleDetails(module)}
-                              className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 px-6 rounded-xl transition-all duration-500 transform hover:scale-105 flex items-center shadow-lg hover:shadow-yellow-500/25"
-                            >
-                              <Info className="w-5 h-5 mr-2" />
-                              Подробнее
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="mt-4">
-                          <div className="flex justify-between text-sm text-gray-400 mb-2">
-                            <span>Прогресс прохождения</span>
-                            <span>{module.progress}%</span>
-                          </div>
-                          <div className="w-full bg-gray-700 rounded-full h-2">
-                            <div 
-                              className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full transition-all duration-1000"
-                              style={{ width: `${module.progress}%` }}
-                            ></div>
-                          </div>
+                        <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-3 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center space-x-1">
+                          <span>{getTypeIcon(module.type)}</span>
+                          <span>VR</span>
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <IconComponent className="w-6 h-6 text-black" />
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold text-white group-hover:text-yellow-400 transition-colors">
+                              {module.title}
+                            </h3>
+                            <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getDifficultyColor(module.difficulty)}`}>
+                              {module.difficulty}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <p className="text-gray-400 mb-4 leading-relaxed line-clamp-2">
+                        {module.description}
+                      </p>
+
+                      {/* Features */}
+                      <div className="mb-4">
+                        <div className="flex flex-wrap gap-2">
+                          {module.features.slice(0, 3).map((feature, idx) => (
+                            <span key={idx} className="text-xs bg-gray-700 text-gray-300 px-3 py-2 rounded-xl border border-gray-600 font-medium">
+                              {feature}
+                            </span>
+                          ))}
+                          {module.features.length > 3 && (
+                            <span className="text-xs bg-gray-700 text-gray-300 px-3 py-2 rounded-xl border border-gray-600 font-medium">
+                              +{module.features.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Details and Actions */}
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                        <div className="flex items-center space-x-4">
+                          <div className="text-center">
+                            <Clock className="w-5 h-5 text-gray-500 mx-auto mb-1" />
+                            <div className="text-sm font-semibold text-white">{module.duration}</div>
+                            <div className="text-xs text-gray-500">Длительность</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-semibold text-white mb-1">{module.progress}%</div>
+                            <div className="text-xs text-gray-500">Прогресс</div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <a
+                            href={module.downloadLink}
+                            className="bg-gray-700 hover:bg-gray-600 text-white font-bold p-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md"
+                            title="Скачать сцену"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              alert('Ссылка на скачивание будет добавлена позже');
+                            }}
+                          >
+                            <Download className="w-5 h-5" />
+                          </a>
+                          <button
+                            onClick={() => handleModuleDetails(module)}
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-3 px-6 rounded-xl transition-all duration-500 transform hover:scale-105 flex items-center shadow-lg hover:shadow-yellow-500/25"
+                          >
+                            <Info className="w-5 h-5 mr-2" />
+                            Подробнее
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="mt-4">
+                        <div className="flex justify-between text-sm text-gray-400 mb-2">
+                          <span>Прогресс прохождения</span>
+                          <span>{module.progress}%</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full transition-all duration-1000"
+                            style={{ width: `${module.progress}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
