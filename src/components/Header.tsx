@@ -400,46 +400,46 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
 
       {/* Модальное окно быстрой навигации для ПК (аналог мобильного – плотный фон, закрытие по клику вне) */}
       {isQuickNavOpen && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center"
+  <div 
+    className="fixed inset-0 z-50 flex items-start justify-center pt-24 sm:pt-32"
+    onClick={closeQuickNav}
+  >
+    {/* Затемнение фона */}
+    <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+    
+    {/* Панель меню */}
+    <div 
+      className="relative bg-gray-900 rounded-3xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-yellow-500/30"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="flex justify-between items-center mb-8">
+        <h3 className="text-2xl font-bold text-yellow-400">Быстрая навигация</h3>
+        <button 
           onClick={closeQuickNav}
+          className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition"
         >
-          {/* Затемнение фона */}
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-          
-          {/* Панель меню */}
-          <div 
-            className="relative bg-gray-900 rounded-3xl p-8 max-w-2xl w-full mx-4 shadow-2xl border border-yellow-500/30"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-bold text-yellow-400">Быстрая навигация</h3>
-              <button 
-                onClick={closeQuickNav}
-                className="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {quickNavItems.map((item, index) => {
-                const IconComponent = item.icon;
-                return (
-                  <button
-                    key={index}
-                    onClick={() => { item.action(); closeQuickNav(); }}
-                    className="flex flex-col items-center p-6 bg-gray-800 rounded-2xl hover:bg-yellow-500 hover:text-black transition-all duration-300 border border-gray-700 hover:border-yellow-400 group"
-                  >
-                    <IconComponent className="w-8 h-8 text-yellow-400 group-hover:text-black mb-3" />
-                    <span className="text-sm font-medium text-white group-hover:text-black text-center">{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {quickNavItems.map((item, index) => {
+          const IconComponent = item.icon;
+          return (
+            <button
+              key={index}
+              onClick={() => { item.action(); closeQuickNav(); }}
+              className="flex flex-col items-center p-6 bg-gray-800 rounded-2xl hover:bg-yellow-500 hover:text-black transition-all duration-300 border border-gray-700 hover:border-yellow-400 group"
+            >
+              <IconComponent className="w-8 h-8 text-yellow-400 group-hover:text-black mb-3" />
+              <span className="text-sm font-medium text-white group-hover:text-black text-center">{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+)}
     </header>
   );
 };
