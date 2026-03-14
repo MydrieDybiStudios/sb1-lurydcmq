@@ -1,9 +1,9 @@
 // api/gigachat.js
-const https = require('https');
+import https from 'https';
 
 // Создаем HTTPS агент с отключенной проверкой сертификатов
 const httpsAgent = new https.Agent({
-    rejectUnauthorized: false,  // Отключаем проверку сертификата
+    rejectUnauthorized: false,
     keepAlive: true
 });
 
@@ -57,7 +57,7 @@ export default async function handler(req, res) {
                 'RqUID': crypto.randomUUID(),
             },
             body: 'scope=GIGACHAT_API_PERS',
-            agent: httpsAgent  // Используем наш агент
+            agent: httpsAgent
         });
 
         console.log('📊 Статус токена:', tokenResponse.status);
@@ -74,6 +74,7 @@ export default async function handler(req, res) {
 
         const tokenData = await tokenResponse.json();
         console.log('✅ Токен получен');
+        console.log('Срок действия (сек):', tokenData.expires_in);
 
         // 2. Отправляем запрос к GigaChat
         console.log('🔄 Запрос к GigaChat...');
@@ -97,7 +98,7 @@ export default async function handler(req, res) {
                 temperature: 0.7,
                 max_tokens: 1000,
             }),
-            agent: httpsAgent  // Используем наш агент
+            agent: httpsAgent
         });
 
         console.log('📊 Статус чата:', chatResponse.status);
@@ -114,7 +115,7 @@ export default async function handler(req, res) {
 
         const chatData = await chatResponse.json();
         console.log('✅ Ответ получен');
-        console.log('Ответ:', chatData.choices?.[0]?.message?.content?.substring(0, 100));
+        console.log('Первые 100 символов ответа:', chatData.choices?.[0]?.message?.content?.substring(0, 100));
 
         return res.status(200).json({
             content: chatData.choices[0]?.message?.content || 'Нет ответа'
@@ -124,12 +125,13 @@ export default async function handler(req, res) {
         console.error('💥 Ошибка:', error);
         console.error('Тип ошибки:', error.name);
         console.error('Сообщение:', error.message);
-        console.error('Причина:', error.cause);
+        if (error.cause) {
+            console.error('Причина:', error.cause);
+        }
         
         return res.status(500).json({ 
             error: 'Internal server error',
-            message: error.message,
-            cause: error.cause?.message || error.cause
+            message: error.message
         });
     }
 }
