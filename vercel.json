@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/gigachat.js": {
+      "maxDuration": 10
+    }
+  }
+}

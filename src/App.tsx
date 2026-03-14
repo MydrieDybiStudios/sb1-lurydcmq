@@ -14,6 +14,7 @@ import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
 import UniversitiesPage from "./pages/UniversitiesPage";
 import CareerTestPage from "./pages/CareerTestPage";
+import GigaChatBot from "./components/GigaChatBot"; // <-- Импортируем компонент
 
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
@@ -41,7 +42,7 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          {/* Главная страница */}
+          {/* Все ваши маршруты остаются без изменений */}
           <Route
             path="/"
             element={
@@ -51,30 +52,18 @@ function App() {
               />
             }
           />
-
-          {/* Профиль */}
           <Route path="/profile" element={<Profile />} />
-
-          {/* Личный кабинет */}
           <Route path="/cabinet" element={<Cabinet />} />
-
-          {/* Страница отзывов */}
           <Route path="/reviews" element={<ReviewsPage />} />
-
-          {/* Новые страницы */}
           <Route path="/ar-module" element={<ARModule />} />
           <Route path="/vr-module" element={<VRModule />} />
-
-          {/* Политика конфиденциальности */}
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-
-          {/* Условия использования */}
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/universities" element={<UniversitiesPage />} />
           <Route path="/career-test" element={<CareerTestPage />} />
         </Routes>
 
-        {/* Модальные окна - рендерятся поверх всех страниц */}
+        {/* Модальные окна */}
         <AuthModals
           isLoginOpen={isLoginModalOpen}
           isRegisterOpen={isRegisterModalOpen}
@@ -96,6 +85,9 @@ function App() {
           onClose={() => setIsCourseModalOpen(false)}
           course={currentCourse}
         />
+
+        {/* Добавляем GigaChat помощника */}
+        <GigaChatBot />
       </div>
     </Router>
   );
