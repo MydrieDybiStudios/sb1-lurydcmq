@@ -1,8 +1,10 @@
 // api/gigachat.js
-import https from 'https';
+const https = require('https');
 
+// Создаем HTTPS агент с отключенной проверкой сертификатов
 const httpsAgent = new https.Agent({
-    rejectUnauthorized: false
+    rejectUnauthorized: false,  // Отключаем проверку сертификата
+    keepAlive: true
 });
 
 export default async function handler(req, res) {
@@ -22,26 +24,27 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Пробуем получить ключ из разных источников
+        // Получаем ключ из переменных окружения
         const credentials = process.env.GIGACHAT_CREDENTIALS || 
                            process.env.VITE_GIGACHAT_CREDENTIALS;
         
-        console.log('🔍 Проверка переменных окружения:');
-        console.log('GIGACHAT_CREDENTIALS:', process.env.GIGACHAT_CREDENTIALS ? '✅ есть' : '❌ нет');
-        console.log('VITE_GIGACHAT_CREDENTIALS:', process.env.VITE_GIGACHAT_CREDENTIALS ? '✅ есть' : '❌ нет');
+        console.log('🔍 Проверка переменных:', {
+            GIGACHAT_CREDENTIALS: !!process.env.GIGACHAT_CREDENTIALS,
+            VITE_GIGACHAT_CREDENTIALS: !!process.env.VITE_GIGACHAT_CREDENTIALS,
+            found: !!credentials,
+            length: credentials?.length
+        });
         
         if (!credentials) {
-            console.error('❌ Креденшелы не найдены!');
+            console.error('❌ Креденшелы не найдены');
             return res.status(500).json({ 
-                error: 'Credentials not configured',
-                message: 'Добавьте GIGACHAT_CREDENTIALS или VITE_GIGACHAT_CREDENTIALS в переменные окружения Vercel'
+                error: 'Credentials not configured'
             });
         }
 
-        console.log('✅ Креденшелы найдены, длина:', credentials.length);
-
         const { messages } = req.body;
-        
+        console.log('📨 Сообщений:', messages?.length);
+
         // 1. Получаем токен
         console.log('🔄 Получение токена...');
         
@@ -54,7 +57,7 @@ export default async function handler(req, res) {
                 'RqUID': crypto.randomUUID(),
             },
             body: 'scope=GIGACHAT_API_PERS',
-            agent: httpsAgent
+            agent: httpsAgent  // Используем наш агент
         });
 
         console.log('📊 Статус токена:', tokenResponse.status);
@@ -64,6 +67,7 @@ export default async function handler(req, res) {
             console.error('❌ Ошибка токена:', errorText);
             return res.status(500).json({ 
                 error: 'Token error',
+                status: tokenResponse.status,
                 details: errorText
             });
         }
@@ -93,7 +97,7 @@ export default async function handler(req, res) {
                 temperature: 0.7,
                 max_tokens: 1000,
             }),
-            agent: httpsAgent
+            agent: httpsAgent  // Используем наш агент
         });
 
         console.log('📊 Статус чата:', chatResponse.status);
@@ -103,12 +107,14 @@ export default async function handler(req, res) {
             console.error('❌ Ошибка чата:', errorText);
             return res.status(500).json({ 
                 error: 'Chat error',
+                status: chatResponse.status,
                 details: errorText
             });
         }
 
         const chatData = await chatResponse.json();
         console.log('✅ Ответ получен');
+        console.log('Ответ:', chatData.choices?.[0]?.message?.content?.substring(0, 100));
 
         return res.status(200).json({
             content: chatData.choices[0]?.message?.content || 'Нет ответа'
@@ -116,9 +122,14 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('💥 Ошибка:', error);
+        console.error('Тип ошибки:', error.name);
+        console.error('Сообщение:', error.message);
+        console.error('Причина:', error.cause);
+        
         return res.status(500).json({ 
             error: 'Internal server error',
-            message: error.message
+            message: error.message,
+            cause: error.cause?.message || error.cause
         });
     }
 }
