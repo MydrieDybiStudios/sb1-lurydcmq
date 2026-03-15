@@ -14,6 +14,7 @@ import coursesData from "./data/coursesData";
 import { Course } from "./types/course";
 import UniversitiesPage from "./pages/UniversitiesPage";
 import CareerTestPage from "./pages/CareerTestPage";
+import SimulatorsPage from "./pages/SimulatorsPage";
 import GigaChatBot from "./components/GigaChatBot"; // <-- Импортируем компонент
 
 function App() {
@@ -61,6 +62,7 @@ function App() {
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/universities" element={<UniversitiesPage />} />
           <Route path="/career-test" element={<CareerTestPage />} />
+          <Route path="/simulators" element={<SimulatorsPage />} />
         </Routes>
 
         {/* Модальные окна */}

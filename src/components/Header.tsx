@@ -142,6 +142,7 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
   ];
 
   const userQuickNavItems = user ? [
+    { icon: Compass, label: "Симуляторы", action: () => navigate("/simulators") },
     { icon: Compass, label: "AR-модуль", action: () => navigate("/ar-module") },
     { icon: Compass, label: "VR-модуль", action: () => navigate("/vr-module") },
     { icon: Compass, label: "Личный кабинет", action: () => navigate("/cabinet") },
@@ -334,6 +335,12 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
                     >
                       VR-модуль
                     </button>
+                     <button
+                      onClick={() => { navigate("/simulators"); closeMobileMenu(); }}
+                      className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
+                    >
+                      Симуляторы
+                    </button>
                     <button
                       onClick={() => { navigate("/profile"); closeMobileMenu(); }}
                       className="text-left px-4 py-3 rounded-lg hover:bg-white/10 hover:text-yellow-400 transition-all duration-200 text-lg"
@@ -405,6 +412,9 @@ const Header: React.FC<HeaderProps> = ({ onLogin, onRegister }) => {
               </Link>
               <Link to="/vr-module" className="hover:text-yellow-400 transition py-2 text-sm font-medium">
                 VR-модуль
+              </Link>
+              <Link to="/simulators" className="hover:text-yellow-400 transition py-2 text-sm font-medium">
+                Симуляторы
               </Link>
             </>
           )}

@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ГРП Симулятор с инструкцией</title>
+
+    <!-- Plotly для графиков -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+    <!-- Font Awesome для иконок -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f5fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Заголовок */
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+
+        /* Основная сетка */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 20px;
+        }
+
+        /* Левая колонка - графики и управление */
+        .left-column {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* Правая колонка - инструкция */
+        .right-column {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        /* Графики */
+        .plots {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .plot-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* Панель управления */
+        .controls-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .slider-group {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .slider-group label {
+            width: 180px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .slider-group input {
+            flex: 1;
+            min-width: 200px;
+            margin: 0 15px;
+        }
+
+        .slider-group span {
+            width: 80px;
+            text-align: right;
+            font-weight: 600;
+            color: #2980b9;
+        }
+
+        .slider-hint {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-left: 195px;
+            margin-top: -5px;
+            margin-bottom: 10px;
+        }
+
+        /* Кнопки */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-start { background: #2ecc71; color: white; }
+        .btn-start:hover { background: #27ae60; transform: translateY(-2px); }
+        .btn-pause { background: #f39c12; color: white; }
+        .btn-pause:hover { background: #e67e22; transform: translateY(-2px); }
+        .btn-reset { background: #e74c3c; color: white; }
+        .btn-reset:hover { background: #c0392b; transform: translateY(-2px); }
+
+        /* Информационная панель */
+        .info-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .info-item {
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-size: 24px;
+            font-weight: 700;
+            margin-top: 5px;
+        }
+
+        /* Стили для инструкции со скрывающимися разделами */
+        .instruction-title {
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instruction-title i {
+            color: #3498db;
+            font-size: 24px;
+        }
+
+        /* Стили для аккордеона */
+        .accordion-item {
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            background: #f8f9fa;
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+            transition: 0.3s;
+        }
+
+        .accordion-header:hover {
+            background: #e9ecef;
+        }
+
+        .accordion-header i {
+            transition: transform 0.3s;
+            color: #3498db;
+        }
+
+        .accordion-header.active i {
+            transform: rotate(90deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: white;
+        }
+
+        .accordion-content.show {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .accordion-content-inner {
+            padding: 15px;
+        }
+
+        /* Параметры в инструкции */
+        .param-card {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 0 5px 5px 0;
+            font-size: 12px;
+        }
+
+        .param-name {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .param-desc {
+            color: #7f8c8d;
+            margin-top: 3px;
+        }
+
+        .tip-box {
+            background: #fef9e7;
+            border: 1px solid #f1c40f;
+            border-radius: 5px;
+            padding: 12px;
+            margin: 15px 0;
+            font-size: 13px;
+            color: #7d6608;
+        }
+
+        .tip-box strong {
+            color: #b7950b;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-right: 5px;
+        }
+
+        /* Стили для списков */
+        .instruction-list {
+            margin: 5px 0 15px 20px;
+            color: #34495e;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .instruction-list li {
+            margin-bottom: 5px;
+        }
+
+        /* Кнопка "Показать все" */
+        .expand-all-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .expand-all-btn:hover {
+            background: #2980b9;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1000px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .right-column {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .plots {
+                grid-template-columns: 1fr;
+            }
+            .info-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .slider-group label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .slider-hint {
+                margin-left: 0;
+            }
+        }
+
+        /* Анимация подсказок */
+        .hint-popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2c3e50;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            animation: slideIn 0.5s;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .hint-popup:hover {
+            background: #34495e;
+        }
+    </style>
+</head>
+<body>
+    <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
+        <button onclick="window.location.href='/simulators'" 
+                style="background: #2c3e50; color: white; border: none; padding: 12px 24px; 
+                       border-radius: 50px; cursor: pointer; font-size: 16px; font-weight: bold;
+                       box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; align-items: center; 
+                       gap: 8px; transition: all 0.3s; border: 2px solid #FFD700;"
+                onmouseover="this.style.background='#1a2632'; this.style.transform='translateX(-5px)';"
+                onmouseout="this.style.background='#2c3e50'; this.style.transform='translateX(0)';">
+            <i class="fas fa-arrow-left"></i> Назад к симуляторам
+        </button>
+    </div>
+    <div class="container">
+        <h1>🏔️ Симулятор гидроразрыва пласта (ГРП)</h1>
+
+        <!-- Основная сетка с двумя колонками -->
+        <div class="main-grid">
+            <!-- Левая колонка: симулятор -->
+            <div class="left-column">
+                <!-- Графики -->
+                <div class="plots">
+                    <div class="plot-container" id="profilePlot"></div>
+                    <div class="plot-container" id="growthPlot"></div>
+                </div>
+
+                <!-- Информационная панель -->
+                <div class="info-panel">
+                    <div class="info-item">
+                        <div><i class="far fa-clock"></i> Время</div>
+                        <div class="info-value" id="timeValue">0.0 мин</div>
+                    </div>
+                    <div class="info-item">
+                        <div><i class="fas fa-ruler"></i> Длина</div>
+                        <div class="info-value" id="lengthValue">0.0 м</div>
+                    </div>
+                    <div class="info-item">
+                        <div><i class="fas fa-arrows-alt-h"></i> Ширина</div>
+                        <div class="info-value" id="widthValue">0.0 мм</div>
+                    </div>
+                    <div class="info-item">
+                        <div><i class="fas fa-gauge-high"></i> Давление</div>
+                        <div class="info-value" id="pressureValue">0.0 МПа</div>
+                    </div>
+                </div>
+
+                <!-- Панель управления -->
+                <div class="controls-panel">
+                    <h3 style="margin-top: 0; color: #2c3e50;"><i class="fas fa-sliders-h"></i> Параметры модели</h3>
+
+                    <div class="slider-group">
+                        <label>Модуль Юнга E (ГПа):</label>
+                        <input type="range" id="E" min="5" max="70" value="30" step="1">
+                        <span id="E_val">30</span>
+                    </div>
+                    <div class="slider-hint">Жёсткость породы (больше = жёстче)</div>
+
+                    <div class="slider-group">
+                        <label>Коэф. Пуассона ν:</label>
+                        <input type="range" id="nu" min="0.1" max="0.4" value="0.25" step="0.01">
+                        <span id="nu_val">0.25</span>
+                    </div>
+                    <div class="slider-hint">Упругие свойства породы</div>
+
+                    <div class="slider-group">
+                        <label>Высота H (м):</label>
+                        <input type="range" id="H" min="5" max="50" value="20" step="1">
+                        <span id="H_val">20</span>
+                    </div>
+                    <div class="slider-hint">Вертикальный размер трещины</div>
+
+                    <div class="slider-group">
+                        <label>Вязкость μ (сП):</label>
+                        <input type="range" id="mu" min="1" max="1000" value="100" step="1">
+                        <span id="mu_val">100</span>
+                    </div>
+                    <div class="slider-hint">Густота жидкости (вода=1, масло=100, мёд=2000)</div>
+
+                    <div class="slider-group">
+                        <label>Расход Q (м³/с):</label>
+                        <input type="range" id="Q" min="0.01" max="0.5" value="0.05" step="0.01">
+                        <span id="Q_val">0.05</span>
+                    </div>
+                    <div class="slider-hint">Скорость закачки жидкости</div>
+
+                    <div class="button-group">
+                        <button class="btn btn-start" onclick="startSim()"><i class="fas fa-play"></i> СТАРТ</button>
+                        <button class="btn btn-pause" onclick="pauseSim()"><i class="fas fa-pause"></i> ПАУЗА</button>
+                        <button class="btn btn-reset" onclick="resetSim()"><i class="fas fa-undo"></i> СБРОС</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Правая колонка: инструкция со скрывающимися разделами -->
+            <div class="right-column">
+                <div class="instruction-title">
+                    <i class="fas fa-book-open"></i> Инструкция
+                </div>
+
+                <!-- Кнопка "Развернуть всё" -->
+                <button class="expand-all-btn" onclick="toggleAllSections()">
+                    <i class="fas fa-expand-arrows-alt"></i> Развернуть всё
+                </button>
+
+                <!-- Скрывающиеся разделы -->
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleSection(this)">
+                        <i class="fas fa-chevron-right"></i>
+                        <span><i class="fas fa-bullseye"></i> Цель работы</span>
+                    </div>
+                    <div class="accordion-content show">
+                        <div class="accordion-content-inner">
+                            <p style="font-size: 13px; color: #34495e; margin: 0;">
+                                Изучить процесс гидроразрыва пласта и влияние различных параметров на геометрию трещины.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header active" onclick="toggleSection(this)">
+                        <i class="fas fa-chevron-right"></i>
+                        <span><i class="fas fa-cog"></i> Параметры модели</span>
+                    </div>
+                    <div class="accordion-content show">
+                        <div class="accordion-content-inner">
+                            <div class="param-card">
+                                <div class="param-name">Модуль Юнга (E)</div>
+                                <div class="param-desc">Жёсткость породы. Чем выше E, тем сложнее раскрыть трещину. Диапазон: 5-70 ГПа.</div>
+                            </div>
+
+                            <div class="param-card">
+                                <div class="param-name">Коэффициент Пуассона (ν)</div>
+                                <div class="param-desc">Отношение поперечной деформации к продольной. Диапазон: 0.1-0.4.</div>
+                            </div>
+
+                            <div class="param-card">
+                                <div class="param-name">Высота трещины (H)</div>
+                                <div class="param-desc">Вертикальная высота трещины. Чем больше H, тем шире трещина. Диапазон: 5-50 м.</div>
+                            </div>
+
+                            <div class="param-card">
+                                <div class="param-name">Вязкость жидкости (μ)</div>
+                                <div class="param-desc">Густота жидкости. Высокая вязкость = широкая, но короткая трещина. Диапазон: 1-1000 сП.</div>
+                            </div>
+
+                            <div class="param-card">
+                                <div class="param-name">Расход закачки (Q)</div>
+                                <div class="param-desc">Скорость нагнетания жидкости. Большой расход ускоряет рост. Диапазон: 0.01-0.5 м³/с.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleSection(this)">
+                        <i class="fas fa-chevron-right"></i>
+                        <span><i class="fas fa-gamepad"></i> Управление</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-content-inner">
+                            <ul class="instruction-list">
+                                <li><span class="badge"><i class="fas fa-play"></i> СТАРТ</span> Запуск симуляции</li>
+                                <li><span class="badge"><i class="fas fa-pause"></i> ПАУЗА</span> Остановка симуляции</li>
+                                <li><span class="badge"><i class="fas fa-undo"></i> СБРОС</span> Возврат к началу</li>
+                                <li><span class="badge"><i class="fas fa-sliders-h"></i> Ползунки</span> Изменение параметров</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleSection(this)">
+                        <i class="fas fa-chevron-right"></i>
+                        <span><i class="fas fa-chart-line"></i> Интерпретация графиков</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-content-inner">
+                            <ul class="instruction-list">
+                                <li><strong>Левый график</strong> - профиль трещины в текущий момент (синяя заливка)</li>
+                                <li><strong>Правый график</strong> - изменение длины (красный) и ширины (зелёный) во времени</li>
+                                <li><strong>Информационная панель</strong> - текущие значения параметров</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleSection(this)">
+                        <i class="fas fa-chevron-right"></i>
+                        <span><i class="fas fa-flask"></i> Лабораторные задания</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-content-inner">
+                            <ol class="instruction-list">
+                                <li><strong>Влияние вязкости:</strong> Сравните μ=10, 100 и 500 сП (E=30 ГПа, H=20 м, Q=0.05)</li>
+                                <li><strong>Влияние жёсткости:</strong> Сравните E=10, 30 и 60 ГПа (μ=100 сП, H=20 м, Q=0.05)</li>
+                                <li><strong>Оптимизация расхода:</strong> Добейтесь длины 150 м и ширины 15 мм за 25 мин</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <div class="accordion-header" onclick="toggleSection(this)">
+                        <i class="fas fa-chevron-right"></i>
+                        <span><i class="fas fa-lightbulb"></i> Полезные советы</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="accordion-content-inner">
+                            <div class="tip-box" style="margin: 0;">
+                                <strong>💡 Советы:</strong>
+                                <ul style="margin-top: 8px; margin-bottom: 0;">
+                                    <li>Длинная трещина: ↑ расход или ↓ вязкость</li>
+                                    <li>Широкая трещина: ↑ вязкость или ↑ высоту</li>
+                                    <li>В жёстких породах трещина уже</li>
+                                    <li>Давление показывает сложность закачки</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size: 12px; color: #95a5a6; text-align: center; margin-top: 20px; padding-top: 10px; border-top: 1px solid #ecf0f1;">
+                    <i class="fas fa-code-branch"></i> Версия 2.0 | Учебный симулятор ГРП
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Всплывающая подсказка при первом запуске -->
+    <div class="hint-popup" id="hintPopup" onclick="this.style.display='none'">
+        <i class="fas fa-info-circle"></i> Подсказка: нажмите СТАРТ для запуска
+    </div>
+
+    <script>
+        // Модель гидроразрыва
+        class HydraulicFracture {
+            constructor() {
+                this.E = 30;
+                this.nu = 0.25;
+                this.H = 20;
+                this.mu = 100;
+                this.Q = 0.05;
+                this.time = 0;
+                this.maxTime = 30;
+                this.updateParams();
+            }
+
+            updateParams() {
+                const E_Pa = this.E * 1e9;
+                const mu_Pas = this.mu * 0.001;
+                const E_prime = E_Pa / (1 - this.nu**2);
+
+                try {
+                    this.C_L = 0.68 * Math.pow(this.Q**3 * E_prime / (mu_Pas * this.H**4), 0.2);
+                    this.C_w = 2.5 * Math.pow(mu_Pas * this.Q**2 / (E_prime * this.H), 0.2);
+                } catch {
+                    this.C_L = 0;
+                    this.C_w = 0;
+                }
+            }
+
+            getLength() {
+                const t_sec = this.time * 60;
+                if (t_sec < 1) return 0;
+                return this.C_L * Math.pow(t_sec, 0.8);
+            }
+
+            getWidth() {
+                const t_sec = this.time * 60;
+                if (t_sec < 1) return 0;
+                return this.C_w * Math.pow(t_sec, 0.2) * 1000;
+            }
+
+            getProfile() {
+                const L = this.getLength();
+                if (L < 1) return {x: [0], w: [0]};
+
+                const points = 50;
+                const x = [];
+                const w = [];
+                const w_max = this.getWidth();
+
+                for (let i = 0; i < points; i++) {
+                    const xi = (i / (points-1)) * L;
+                    x.push(xi);
+                    w.push(w_max * Math.pow(1 - xi/L, 1/3));
+                }
+                return {x, w};
+            }
+
+            getPressure() {
+                const w_max_m = this.getWidth() / 1000;
+                if (w_max_m < 1e-6) return 0;
+                const E_prime = this.E * 1e9 / (1 - this.nu**2);
+                return (E_prime * w_max_m / (2 * this.H)) / 1e6;
+            }
+        }
+
+        const model = new HydraulicFracture();
+        let running = false;
+        let timeData = [];
+        let lengthData = [];
+        let widthData = [];
+        let intervalId = null;
+
+        // Функции для аккордеона
+        function toggleSection(header) {
+            header.classList.toggle('active');
+            const content = header.nextElementSibling;
+            content.classList.toggle('show');
+
+            // Обновляем иконку
+            const icon = header.querySelector('i:first-child');
+            if (content.classList.contains('show')) {
+                icon.style.transform = 'rotate(90deg)';
+            } else {
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function toggleAllSections() {
+            const headers = document.querySelectorAll('.accordion-header');
+            const allExpanded = Array.from(headers).every(h => h.classList.contains('active'));
+
+            headers.forEach(header => {
+                if (!allExpanded) {
+                    // Развернуть все
+                    if (!header.classList.contains('active')) {
+                        header.classList.add('active');
+                        const content = header.nextElementSibling;
+                        content.classList.add('show');
+                        const icon = header.querySelector('i:first-child');
+                        icon.style.transform = 'rotate(90deg)';
+                    }
+                } else {
+                    // Свернуть все кроме первого (параметры модели)
+                    if (header.querySelector('span').innerText.includes('Параметры')) {
+                        return; // Оставляем параметры открытыми
+                    }
+                    header.classList.remove('active');
+                    const content = header.nextElementSibling;
+                    content.classList.remove('show');
+                    const icon = header.querySelector('i:first-child');
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+
+        // Обновление значений ползунков
+        document.querySelectorAll('input[type=range]').forEach(input => {
+            input.addEventListener('input', function() {
+                document.getElementById(this.id + '_val').textContent = this.value;
+            });
+        });
+
+        function updatePlots() {
+            // Обновляем параметры модели
+            model.E = parseFloat(document.getElementById('E').value);
+            model.nu = parseFloat(document.getElementById('nu').value);
+            model.H = parseFloat(document.getElementById('H').value);
+            model.mu = parseFloat(document.getElementById('mu').value);
+            model.Q = parseFloat(document.getElementById('Q').value);
+            model.updateParams();
+
+            // Обновляем время если запущено
+            if (running && model.time < model.maxTime) {
+                model.time += 0.2;
+            }
+
+            // Получаем данные
+            const profile = model.getProfile();
+            const length = model.getLength();
+            const width = model.getWidth();
+            const pressure = model.getPressure();
+
+            // Обновляем информацию
+            document.getElementById('timeValue').textContent = model.time.toFixed(1) + ' мин';
+            document.getElementById('lengthValue').textContent = length.toFixed(1) + ' м';
+            document.getElementById('widthValue').textContent = width.toFixed(2) + ' мм';
+            document.getElementById('pressureValue').textContent = pressure.toFixed(2) + ' МПа';
+
+            // Сохраняем данные для графика роста
+            if (model.time > 0) {
+                timeData.push(model.time);
+                lengthData.push(length);
+                widthData.push(width);
+
+                if (timeData.length > 100) {
+                    timeData.shift();
+                    lengthData.shift();
+                    widthData.shift();
+                }
+            }
+
+            // Профиль трещины
+            Plotly.newPlot('profilePlot', [{
+                x: profile.x,
+                y: profile.w,
+                type: 'scatter',
+                fill: 'tozeroy',
+                name: 'Трещина',
+                line: {color: '#3498db', width: 3}
+            }], {
+                title: `Профиль трещины (t = ${model.time.toFixed(1)} мин)`,
+                xaxis: {title: 'Расстояние от скважины (м)'},
+                yaxis: {title: 'Ширина (мм)'},
+                margin: {t: 40, l: 50, r: 20, b: 40},
+                paper_bgcolor: '#f8f9fa',
+                plot_bgcolor: '#f8f9fa',
+                showlegend: false
+            });
+
+            // График роста
+            Plotly.newPlot('growthPlot', [
+                {
+                    x: timeData,
+                    y: lengthData,
+                    type: 'scatter',
+                    name: 'Длина (м)',
+                    line: {color: '#e74c3c', width: 2}
+                },
+                {
+                    x: timeData,
+                    y: widthData,
+                    type: 'scatter',
+                    name: 'Ширина (мм)',
+                    line: {color: '#27ae60', width: 2}
+                }
+            ], {
+                title: 'Рост трещины',
+                xaxis: {title: 'Время (мин)', range: [0, 30]},
+                yaxis: {title: 'Значение', range: [0, 200]},
+                margin: {t: 40, l: 50, r: 20, b: 40},
+                paper_bgcolor: '#f8f9fa',
+                plot_bgcolor: '#f8f9fa',
+                legend: {orientation: 'h', y: -0.2}
+            });
+        }
+
+        function startSim() {
+            running = true;
+            if (!intervalId) {
+                intervalId = setInterval(updatePlots, 200);
+            }
+            // Скрываем подсказку при первом запуске
+            document.getElementById('hintPopup').style.display = 'none';
+        }
+
+        function pauseSim() {
+            running = false;
+        }
+
+        function resetSim() {
+            running = false;
+            model.time = 0;
+            timeData = [];
+            lengthData = [];
+            widthData = [];
+            updatePlots();
+        }
+
+        // Первоначальная отрисовка
+        updatePlots();
+
+        // Автоматически скрываем подсказку через 10 секунд
+        setTimeout(() => {
+            const hint = document.getElementById('hintPopup');
+            if (hint) hint.style.display = 'none';
+        }, 10000);
+
+        // Адаптация графиков при изменении размера окна
+        window.addEventListener('resize', () => {
+            Plotly.relayout('profilePlot', {
+                width: document.getElementById('profilePlot').clientWidth
+            });
+            Plotly.relayout('growthPlot', {
+                width: document.getElementById('growthPlot').clientWidth
+            });
+        });
+    </script>
+</body>
+</html>

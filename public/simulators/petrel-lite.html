@@ -1,0 +1,371 @@
+<!-- public/simulators/petrel-lite.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petrel Lite - Геологическое моделирование</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        h1 i {
+            color: #667eea;
+            margin-right: 10px;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .back-btn:hover {
+            background: #5a67d8;
+            transform: translateX(-5px);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        .plot-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .slider-group {
+            margin: 20px 0;
+        }
+        .slider-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .slider-group input {
+            width: 100%;
+        }
+        .value-display {
+            text-align: right;
+            color: #667eea;
+            font-weight: 600;
+        }
+        .layer-info {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .layer-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .layer-item:last-child {
+            border-bottom: none;
+        }
+        .porosity-badge {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/simulators" class="back-btn"><i class="fas fa-arrow-left"></i> Назад к симуляторам</a>
+        
+        <h1><i class="fas fa-mountain"></i> Petrel Lite - Геологическое моделирование</h1>
+        
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-value" id="totalVolume">0</div>
+                <div class="stat-label">Общий объем (м³)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgPorosity">0</div>
+                <div class="stat-label">Ср. пористость (%)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="oilVolume">0</div>
+                <div class="stat-label">Запасы нефти (м³)</div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div>
+                <div class="plot-container" id="geologyPlot"></div>
+                <div class="plot-container" id="porosityPlot"></div>
+            </div>
+            
+            <div class="controls">
+                <h3><i class="fas fa-sliders-h"></i> Параметры пласта</h3>
+                
+                <div class="slider-group">
+                    <label>Количество слоев <i class="fas fa-layer-group"></i></label>
+                    <input type="range" id="layers" min="3" max="10" value="5" step="1">
+                    <div class="value-display" id="layersVal">5</div>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Песчанистость <i class="fas fa-percent"></i></label>
+                    <input type="range" id="sandRatio" min="30" max="90" value="60" step="1">
+                    <div class="value-display" id="sandRatioVal">60%</div>
+                    <small>Доля песчаных прослоев</small>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Средняя пористость <i class="fas fa-chart-line"></i></label>
+                    <input type="range" id="avgPorosityCtrl" min="10" max="35" value="22" step="1">
+                    <div class="value-display" id="avgPorosityCtrlVal">22%</div>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Нефтенасыщенность <i class="fas fa-oil-can"></i></label>
+                    <input type="range" id="oilSat" min="50" max="95" value="80" step="1">
+                    <div class="value-display" id="oilSatVal">80%</div>
+                </div>
+                
+                <div class="layer-info">
+                    <h4>Разрез по слоям</h4>
+                    <div id="layerList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        class PetrelSimulator {
+            constructor() {
+                this.layers = 5;
+                this.sandRatio = 60;
+                this.avgPorosity = 22;
+                this.oilSat = 80;
+                this.update();
+            }
+            
+            update() {
+                this.layerData = [];
+                for (let i = 0; i < this.layers; i++) {
+                    const depth = 1000 + i * 50;
+                    const isSand = Math.random() * 100 < this.sandRatio;
+                    const porosity = this.avgPorosity * (0.7 + Math.random() * 0.6);
+                    const perm = isSand ? porosity * 15 : porosity * 2;
+                    const oil = isSand ? porosity * this.oilSat / 100 : 0;
+                    
+                    this.layerData.push({
+                        depth,
+                        thickness: 20 + Math.random() * 20,
+                        isSand,
+                        porosity: Math.min(35, porosity.toFixed(1)),
+                        perm: perm.toFixed(0),
+                        oil: oil.toFixed(1)
+                    });
+                }
+                
+                // Сортируем по глубине
+                this.layerData.sort((a, b) => a.depth - b.depth);
+            }
+            
+            getTotalVolume() {
+                return (this.layerData.reduce((sum, layer) => sum + layer.thickness, 0) * 1000).toFixed(0);
+            }
+            
+            getAvgPorosity() {
+                const sum = this.layerData.reduce((sum, layer) => sum + parseFloat(layer.porosity), 0);
+                return (sum / this.layers).toFixed(1);
+            }
+            
+            getOilVolume() {
+                const sum = this.layerData.reduce((sum, layer) => sum + parseFloat(layer.oil), 0);
+                return (sum * 100).toFixed(0);
+            }
+            
+            getGeologyProfile() {
+                const x = [];
+                const y = [];
+                const colors = [];
+                
+                let currentDepth = 1000;
+                this.layerData.forEach(layer => {
+                    x.push(currentDepth, currentDepth + layer.thickness, null);
+                    y.push(layer.isSand ? 1 : 0.3, layer.isSand ? 1 : 0.3, null);
+                    colors.push(layer.isSand ? '#667eea' : '#a0aec0');
+                    currentDepth += layer.thickness;
+                });
+                
+                return { x, y, colors };
+            }
+            
+            getPorosityProfile() {
+                const depths = [];
+                const porosities = [];
+                const colors = [];
+                
+                this.layerData.forEach(layer => {
+                    depths.push(layer.depth + layer.thickness/2);
+                    porosities.push(layer.porosity);
+                    colors.push(layer.isSand ? '#667eea' : '#a0aec0');
+                });
+                
+                return { depths, porosities, colors };
+            }
+        }
+        
+        const sim = new PetrelSimulator();
+        
+        function updateUI() {
+            sim.layers = parseInt(document.getElementById('layers').value);
+            sim.sandRatio = parseInt(document.getElementById('sandRatio').value);
+            sim.avgPorosity = parseInt(document.getElementById('avgPorosityCtrl').value);
+            sim.oilSat = parseInt(document.getElementById('oilSat').value);
+            
+            sim.update();
+            
+            // Обновляем дисплеи
+            document.getElementById('layersVal').textContent = sim.layers;
+            document.getElementById('sandRatioVal').textContent = sim.sandRatio + '%';
+            document.getElementById('avgPorosityCtrlVal').textContent = sim.avgPorosity + '%';
+            document.getElementById('oilSatVal').textContent = sim.oilSat + '%';
+            
+            // Обновляем статистику
+            document.getElementById('totalVolume').textContent = sim.getTotalVolume();
+            document.getElementById('avgPorosity').textContent = sim.getAvgPorosity() + '%';
+            document.getElementById('oilVolume').textContent = sim.getOilVolume();
+            
+            // Обновляем список слоев
+            updateLayerList();
+            
+            // Обновляем графики
+            updatePlots();
+        }
+        
+        function updateLayerList() {
+            const list = document.getElementById('layerList');
+            list.innerHTML = '';
+            
+            sim.layerData.forEach((layer, i) => {
+                const item = document.createElement('div');
+                item.className = 'layer-item';
+                item.innerHTML = `
+                    <span>
+                        <strong>Слой ${i+1}</strong> (${layer.depth} м)
+                        <span class="porosity-badge">${layer.isSand ? 'Песчаник' : 'Глина'}</span>
+                    </span>
+                    <span>φ=${layer.porosity}% | k=${layer.perm} мД | нефть=${layer.oil}%</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+        
+        function updatePlots() {
+            const geo = sim.getGeologyProfile();
+            
+            // Геологический разрез
+            Plotly.newPlot('geologyPlot', [{
+                x: geo.x,
+                y: geo.y,
+                type: 'scatter',
+                fill: 'tozeroy',
+                line: {color: '#667eea', width: 0},
+                fillcolor: 'rgba(102, 126, 234, 0.3)'
+            }], {
+                title: 'Геологический разрез (песчаник - синий, глина - серый)',
+                xaxis: {title: 'Глубина (м)'},
+                yaxis: {title: 'Тип породы', tickvals: [0.3, 1], ticktext: ['Глина', 'Песчаник']},
+                showlegend: false,
+                shapes: sim.layerData.map(layer => ({
+                    type: 'rect',
+                    x0: layer.depth,
+                    x1: layer.depth + layer.thickness,
+                    y0: 0,
+                    y1: 2,
+                    fillcolor: layer.isSand ? 'rgba(102, 126, 234, 0.3)' : 'rgba(160, 174, 192, 0.3)',
+                    line: {width: 0}
+                }))
+            });
+            
+            const poro = sim.getPorosityProfile();
+            
+            // График пористости
+            Plotly.newPlot('porosityPlot', [{
+                x: poro.depths,
+                y: poro.porosities,
+                type: 'bar',
+                marker: {color: poro.colors},
+                text: poro.porosities.map(p => p + '%'),
+                textposition: 'outside'
+            }], {
+                title: 'Пористость по слоям',
+                xaxis: {title: 'Глубина (м)'},
+                yaxis: {title: 'Пористость (%)', range: [0, 40]},
+                showlegend: false
+            });
+        }
+        
+        // Добавляем слушатели событий
+        document.getElementById('layers').addEventListener('input', updateUI);
+        document.getElementById('sandRatio').addEventListener('input', updateUI);
+        document.getElementById('avgPorosityCtrl').addEventListener('input', updateUI);
+        document.getElementById('oilSat').addEventListener('input', updateUI);
+        
+        // Первоначальный запуск
+        updateUI();
+    </script>
+</body>
+</html>

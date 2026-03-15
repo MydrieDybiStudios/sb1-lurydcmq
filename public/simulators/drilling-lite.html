@@ -1,0 +1,484 @@
+<!-- public/simulators/drilling-lite.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drilling Office Lite - Проектирование бурения</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #d69e2e 0%, #975a16 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        h1 i {
+            color: #d69e2e;
+            margin-right: 10px;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #d69e2e;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .back-btn:hover {
+            background: #b7791f;
+            transform: translateX(-5px);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        .plot-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .slider-group {
+            margin: 20px 0;
+        }
+        .slider-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .slider-group input {
+            width: 100%;
+        }
+        .value-display {
+            text-align: right;
+            color: #d69e2e;
+            font-weight: 600;
+        }
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #d69e2e 0%, #975a16 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .trajectory-info {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #d69e2e;
+        }
+        .depth-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .warn-box {
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/simulators" class="back-btn"><i class="fas fa-arrow-left"></i> Назад к симуляторам</a>
+        
+        <h1><i class="fas fa-drill"></i> Drilling Office Lite - Проектирование бурения</h1>
+        
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-value" id="totalDepth">0</div>
+                <div class="stat-label">Глубина (м)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="rop">0</div>
+                <div class="stat-label">Мех. скорость (м/ч)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="timeLeft">0</div>
+                <div class="stat-label">Осталось (ч)</div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div>
+                <div class="plot-container" id="trajectoryPlot"></div>
+                <div class="plot-container" id="drillingPlot"></div>
+            </div>
+            
+            <div class="controls">
+                <h3><i class="fas fa-sliders-h"></i> Параметры бурения</h3>
+                
+                <div class="slider-group">
+                    <label>Нагрузка на долото (т) <i class="fas fa-weight-hanging"></i></label>
+                    <input type="range" id="wob" min="5" max="30" value="15" step="1">
+                    <div class="value-display" id="wobVal">15</div>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Частота вращения (об/мин) <i class="fas fa-sync-alt"></i></label>
+                    <input type="range" id="rpm" min="50" max="200" value="120" step="5">
+                    <div class="value-display" id="rpmVal">120</div>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Расход бурового раствора (л/с) <i class="fas fa-water"></i></label>
+                    <input type="range" id="flow" min="20" max="60" value="35" step="1">
+                    <div class="value-display" id="flowVal">35</div>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Зенитный угол (°) <i class="fas fa-angle-double-right"></i></label>
+                    <input type="range" id="angle" min="0" max="60" value="20" step="1">
+                    <div class="value-display" id="angleVal">20°</div>
+                    <small>Отклонение от вертикали</small>
+                </div>
+                
+                <div class="trajectory-info">
+                    <h4>Профиль скважины</h4>
+                    <div id="depthInfo"></div>
+                    
+                    <div class="warn-box" id="warning" style="display:none;">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <span id="warningText"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        class DrillingSimulator {
+            constructor() {
+                this.wob = 15;
+                this.rpm = 120;
+                this.flow = 35;
+                this.angle = 20;
+                this.currentDepth = 0;
+                this.targetDepth = 3000;
+                this.update();
+            }
+            
+            update() {
+                // Расчет механической скорости (м/ч)
+                const baseRop = 10;
+                const wobFactor = this.wob / 15;
+                const rpmFactor = this.rpm / 120;
+                const flowFactor = this.flow / 35;
+                
+                this.rop = baseRop * wobFactor * rpmFactor * flowFactor;
+                
+                // Усложнение бурения с глубиной
+                const depthFactor = 1 - this.currentDepth / 5000;
+                this.rop = Math.max(2, this.rop * depthFactor);
+                
+                // Расчет времени
+                this.timeLeft = (this.targetDepth - this.currentDepth) / this.rop;
+                
+                // Проверка на проблемы
+                this.checkProblems();
+            }
+            
+            checkProblems() {
+                this.warning = null;
+                
+                if (this.angle > 45) {
+                    this.warning = 'Высокий зенитный угол - риск искривления';
+                } else if (this.wob > 25) {
+                    this.warning = 'Перегрузка долота - риск поломки';
+                } else if (this.rpm > 180) {
+                    this.warning = 'Высокая частота вращения - износ долота';
+                } else if (this.flow < 25) {
+                    this.warning = 'Недостаточный расход - плохая очистка забоя';
+                }
+            }
+            
+            drill() {
+                if (this.currentDepth < this.targetDepth) {
+                    this.currentDepth += this.rop;
+                    if (this.currentDepth > this.targetDepth) {
+                        this.currentDepth = this.targetDepth;
+                    }
+                    this.update();
+                }
+            }
+            
+            getTrajectory() {
+                const tvDepth = []; // Вертикальная глубина
+                const horizontal = []; // Отклонение
+                
+                for (let i = 0; i <= 100; i++) {
+                    const depth = i * this.targetDepth / 100;
+                    tvDepth.push(depth);
+                    
+                    // Расчет горизонтального отклонения
+                    const radAngle = this.angle * Math.PI / 180;
+                    const offset = depth * Math.tan(radAngle) * (depth / this.targetDepth);
+                    horizontal.push(offset);
+                }
+                
+                return { tvDepth, horizontal };
+            }
+            
+            getDrillingData() {
+                const depths = [];
+                const ropData = [];
+                const wobData = [];
+                
+                for (let i = 0; i <= 20; i++) {
+                    const depth = i * 150;
+                    depths.push(depth);
+                    
+                    // Моделирование изменения параметров с глубиной
+                    const hardRocks = depth > 2000 ? 0.7 : 1;
+                    ropData.push(this.rop * hardRocks * (0.8 + 0.4 * Math.sin(i)));
+                    wobData.push(this.wob * (0.9 + 0.2 * Math.cos(i)));
+                }
+                
+                return { depths, ropData, wobData };
+            }
+            
+            getFormations() {
+                return [
+                    { depth: 0, name: 'Почвенный слой', color: '#8b5a2b' },
+                    { depth: 500, name: 'Глина', color: '#718096' },
+                    { depth: 1000, name: 'Песчаник', color: '#ecc94b' },
+                    { depth: 1500, name: 'Известняк', color: '#cbd5e0' },
+                    { depth: 2000, name: 'Сланец', color: '#4a5568' },
+                    { depth: 2500, name: 'Нефтяной пласт', color: '#48bb78' }
+                ];
+            }
+        }
+        
+        const sim = new DrillingSimulator();
+        let drillingInterval = null;
+        
+        function updateUI() {
+            sim.wob = parseInt(document.getElementById('wob').value);
+            sim.rpm = parseInt(document.getElementById('rpm').value);
+            sim.flow = parseInt(document.getElementById('flow').value);
+            sim.angle = parseInt(document.getElementById('angle').value);
+            
+            sim.update();
+            
+            // Обновляем дисплеи
+            document.getElementById('wobVal').textContent = sim.wob;
+            document.getElementById('rpmVal').textContent = sim.rpm;
+            document.getElementById('flowVal').textContent = sim.flow;
+            document.getElementById('angleVal').textContent = sim.angle + '°';
+            
+            // Обновляем статистику
+            document.getElementById('totalDepth').textContent = Math.round(sim.currentDepth);
+            document.getElementById('rop').textContent = sim.rop.toFixed(1);
+            document.getElementById('timeLeft').textContent = Math.round(sim.timeLeft);
+            
+            // Предупреждения
+            const warnBox = document.getElementById('warning');
+            if (sim.warning) {
+                warnBox.style.display = 'block';
+                document.getElementById('warningText').textContent = sim.warning;
+            } else {
+                warnBox.style.display = 'none';
+            }
+            
+            // Обновляем информацию о глубине
+            updateDepthInfo();
+            
+            // Обновляем графики
+            updatePlots();
+        }
+        
+        function updateDepthInfo() {
+            const info = document.getElementById('depthInfo');
+            const formations = sim.getFormations();
+            
+            let html = '';
+            let currentFormation = 'Почвенный слой';
+            
+            for (let i = 0; i < formations.length - 1; i++) {
+                if (sim.currentDepth > formations[i].depth) {
+                    currentFormation = formations[i].name;
+                }
+            }
+            
+            html += `<div class="depth-item">
+                <span>Текущий пласт:</span>
+                <strong>${currentFormation}</strong>
+            </div>`;
+            
+            html += `<div class="depth-item">
+                <span>Проходка за смену:</span>
+                <strong>${(sim.rop * 12).toFixed(0)} м</strong>
+            </div>`;
+            
+            html += `<div class="depth-item">
+                <span>До цели:</span>
+                <strong>${(sim.targetDepth - sim.currentDepth).toFixed(0)} м</strong>
+            </div>`;
+            
+            info.innerHTML = html;
+        }
+        
+        function updatePlots() {
+            const traj = sim.getTrajectory();
+            
+            // Траектория скважины
+            Plotly.newPlot('trajectoryPlot', [{
+                x: traj.horizontal,
+                y: traj.tvDepth.map(d => -d),
+                type: 'scatter',
+                mode: 'lines',
+                line: {color: '#d69e2e', width: 4},
+                fill: 'tozerox',
+                fillcolor: 'rgba(214, 158, 46, 0.2)'
+            }], {
+                title: 'Профиль скважины',
+                xaxis: {title: 'Отклонение от вертикали (м)'},
+                yaxis: {title: 'Глубина (м)', autorange: 'reversed'},
+                showlegend: false,
+                shapes: sim.getFormations().map((f, i) => ({
+                    type: 'line',
+                    x0: -100,
+                    x1: 1000,
+                    y0: -f.depth,
+                    y1: -f.depth,
+                    line: {color: f.color, width: 1, dash: 'dash'}
+                }))
+            });
+            
+            const drill = sim.getDrillingData();
+            
+            // Параметры бурения
+            Plotly.newPlot('drillingPlot', [
+                {
+                    x: drill.depths,
+                    y: drill.ropData,
+                    type: 'scatter',
+                    name: 'Мех. скорость (м/ч)',
+                    line: {color: '#48bb78', width: 3},
+                    yaxis: 'y'
+                },
+                {
+                    x: drill.depths,
+                    y: drill.wobData,
+                    type: 'scatter',
+                    name: 'Нагрузка (т)',
+                    line: {color: '#f6ad55', width: 3},
+                    yaxis: 'y2'
+                }
+            ], {
+                title: 'Параметры по глубине',
+                xaxis: {title: 'Глубина (м)'},
+                yaxis: {title: 'Скорость (м/ч)', range: [0, 20]},
+                yaxis2: {
+                    title: 'Нагрузка (т)',
+                    overlaying: 'y',
+                    side: 'right',
+                    range: [0, 40]
+                },
+                showlegend: true
+            });
+        }
+        
+        function startDrilling() {
+            if (drillingInterval) clearInterval(drillingInterval);
+            drillingInterval = setInterval(() => {
+                sim.drill();
+                updateUI();
+                if (sim.currentDepth >= sim.targetDepth) {
+                    clearInterval(drillingInterval);
+                    drillingInterval = null;
+                }
+            }, 1000);
+        }
+        
+        function stopDrilling() {
+            if (drillingInterval) {
+                clearInterval(drillingInterval);
+                drillingInterval = null;
+            }
+        }
+        
+        function resetDrilling() {
+            stopDrilling();
+            sim.currentDepth = 0;
+            sim.update();
+            updateUI();
+        }
+        
+        // Добавляем слушатели событий
+        document.getElementById('wob').addEventListener('input', updateUI);
+        document.getElementById('rpm').addEventListener('input', updateUI);
+        document.getElementById('flow').addEventListener('input', updateUI);
+        document.getElementById('angle').addEventListener('input', updateUI);
+        
+        // Добавляем кнопки управления
+        const controlsDiv = document.querySelector('.controls');
+        const buttonDiv = document.createElement('div');
+        buttonDiv.className = 'button-group';
+        buttonDiv.style.marginTop = '20px';
+        buttonDiv.style.display = 'flex';
+        buttonDiv.style.gap = '10px';
+        buttonDiv.innerHTML = `
+            <button onclick="startDrilling()" style="flex:1; background:#48bb78; color:white; border:none; padding:12px; border-radius:5px; cursor:pointer;">
+                <i class="fas fa-play"></i> Бурить
+            </button>
+            <button onclick="stopDrilling()" style="flex:1; background:#e53e3e; color:white; border:none; padding:12px; border-radius:5px; cursor:pointer;">
+                <i class="fas fa-stop"></i> Стоп
+            </button>
+            <button onclick="resetDrilling()" style="flex:1; background:#718096; color:white; border:none; padding:12px; border-radius:5px; cursor:pointer;">
+                <i class="fas fa-undo"></i> Сброс
+            </button>
+        `;
+        controlsDiv.appendChild(buttonDiv);
+        
+        // Первоначальный запуск
+        updateUI();
+    </script>
+</body>
+</html>

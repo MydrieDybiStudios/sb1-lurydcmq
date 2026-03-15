@@ -1,0 +1,417 @@
+<!-- public/simulators/tnavigator-lite.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tNavigator Lite - Российский симулятор</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e53e3e 0%, #9b2c2c 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        h1 i {
+            color: #e53e3e;
+            margin-right: 10px;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #e53e3e;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .back-btn:hover {
+            background: #c53030;
+            transform: translateX(-5px);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        .plot-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .slider-group {
+            margin: 20px 0;
+        }
+        .slider-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .slider-group input {
+            width: 100%;
+        }
+        .value-display {
+            text-align: right;
+            color: #e53e3e;
+            font-weight: 600;
+        }
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #e53e3e 0%, #9b2c2c 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+        .well-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .well-card {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            border-left: 4px solid #e53e3e;
+        }
+        .well-card.prod {
+            border-left-color: #38a169;
+        }
+        .well-card.inj {
+            border-left-color: #4299e1;
+        }
+        .well-rate {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .well-label {
+            font-size: 12px;
+            color: #718096;
+        }
+        .russian-flag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: linear-gradient(90deg, #fff 33%, #0039a6 33%, #0039a6 66%, #d52b1e 66%);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/simulators" class="back-btn"><i class="fas fa-arrow-left"></i> Назад к симуляторам</a>
+        
+        <h1>
+            <i class="fas fa-flag"></i> tNavigator Lite 
+            <span class="russian-flag">Сделано в России</span>
+        </h1>
+        
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-value" id="dailyOil">0</div>
+                <div class="stat-label">Суточная добыча (т)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="cumOil">0</div>
+                <div class="stat-label">Накопленная добыча (тыс.т)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="waterCut">0</div>
+                <div class="stat-label">Обводненность (%)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pvt">0</div>
+                <div class="stat-label">Газовый фактор</div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div>
+                <div class="plot-container" id="fieldPlot"></div>
+                <div class="plot-container" id="wellsPlot"></div>
+            </div>
+            
+            <div class="controls">
+                <h3><i class="fas fa-sliders-h"></i> Управление разработкой</h3>
+                
+                <div class="slider-group">
+                    <label>Депрессия (атм) <i class="fas fa-arrow-down"></i></label>
+                    <input type="range" id="depression" min="20" max="150" value="80" step="5">
+                    <div class="value-display" id="depressionVal">80</div>
+                    <small>Перепад давления на забое</small>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Приемистость нагнетания (м³/сут) <i class="fas fa-arrow-up"></i></label>
+                    <input type="range" id="injectivity" min="50" max="300" value="150" step="10">
+                    <div class="value-display" id="injectivityVal">150</div>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Газовый фактор (м³/т) <i class="fas fa-wind"></i></label>
+                    <input type="range" id="gor" min="20" max="200" value="80" step="5">
+                    <div class="value-display" id="gorVal">80</div>
+                </div>
+                
+                <h4>Схема расположения скважин</h4>
+                <div class="well-grid">
+                    <div class="well-card prod">
+                        <div class="well-rate" id="prod1">45</div>
+                        <div class="well-label">Добывающая 1</div>
+                    </div>
+                    <div class="well-card prod">
+                        <div class="well-rate" id="prod2">38</div>
+                        <div class="well-label">Добывающая 2</div>
+                    </div>
+                    <div class="well-card inj">
+                        <div class="well-rate" id="inj1">120</div>
+                        <div class="well-label">Нагнетательная 1</div>
+                    </div>
+                    <div class="well-card inj">
+                        <div class="well-rate" id="inj2">95</div>
+                        <div class="well-label">Нагнетательная 2</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        class TNavigatorSimulator {
+            constructor() {
+                this.depression = 80;
+                this.injectivity = 150;
+                this.gor = 80;
+                this.time = 0;
+                this.reset();
+            }
+            
+            reset() {
+                this.dailyOil = 120;
+                this.cumOil = 0;
+                this.waterCut = 10;
+                this.currentGor = this.gor;
+                
+                // Скважины
+                this.wells = {
+                    prod1: 45,
+                    prod2: 38,
+                    inj1: 120,
+                    inj2: 95
+                };
+            }
+            
+            update() {
+                // Расчет суточной добычи
+                const baseRate = 120 * (this.depression / 80) * (1 - this.waterCut / 100);
+                this.dailyOil = Math.max(0, baseRate);
+                
+                // Накопленная добыча
+                this.cumOil += this.dailyOil / 365;
+                
+                // Обводненность растет со временем
+                this.waterCut = Math.min(95, 10 + this.time * 2);
+                
+                // Газовый фактор
+                this.currentGor = this.gor * (1 + this.time / 20);
+                
+                // Работа скважин
+                this.wells.prod1 = 45 * (this.depression / 80) * (1 - this.waterCut / 120);
+                this.wells.prod2 = 38 * (this.depression / 80) * (1 - this.waterCut / 130);
+                this.wells.inj1 = this.injectivity * 0.8;
+                this.wells.inj2 = this.injectivity * 0.63;
+                
+                // Округляем
+                for (let key in this.wells) {
+                    this.wells[key] = Math.max(0, Math.round(this.wells[key] * 10) / 10);
+                }
+                
+                this.time += 0.1;
+            }
+            
+            getFieldData() {
+                const x = [];
+                const oil = [];
+                const water = [];
+                const gas = [];
+                
+                for (let i = 0; i <= 20; i++) {
+                    const t = i / 2;
+                    x.push(t);
+                    oil.push(120 * Math.exp(-t/5));
+                    water.push(80 * (1 - Math.exp(-t/8)));
+                    gas.push(this.gor * (1 + t/15));
+                }
+                
+                return { x, oil, water, gas };
+            }
+            
+            getWellsData() {
+                const times = ['1 кв', '2 кв', '3 кв', '4 кв'];
+                const prod1Data = [45, 42, 38, 35];
+                const prod2Data = [38, 36, 33, 30];
+                const injData = [120, 125, 130, 135];
+                
+                return { times, prod1Data, prod2Data, injData };
+            }
+        }
+        
+        const sim = new TNavigatorSimulator();
+        
+        function updateUI() {
+            sim.depression = parseInt(document.getElementById('depression').value);
+            sim.injectivity = parseInt(document.getElementById('injectivity').value);
+            sim.gor = parseInt(document.getElementById('gor').value);
+            
+            sim.update();
+            
+            // Обновляем дисплеи
+            document.getElementById('depressionVal').textContent = sim.depression;
+            document.getElementById('injectivityVal').textContent = sim.injectivity;
+            document.getElementById('gorVal').textContent = sim.gor;
+            
+            // Обновляем статистику
+            document.getElementById('dailyOil').textContent = Math.round(sim.dailyOil);
+            document.getElementById('cumOil').textContent = (sim.cumOil).toFixed(1);
+            document.getElementById('waterCut').textContent = sim.waterCut.toFixed(1);
+            document.getElementById('pvt').textContent = Math.round(sim.currentGor);
+            
+            // Обновляем скважины
+            document.getElementById('prod1').textContent = sim.wells.prod1;
+            document.getElementById('prod2').textContent = sim.wells.prod2;
+            document.getElementById('inj1').textContent = sim.wells.inj1;
+            document.getElementById('inj2').textContent = sim.wells.inj2;
+            
+            // Обновляем графики
+            updatePlots();
+        }
+        
+        function updatePlots() {
+            const field = sim.getFieldData();
+            
+            // Показатели разработки
+            Plotly.newPlot('fieldPlot', [
+                {
+                    x: field.x,
+                    y: field.oil,
+                    type: 'scatter',
+                    name: 'Нефть (т/сут)',
+                    line: {color: '#e53e3e', width: 3}
+                },
+                {
+                    x: field.x,
+                    y: field.water,
+                    type: 'scatter',
+                    name: 'Вода (м³/сут)',
+                    line: {color: '#4299e1', width: 3}
+                },
+                {
+                    x: field.x,
+                    y: field.gas,
+                    type: 'scatter',
+                    name: 'Газовый фактор',
+                    line: {color: '#f6ad55', width: 3},
+                    yaxis: 'y2'
+                }
+            ], {
+                title: 'Динамика показателей разработки',
+                xaxis: {title: 'Время (годы)'},
+                yaxis: {title: 'Нефть/Вода'},
+                yaxis2: {
+                    title: 'Газовый фактор',
+                    overlaying: 'y',
+                    side: 'right'
+                },
+                showlegend: true
+            });
+            
+            const wells = sim.getWellsData();
+            
+            // Работа скважин
+            Plotly.newPlot('wellsPlot', [
+                {
+                    x: wells.times,
+                    y: wells.prod1Data,
+                    type: 'bar',
+                    name: 'Добывающая 1',
+                    marker: {color: '#e53e3e'}
+                },
+                {
+                    x: wells.times,
+                    y: wells.prod2Data,
+                    type: 'bar',
+                    name: 'Добывающая 2',
+                    marker: {color: '#dd6b20'}
+                },
+                {
+                    x: wells.times,
+                    y: wells.injData,
+                    type: 'scatter',
+                    name: 'Закачка',
+                    line: {color: '#4299e1', width: 3}
+                }
+            ], {
+                title: 'Работа скважин по кварталам',
+                xaxis: {title: 'Квартал'},
+                yaxis: {title: 'Дебит/Приемистость'},
+                barmode: 'group',
+                showlegend: true
+            });
+        }
+        
+        // Добавляем слушатели событий
+        document.getElementById('depression').addEventListener('input', updateUI);
+        document.getElementById('injectivity').addEventListener('input', updateUI);
+        document.getElementById('gor').addEventListener('input', updateUI);
+        
+        // Обновляем каждые 2 секунды
+        setInterval(updateUI, 2000);
+        
+        // Первоначальный запуск
+        updateUI();
+    </script>
+</body>
+</html>

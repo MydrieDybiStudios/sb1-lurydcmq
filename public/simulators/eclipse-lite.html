@@ -1,0 +1,468 @@
+<!-- public/simulators/eclipse-lite.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eclipse Lite - Гидродинамическое моделирование</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #38a169 0%, #2c7a4b 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        h1 i {
+            color: #38a169;
+            margin-right: 10px;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #38a169;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        .back-btn:hover {
+            background: #2f855a;
+            transform: translateX(-5px);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+        .plot-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .controls {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .slider-group {
+            margin: 20px 0;
+        }
+        .slider-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .slider-group input {
+            width: 100%;
+        }
+        .value-display {
+            text-align: right;
+            color: #38a169;
+            font-weight: 600;
+        }
+        .well-info {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border-left: 4px solid #38a169;
+        }
+        .well-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .well-item:last-child {
+            border-bottom: none;
+        }
+        .production-badge {
+            background: #38a169;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .injection-badge {
+            background: #4299e1;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #38a169 0%, #2c7a4b 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        .time-control {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .time-btn {
+            background: #38a169;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .time-btn:hover {
+            background: #2f855a;
+        }
+        .time-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/simulators" class="back-btn"><i class="fas fa-arrow-left"></i> Назад к симуляторам</a>
+        
+        <h1><i class="fas fa-water"></i> Eclipse Lite - Гидродинамическое моделирование</h1>
+        
+        <div class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-value" id="totalOil">0</div>
+                <div class="stat-label">Добыто нефти (м³)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalWater">0</div>
+                <div class="stat-label">Закачано воды (м³)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="pressure">0</div>
+                <div class="stat-label">Пластовое давление (МПа)</div>
+            </div>
+        </div>
+        
+        <div class="time-control">
+            <button class="time-btn" onclick="stepTime(-1)" id="prevBtn"><i class="fas fa-backward"></i> Назад</button>
+            <span style="flex:1; text-align:center; font-weight:bold;" id="timeDisplay">Год 0</span>
+            <button class="time-btn" onclick="stepTime(1)" id="nextBtn">Вперед <i class="fas fa-forward"></i></button>
+        </div>
+        
+        <div class="grid">
+            <div>
+                <div class="plot-container" id="saturationPlot"></div>
+                <div class="plot-container" id="productionPlot"></div>
+            </div>
+            
+            <div class="controls">
+                <h3><i class="fas fa-sliders-h"></i> Параметры пласта</h3>
+                
+                <div class="slider-group">
+                    <label>Проницаемость (мД) <i class="fas fa-chart-line"></i></label>
+                    <input type="range" id="perm" min="50" max="500" value="200" step="10">
+                    <div class="value-display" id="permVal">200</div>
+                    <small>Способность пропускать флюиды</small>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Пористость (%) <i class="fas fa-sponge"></i></label>
+                    <input type="range" id="porosity" min="10" max="35" value="22" step="1">
+                    <div class="value-display" id="porosityVal">22%</div>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Начальное давление (МПа) <i class="fas fa-gauge-high"></i></label>
+                    <input type="range" id="initPressure" min="10" max="40" value="25" step="1">
+                    <div class="value-display" id="initPressureVal">25</div>
+                </div>
+                
+                <div class="slider-group">
+                    <label>Темп закачки (м³/год) <i class="fas fa-syringe"></i></label>
+                    <input type="range" id="injRate" min="10" max="100" value="50" step="5">
+                    <div class="value-display" id="injRateVal">50</div>
+                </div>
+                
+                <div class="well-info">
+                    <h4>Скважины</h4>
+                    <div id="wellList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        class EclipseSimulator {
+            constructor() {
+                this.perm = 200;
+                this.porosity = 22;
+                this.initPressure = 25;
+                this.injRate = 50;
+                this.time = 0;
+                this.maxTime = 10;
+                this.reset();
+            }
+            
+            reset() {
+                this.oilProduced = 0;
+                this.waterInjected = 0;
+                this.pressure = this.initPressure;
+                this.wells = [];
+                
+                // Создаем скважины
+                for (let i = 0; i < 5; i++) {
+                    this.wells.push({
+                        id: i + 1,
+                        type: i < 2 ? 'production' : 'injection',
+                        x: 100 + i * 150,
+                        rate: i < 2 ? 15 : 25,
+                        oilRate: i < 2 ? 12 : 0,
+                        waterCut: i < 2 ? Math.random() * 20 : 100
+                    });
+                }
+            }
+            
+            step(forward) {
+                if (forward && this.time < this.maxTime) {
+                    this.time++;
+                    this.simulateYear();
+                } else if (!forward && this.time > 0) {
+                    this.time--;
+                    this.reset();
+                    // Воспроизводим историю до текущего времени
+                    for (let i = 0; i < this.time; i++) {
+                        this.simulateYear();
+                    }
+                }
+            }
+            
+            simulateYear() {
+                const permFactor = this.perm / 200;
+                const poroFactor = this.porosity / 22;
+                
+                // Добыча нефти
+                const oilRate = 30 * permFactor * poroFactor * (1 - this.waterInjected / 500);
+                this.oilProduced += oilRate;
+                
+                // Закачка воды
+                this.waterInjected += this.injRate * (1 + Math.sin(this.time) * 0.1);
+                
+                // Изменение давления
+                const pressureChange = (this.waterInjected * 0.1 - this.oilProduced * 0.15) / 10;
+                this.pressure = Math.max(10, Math.min(50, this.initPressure + pressureChange));
+                
+                // Обновляем скважины
+                this.wells.forEach(well => {
+                    if (well.type === 'production') {
+                        well.oilRate = 12 * permFactor * (1 - this.waterInjected / 800);
+                        well.waterCut = Math.min(80, well.waterCut + this.time * 2);
+                    }
+                });
+            }
+            
+            getSaturationProfile() {
+                const x = [];
+                const oilSat = [];
+                const waterSat = [];
+                
+                for (let i = 0; i < 100; i++) {
+                    const dist = i * 5;
+                    x.push(dist);
+                    
+                    // Фронт вытеснения
+                    const frontPos = this.waterInjected / 20;
+                    const oil = Math.max(0, 0.8 * (1 - Math.exp(-(dist - frontPos) / 50)));
+                    const water = 1 - oil;
+                    
+                    oilSat.push(oil * 100);
+                    waterSat.push(water * 100);
+                }
+                
+                return { x, oilSat, waterSat };
+            }
+            
+            getProductionHistory() {
+                const years = [];
+                const oil = [];
+                const water = [];
+                
+                for (let i = 0; i <= this.time; i++) {
+                    years.push(i);
+                    oil.push(30 * (1 - i / 20));
+                    water.push(this.injRate * (i / 5));
+                }
+                
+                return { years, oil, water };
+            }
+        }
+        
+        const sim = new EclipseSimulator();
+        
+        function updateUI() {
+            sim.perm = parseInt(document.getElementById('perm').value);
+            sim.porosity = parseInt(document.getElementById('porosity').value);
+            sim.initPressure = parseInt(document.getElementById('initPressure').value);
+            sim.injRate = parseInt(document.getElementById('injRate').value);
+            
+            // Обновляем дисплеи
+            document.getElementById('permVal').textContent = sim.perm;
+            document.getElementById('porosityVal').textContent = sim.porosity + '%';
+            document.getElementById('initPressureVal').textContent = sim.initPressure;
+            document.getElementById('injRateVal').textContent = sim.injRate;
+            
+            // Обновляем статистику
+            document.getElementById('totalOil').textContent = sim.oilProduced.toFixed(1);
+            document.getElementById('totalWater').textContent = sim.waterInjected.toFixed(1);
+            document.getElementById('pressure').textContent = sim.pressure.toFixed(1);
+            document.getElementById('timeDisplay').textContent = `Год ${sim.time}`;
+            
+            // Обновляем список скважин
+            updateWellList();
+            
+            // Обновляем графики
+            updatePlots();
+            
+            // Обновляем кнопки
+            document.getElementById('prevBtn').disabled = sim.time === 0;
+            document.getElementById('nextBtn').disabled = sim.time === sim.maxTime;
+        }
+        
+        function updateWellList() {
+            const list = document.getElementById('wellList');
+            list.innerHTML = '';
+            
+            sim.wells.forEach(well => {
+                const item = document.createElement('div');
+                item.className = 'well-item';
+                item.innerHTML = `
+                    <span>
+                        <strong>Скв. ${well.id}</strong>
+                        <span class="${well.type === 'production' ? 'production-badge' : 'injection-badge'}">
+                            ${well.type === 'production' ? 'Добыча' : 'Закачка'}
+                        </span>
+                    </span>
+                    <span>
+                        ${well.type === 'production' 
+                            ? `${well.oilRate.toFixed(1)} м³/сут | Обводнение ${well.waterCut.toFixed(1)}%` 
+                            : `${well.rate} м³/сут`}
+                    </span>
+                `;
+                list.appendChild(item);
+            });
+        }
+        
+        function updatePlots() {
+            const sat = sim.getSaturationProfile();
+            
+            // Насыщенность
+            Plotly.newPlot('saturationPlot', [
+                {
+                    x: sat.x,
+                    y: sat.oilSat,
+                    type: 'scatter',
+                    name: 'Нефть',
+                    fill: 'tozeroy',
+                    line: {color: '#38a169', width: 2}
+                },
+                {
+                    x: sat.x,
+                    y: sat.waterSat,
+                    type: 'scatter',
+                    name: 'Вода',
+                    fill: 'tonexty',
+                    line: {color: '#4299e1', width: 2}
+                }
+            ], {
+                title: 'Насыщенность по профилю',
+                xaxis: {title: 'Расстояние от нагнетательной скважины (м)'},
+                yaxis: {title: 'Насыщенность (%)'},
+                showlegend: true
+            });
+            
+            const prod = sim.getProductionHistory();
+            
+            // История добычи
+            Plotly.newPlot('productionPlot', [
+                {
+                    x: prod.years,
+                    y: prod.oil,
+                    type: 'scatter',
+                    name: 'Добыча нефти',
+                    line: {color: '#38a169', width: 3}
+                },
+                {
+                    x: prod.years,
+                    y: prod.water,
+                    type: 'scatter',
+                    name: 'Закачка воды',
+                    line: {color: '#4299e1', width: 3}
+                }
+            ], {
+                title: 'История разработки',
+                xaxis: {title: 'Время (годы)'},
+                yaxis: {title: 'Объем (м³)'},
+                showlegend: true
+            });
+        }
+        
+        function stepTime(delta) {
+            sim.step(delta > 0);
+            updateUI();
+        }
+        
+        // Добавляем слушатели событий
+        document.getElementById('perm').addEventListener('input', () => {
+            sim.perm = parseInt(document.getElementById('perm').value);
+            updateUI();
+        });
+        document.getElementById('porosity').addEventListener('input', () => {
+            sim.porosity = parseInt(document.getElementById('porosity').value);
+            updateUI();
+        });
+        document.getElementById('initPressure').addEventListener('input', () => {
+            sim.initPressure = parseInt(document.getElementById('initPressure').value);
+            updateUI();
+        });
+        document.getElementById('injRate').addEventListener('input', () => {
+            sim.injRate = parseInt(document.getElementById('injRate').value);
+            updateUI();
+        });
+        
+        // Первоначальный запуск
+        updateUI();
+    </script>
+</body>
+</html>
