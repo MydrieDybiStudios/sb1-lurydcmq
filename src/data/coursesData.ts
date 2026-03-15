@@ -6,6 +6,7 @@ const coursesData: Course[] = [
     id: 1,
     title: "Введение в нефтегазовую отрасль",
     description: "Основные понятия и компоненты нефтегазовой отрасли.",
+    videoUrl: "https://rutube.ru/play/embed/10fe1ba45ec2bf5f2c90ccc3312d1b2c",
     directions: ['oil-gas', 'geology', 'chemistry', 'energy', 'it', 'ecology'],
     lessons: [
       {
