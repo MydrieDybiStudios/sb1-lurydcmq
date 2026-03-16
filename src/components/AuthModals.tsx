@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Mail, Lock, User, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { Link } from 'react-router-dom';
 
@@ -47,13 +47,10 @@ const AuthModals: React.FC<AuthModalsProps> = ({
         password: loginPassword,
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       onAuthSuccess();
       onCloseLogin();
-
     } catch (error: any) {
       setLoginError(error.message);
     }
@@ -83,13 +80,10 @@ const AuthModals: React.FC<AuthModalsProps> = ({
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       onAuthSuccess();
       onCloseRegister();
-
     } catch (error: any) {
       setRegisterError(error.message);
     }
@@ -99,72 +93,125 @@ const AuthModals: React.FC<AuthModalsProps> = ({
     <>
       {/* Login Modal */}
       <div
-        className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
+        className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ${
           isLoginOpen ? 'visible opacity-100' : 'invisible opacity-0'
-        } transition-all duration-300`}
+        }`}
+        onClick={onCloseLogin}
       >
-        <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold">Вход в аккаунт</h3>
-              <button onClick={onCloseLogin} className="text-gray-500 hover:text-gray-700">
-                <X />
-              </button>
-            </div>
+        {/* Затемнение фона с размытием */}
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
 
-            <form className="space-y-4" onSubmit={handleLoginSubmit}>
+        {/* Модальное окно */}
+        <div
+          className={`relative bg-gradient-to-br from-gray-900 to-black rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-500 border border-yellow-500/20 ${
+            isLoginOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="p-8">
+            {/* Кнопка закрытия */}
+            <button
+              onClick={onCloseLogin}
+              className="absolute top-4 right-4 text-gray-400 hover:text-yellow-400 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Заголовок */}
+            <h3 className="text-3xl font-bold text-white mb-2">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-200">
+                Вход в аккаунт
+              </span>
+            </h3>
+            <p className="text-gray-400 mb-8">Войдите, чтобы продолжить обучение</p>
+
+            <form className="space-y-6" onSubmit={handleLoginSubmit}>
+              {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
+                <label className="block text-sm font-medium text-gray-300 mb-2 ml-1">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
-                    type="checkbox"
-                    id="rememberMe"
-                    className="h-4 w-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
-                    checked={rememberMe}
-                    onChange={() => setRememberMe(!rememberMe)}
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all"
+                    placeholder="your@email.com"
+                    required
                   />
-                  <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-700">
-                    Запомнить меня
-                  </label>
                 </div>
               </div>
 
-              {loginError && <p className="text-red-600 text-sm">{loginError}</p>}
+              {/* Пароль */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2 ml-1">
+                  Пароль
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
+              </div>
 
+              {/* Запомнить меня */}
+              <div className="flex items-center justify-between">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={() => setRememberMe(!rememberMe)}
+                    className="sr-only"
+                  />
+                  <div
+                    className={`w-5 h-5 border-2 rounded-md transition-all flex items-center justify-center ${
+                      rememberMe
+                        ? 'bg-yellow-500 border-yellow-500'
+                        : 'border-gray-600 bg-transparent'
+                    }`}
+                  >
+                    {rememberMe && <CheckCircle className="w-4 h-4 text-black" />}
+                  </div>
+                  <span className="ml-3 text-sm text-gray-300">Запомнить меня</span>
+                </label>
+
+                <button
+                  type="button"
+                  className="text-sm text-yellow-500 hover:text-yellow-400 transition"
+                >
+                  Забыли пароль?
+                </button>
+              </div>
+
+              {loginError && (
+                <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                  {loginError}
+                </p>
+              )}
+
+              {/* Кнопка входа */}
               <button
                 type="submit"
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 rounded-lg transition duration-200"
+                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-black font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/30"
               >
                 Войти
               </button>
 
-              <p className="text-center text-sm text-gray-600 mt-4">
-                Нет аккаунта?
+              {/* Ссылка на регистрацию */}
+              <p className="text-center text-sm text-gray-400 mt-6">
+                Нет аккаунта?{' '}
                 <button
                   type="button"
                   onClick={onSwitchToRegister}
-                  className="text-yellow-600 hover:text-yellow-700 font-medium ml-1"
+                  className="text-yellow-400 hover:text-yellow-300 font-medium ml-1"
                 >
                   Зарегистрироваться
                 </button>
@@ -176,93 +223,155 @@ const AuthModals: React.FC<AuthModalsProps> = ({
 
       {/* Register Modal */}
       <div
-        className={`fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 ${
+        className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ${
           isRegisterOpen ? 'visible opacity-100' : 'invisible opacity-0'
-        } transition-all duration-300`}
+        }`}
+        onClick={onCloseRegister}
       >
-        <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold">Регистрация</h3>
-              <button onClick={onCloseRegister} className="text-gray-500 hover:text-gray-700">
-                <X />
-              </button>
-            </div>
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
 
-            <form className="space-y-4" onSubmit={handleRegisterSubmit}>
+        <div
+          className={`relative bg-gradient-to-br from-gray-900 to-black rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-500 border border-yellow-500/20 ${
+            isRegisterOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="p-8 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <button
+              onClick={onCloseRegister}
+              className="absolute top-4 right-4 text-gray-400 hover:text-yellow-400 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            <h3 className="text-3xl font-bold text-white mb-2">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-200">
+                Регистрация
+              </span>
+            </h3>
+            <p className="text-gray-400 mb-8">Создайте аккаунт и начните обучение</p>
+
+            <form className="space-y-5" onSubmit={handleRegisterSubmit}>
+              {/* Имя */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Имя</label>
-                <input
-                  type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  value={registerName}
-                  onChange={(e) => setRegisterName(e.target.value)}
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-300 mb-2 ml-1">
+                  Имя
+                </label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    value={registerName}
+                    onChange={(e) => setRegisterName(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all"
+                    placeholder="Иван Иванов"
+                    required
+                  />
+                </div>
               </div>
 
+              {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  value={registerEmail}
-                  onChange={(e) => setRegisterEmail(e.target.value)}
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-300 mb-2 ml-1">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="email"
+                    value={registerEmail}
+                    onChange={(e) => setRegisterEmail(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all"
+                    placeholder="your@email.com"
+                    required
+                  />
+                </div>
               </div>
 
+              {/* Пароль */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Пароль</label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  value={registerPassword}
-                  onChange={(e) => setRegisterPassword(e.target.value)}
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-300 mb-2 ml-1">
+                  Пароль
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="password"
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
               </div>
 
+              {/* Подтверждение пароля */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Подтвердите пароль</label>
-                <input
-                  type="password"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-300 mb-2 ml-1">
+                  Подтвердите пароль
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full pl-12 pr-4 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center">
+              {/* Согласие с условиями */}
+              <label className="flex items-start cursor-pointer">
                 <input
                   type="checkbox"
-                  id="acceptTerms"
-                  className="h-4 w-4 text-yellow-600 border-gray-300 rounded focus:ring-yellow-500"
                   checked={acceptTerms}
                   onChange={() => setAcceptTerms(!acceptTerms)}
-                  required
+                  className="sr-only"
                 />
-                <label htmlFor="acceptTerms" className="ml-2 text-sm text-gray-700">
-                  Я принимаю <Link to="/terms-of-service" className="text-yellow-600 hover:text-yellow-700">условия использования</Link>
-                </label>
-              </div>
+                <div
+                  className={`flex-shrink-0 w-5 h-5 border-2 rounded-md transition-all flex items-center justify-center ${
+                    acceptTerms
+                      ? 'bg-yellow-500 border-yellow-500'
+                      : 'border-gray-600 bg-transparent'
+                  }`}
+                >
+                  {acceptTerms && <CheckCircle className="w-4 h-4 text-black" />}
+                </div>
+                <span className="ml-3 text-sm text-gray-300">
+                  Я принимаю{' '}
+                  <Link
+                    to="/terms-of-service"
+                    className="text-yellow-500 hover:text-yellow-400 font-medium"
+                    target="_blank"
+                  >
+                    условия использования
+                  </Link>
+                </span>
+              </label>
 
-              {registerError && <p className="text-red-600 text-sm">{registerError}</p>}
+              {registerError && (
+                <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                  {registerError}
+                </p>
+              )}
 
               <button
                 type="submit"
-                className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 rounded-lg transition duration-200"
+                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-black font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/30 mt-4"
               >
                 Зарегистрироваться
               </button>
 
-              <p className="text-center text-sm text-gray-600 mt-4">
-                Уже есть аккаунт?
+              <p className="text-center text-sm text-gray-400 mt-6">
+                Уже есть аккаунт?{' '}
                 <button
                   type="button"
                   onClick={onSwitchToLogin}
-                  className="text-yellow-600 hover:text-yellow-700 font-medium ml-1"
+                  className="text-yellow-400 hover:text-yellow-300 font-medium ml-1"
                 >
                   Войти
                 </button>
@@ -271,6 +380,24 @@ const AuthModals: React.FC<AuthModalsProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Стили для скролла в модалке регистрации */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255,255,255,0.1);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255,215,0,0.3);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255,215,0,0.5);
+        }
+      `}</style>
     </>
   );
 };
