@@ -128,6 +128,10 @@ const Cabinet: React.FC = () => {
     navigate("/simulators");
   };
 
+    const handleNavigateToMap = () => {
+    navigate("/map");
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -235,6 +239,13 @@ const Cabinet: React.FC = () => {
                 >
                   <Compass className="w-4 h-4 inline mr-1" />
                   Симуляторы
+                </button>
+                <button
+                  onClick={handleNavigateToMap}
+                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                >
+                  <Compass className="w-4 h-4 inline mr-1" />
+                  Карта месторождений
                 </button>
               </nav>
 
