@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { Sparkles, Target, Rocket, ArrowRight, Zap } from "lucide-react";
 
 interface CtaSectionProps {
   onLogin: () => void;
@@ -58,22 +59,20 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
 
   if (loading) {
     return (
-      <section className="py-16 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-black text-center">
-        <div className="container mx-auto px-4">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-black border-t-transparent"></div>
-          <p className="mt-4 text-black/70">Загрузка...</p>
+      <section className="relative bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 overflow-hidden py-20">
+        <div className="absolute inset-0 bg-black/5"></div>
+        <div className="container mx-auto px-4 relative z-10 text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-black border-t-transparent"></div>
+          <p className="mt-4 text-black/70 text-lg">Загрузка...</p>
         </div>
       </section>
     );
   }
 
-  // Единый стиль для всех вариантов – как в HeroSection
+  // Общий фон hero
   const commonClasses = "relative bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-black overflow-hidden py-20 md:py-28";
 
-  // Стиль кнопки – как в HeroSection
-  const buttonClass = "bg-black text-yellow-400 hover:bg-gray-900 font-bold py-4 px-8 rounded-full transition transform hover:scale-110 hover:shadow-xl border-2 border-black";
-
-  // Волнистый элемент внизу (как в HeroSection)
+  // Волнистый элемент внизу (как в hero)
   const waveSvg = (
     <div className="absolute bottom-0 left-0 right-0 text-black">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full h-auto fill-black opacity-10">
@@ -82,85 +81,126 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
     </div>
   );
 
+  // Декоративные размытые круги
+  const blobs = (
+    <>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-black/5 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-black/5 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
+    </>
+  );
+
+  // Стилизованная карточка контента (полупрозрачный чёрный фон с размытием)
+  const contentCardClass = "relative z-10 bg-black/10 backdrop-blur-sm rounded-3xl p-10 md:p-16 shadow-2xl border border-white/20";
+
+  // Универсальный стиль кнопки
+  const buttonClass = "group bg-black text-yellow-400 hover:bg-gray-900 font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-black/30 border-2 border-black/50 inline-flex items-center gap-3 text-lg";
+
   // Пользователь авторизован
   if (user) {
-    // Если направление не выбрано – предлагаем тест
+    // Если направление не выбрано
     if (!profile?.direction) {
       return (
         <section className={commonClasses}>
+          {blobs}
           {waveSvg}
-          <div className="container mx-auto px-4 relative z-10">
-            <div className="max-w-4xl mx-auto text-center">
-              <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-                Привет, {profile?.first_name || "друг"}! 👋
-              </h2>
-              <p className="text-xl md:text-2xl mb-10 text-black/80 max-w-3xl mx-auto">
-                Похоже, ты ещё не выбрал направление. Пройди наш тест, чтобы мы могли порекомендовать подходящие курсы.
-              </p>
-              <button
-                onClick={() => navigate("/career-test")}
-                className={buttonClass}
-              >
-                Пройти тест на профессию
-              </button>
+          <div className="container mx-auto px-4 relative">
+            <div className={contentCardClass}>
+              <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
+                <div className="bg-black rounded-full p-4 mb-6 shadow-lg transform hover:scale-110 transition">
+                  <Sparkles className="w-12 h-12 text-yellow-400" />
+                </div>
+                <h2 className="text-4xl md:text-5xl font-black mb-4">
+                  Привет, <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-400">{profile?.first_name || "друг"}!</span>
+                </h2>
+                <p className="text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
+                  Похоже, ты ещё не выбрал направление. Пройди наш тест, чтобы мы могли порекомендовать подходящие курсы.
+                </p>
+                <button
+                  onClick={() => navigate("/career-test")}
+                  className={buttonClass}
+                >
+                  <Target className="w-5 h-5 group-hover:rotate-12 transition" />
+                  Пройти тест на профессию
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+                </button>
+              </div>
             </div>
           </div>
         </section>
       );
     }
 
-    // Направление выбрано – стандартное приветствие
+    // Направление выбрано
     return (
       <section className={commonClasses}>
+        {blobs}
         {waveSvg}
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-              Добро пожаловать, {profile?.first_name || "друзья"}!
-            </h2>
-            <p className="text-xl md:text-2xl mb-10 text-black/80 max-w-3xl mx-auto">
-              Успехов в обучении и отличных результатов на платформе{" "}
-              <span className="font-semibold">«Югра.Нефть»</span>!
-            </p>
-            <button
-              onClick={() => navigate("/cabinet")}
-              className={buttonClass}
-            >
-              Перейти в личный кабинет
-            </button>
+        <div className="container mx-auto px-4 relative">
+          <div className={contentCardClass}>
+            <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
+              <div className="bg-black rounded-full p-4 mb-6 shadow-lg transform hover:scale-110 transition">
+                <Rocket className="w-12 h-12 text-yellow-400" />
+              </div>
+              <h2 className="text-4xl md:text-5xl font-black mb-4">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-400">
+                  Добро пожаловать, {profile?.first_name || "друзья"}!
+                </span>
+              </h2>
+              <p className="text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
+                Успехов в обучении и отличных результатов на платформе{" "}
+                <span className="font-bold text-yellow-400">«Югра.Нефть»</span>!
+              </p>
+              <button
+                onClick={() => navigate("/cabinet")}
+                className={buttonClass}
+              >
+                Перейти в личный кабинет
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
     );
   }
 
-  // Пользователь не авторизован – предложение зарегистрироваться
+  // Не авторизован
   return (
     <section className={commonClasses}>
+      {blobs}
       {waveSvg}
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight">
-            Готовы начать обучение?
-          </h2>
-          <p className="text-xl md:text-2xl mb-10 text-black/80 max-w-3xl mx-auto">
-            Присоединяйтесь к платформе{" "}
-            <span className="font-semibold">«Югра.Нефть»</span> и откройте
-            для себя увлекательный мир нефтегазовой отрасли!
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button
-              onClick={onRegister}
-              className={buttonClass}
-            >
-              Зарегистрироваться
-            </button>
-            <button
-              onClick={onLogin}
-              className={buttonClass}
-            >
-              Войти
-            </button>
+      <div className="container mx-auto px-4 relative">
+        <div className={contentCardClass}>
+          <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
+            <div className="bg-black rounded-full p-4 mb-6 shadow-lg transform hover:scale-110 transition">
+              <Zap className="w-12 h-12 text-yellow-400" />
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black mb-4">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-400">
+                Готовы начать обучение?
+              </span>
+            </h2>
+            <p className="text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
+              Присоединяйтесь к платформе{" "}
+              <span className="font-bold text-yellow-400">«Югра.Нефть»</span> и откройте
+              для себя увлекательный мир нефтегазовой отрасли!
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+              <button
+                onClick={onRegister}
+                className={buttonClass}
+              >
+                Зарегистрироваться
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+              </button>
+              <button
+                onClick={onLogin}
+                className={buttonClass}
+              >
+                Войти
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
