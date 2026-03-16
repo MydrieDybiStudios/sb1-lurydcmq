@@ -6,7 +6,7 @@ import AchievementsSection from "../components/AchievementsSection";
 import CourseModal from "../components/CourseModal";
 import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, ChevronRight, Award, BookOpen, User, Compass, LogOut } from "lucide-react";
+import { Menu, X, ChevronRight, Award, BookOpen, User, Compass, LogOut, Sparkles } from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
 import DirectionSelector from "../components/DirectionSelector";
@@ -124,7 +124,7 @@ const Cabinet: React.FC = () => {
     navigate("/vr-module");
   };
 
-    const handleNavigateToSim = () => {
+  const handleNavigateToSim = () => {
     navigate("/simulators");
   };
 
@@ -135,10 +135,10 @@ const Cabinet: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">Загружаем ваш личный кабинет...</p>
+          <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-black/80 font-medium">Загружаем ваш личный кабинет...</p>
         </div>
       </div>
     );
@@ -165,11 +165,11 @@ const Cabinet: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* Header с улучшенным дизайном */}
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600">
+      {/* Header (оставляем как есть, он уже в стиле) */}
       <header className="bg-black text-white shadow-2xl sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 border-b border-yellow-500/20">
+        {/* без изменений, оставляем оригинальный код header */}
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          {/* Логотип и название */}
           <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => navigate("/")}>
             <div className="relative">
               <img 
@@ -191,7 +191,6 @@ const Cabinet: React.FC = () => {
 
           {user && (
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Десктопная навигация */}
               <nav className="hidden md:flex items-center space-x-1 bg-gray-900/50 rounded-lg p-1">
                 <button
                   onClick={() => setActiveSection("courses")}
@@ -238,7 +237,6 @@ const Cabinet: React.FC = () => {
                 </button>
               </nav>
 
-              {/* Профиль и выход */}
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <div 
                   className="flex items-center gap-2 cursor-pointer group bg-gray-900/50 rounded-full pl-2 pr-3 py-1 hover:bg-gray-800 transition-all duration-300"
@@ -286,7 +284,6 @@ const Cabinet: React.FC = () => {
                 </button>
               </div>
 
-              {/* Мобильная кнопка меню */}
               <button
                 className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -338,6 +335,13 @@ const Cabinet: React.FC = () => {
                 <Compass className="w-5 h-5 mr-3" />
                 VR-модуль
               </button>
+              <button
+                onClick={() => { handleNavigateToSim(); setIsMobileMenuOpen(false); }}
+                className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+              >
+                <Compass className="w-5 h-5 mr-3" />
+                Симуляторы
+              </button>
               <div className="border-t border-gray-800 pt-2 mt-2">
                 <button
                   onClick={() => { handleExitToMain(); setIsMobileMenuOpen(false); }}
@@ -360,9 +364,9 @@ const Cabinet: React.FC = () => {
 
       {/* Основной контент */}
       <main className="flex-grow container mx-auto px-4 py-8 relative">
-        {/* Декоративные элементы */}
-        <div className="absolute top-20 left-0 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-        <div className="absolute top-40 right-0 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+        {/* Декоративные элементы в стиле hero (чёрные размытые круги) */}
+        <div className="absolute top-20 left-0 w-72 h-72 bg-black/5 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-0 w-96 h-96 bg-black/5 rounded-full blur-3xl"></div>
 
         {user ? (
           <div className="relative z-10">
@@ -371,13 +375,13 @@ const Cabinet: React.FC = () => {
                 <section id="courses" className="mb-16">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
                     <div>
-                      <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 flex items-center">
-                        <BookOpen className="w-8 h-8 mr-3 text-yellow-500" />
+                      <h2 className="text-3xl md:text-4xl font-black text-black mb-2 flex items-center">
+                        <BookOpen className="w-8 h-8 mr-3 text-black" />
                         Мои курсы
                       </h2>
                       {profile?.direction && (
-                        <p className="text-gray-600 ml-11">
-                          Направление: <span className="font-semibold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">
+                        <p className="text-black/80 ml-11">
+                          Направление: <span className="font-bold text-yellow-700 bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-600/30">
                             {directions.find(d => d.id === profile.direction)?.name || profile.direction}
                           </span>
                         </p>
@@ -385,10 +389,10 @@ const Cabinet: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setIsDirectionModalOpen(true)}
-                      className="mt-3 sm:mt-0 bg-black hover:bg-gray-900 text-yellow-400 px-5 py-2 rounded-lg font-medium transition-all duration-200 flex items-center group"
+                      className="mt-3 sm:mt-0 bg-black text-yellow-400 hover:bg-gray-900 font-bold py-3 px-6 rounded-full transition-all transform hover:scale-105 hover:shadow-2xl flex items-center gap-2 border-2 border-black"
                     >
-                      Сменить направление
-                      <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                      <span>Сменить направление</span>
+                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition" />
                     </button>
                   </div>
                   <CoursesSection 
@@ -398,8 +402,8 @@ const Cabinet: React.FC = () => {
                 </section>
 
                 <section id="achievements" className="relative">
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-8 flex items-center">
-                    <Award className="w-8 h-8 mr-3 text-yellow-500" />
+                  <h2 className="text-3xl md:text-4xl font-black text-black mb-8 flex items-center">
+                    <Award className="w-8 h-8 mr-3 text-black" />
                     Мои достижения
                   </h2>
                   <AchievementsSection />
@@ -409,8 +413,8 @@ const Cabinet: React.FC = () => {
 
             {activeSection === "profile" && (
               <section className="max-w-4xl mx-auto">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-8 flex items-center">
-                  <User className="w-8 h-8 mr-3 text-yellow-500" />
+                <h2 className="text-3xl md:text-4xl font-black text-black mb-8 flex items-center">
+                  <User className="w-8 h-8 mr-3 text-black" />
                   Профиль пользователя
                 </h2>
                 <Profile />
@@ -418,32 +422,30 @@ const Cabinet: React.FC = () => {
             )}
           </div>
         ) : (
-          <div className="max-w-md mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300">
-            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6 text-center">
-              <img 
-                src={logo} 
-                alt="Югра.Нефть" 
-                className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-4"
-              />
-              <h2 className="text-2xl font-bold text-black">Доступ ограничен</h2>
-            </div>
-            <div className="p-8 text-center">
-              <p className="text-gray-600 mb-6">
-                Для доступа к курсам, достижениям и личному кабинету необходимо войти или зарегистрироваться.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={() => navigate("/")}
-                  className="bg-black hover:bg-gray-900 text-yellow-400 font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105"
-                >
-                  Войти
-                </button>
-                <button
-                  onClick={() => navigate("/")}
-                  className="border-2 border-black hover:bg-black hover:text-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105"
-                >
-                  Регистрация
-                </button>
+          <div className="max-w-md mx-auto relative z-10">
+            <div className="bg-black/80 backdrop-blur-sm rounded-3xl p-8 border border-yellow-500/30 shadow-2xl">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-yellow-500 rounded-2xl mb-6 shadow-2xl">
+                  <Sparkles className="w-10 h-10 text-black" />
+                </div>
+                <h2 className="text-2xl font-bold text-yellow-400 mb-2">Доступ ограничен</h2>
+                <p className="text-gray-300 mb-6">
+                  Для доступа к курсам, достижениям и личному кабинету необходимо войти или зарегистрироваться.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <button
+                    onClick={() => navigate("/")}
+                    className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-6 rounded-full transition transform hover:scale-105 hover:shadow-2xl border-2 border-yellow-400"
+                  >
+                    Войти
+                  </button>
+                  <button
+                    onClick={() => navigate("/")}
+                    className="bg-black text-yellow-400 hover:bg-gray-900 font-bold py-3 px-6 rounded-full transition transform hover:scale-105 hover:shadow-2xl border-2 border-black"
+                  >
+                    Регистрация
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -452,7 +454,6 @@ const Cabinet: React.FC = () => {
 
       <Footer />
 
-      {/* Модальные окна */}
       <CourseModal 
         isOpen={isCourseModalOpen} 
         onClose={() => setIsCourseModalOpen(false)} 
