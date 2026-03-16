@@ -4,16 +4,16 @@ import {
   Cpu, Sparkles, Target, Award, ChevronRight, Info,
   Filter, GraduationCap, ArrowUpDown, Eye,
   ArrowLeft, Mountain, Waves, Flag, Drill as DrillIcon,
-  Users, Code, Zap, Star, Heart, Rocket
+  Users, Code, Zap, Star, Heart, Rocket, Globe
 } from 'lucide-react';
 
-// ==================== КОМПОНЕНТ КАРТОЧКИ СИМУЛЯТОРА (улучшенный дизайн) ====================
+// ==================== КОМПОНЕНТ КАРТОЧКИ СИМУЛЯТОРА ====================
 interface SimulatorCardProps {
   title: string;
   description: string;
   icon: string;
   iconBgColor: string;
-  badgeText: string;
+  badgeText: string;        // теперь это тематический бейдж (ГРП, Геология и т.д.)
   badgeColor: string;
   time: string;
   difficulty: string;
@@ -39,7 +39,6 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  // Определяем цвет для бейджа сложности
   const difficultyColor = 
     difficulty === 'Начальный' ? 'bg-green-500/20 text-green-400' :
     difficulty === 'Средний' ? 'bg-yellow-500/20 text-yellow-400' :
@@ -52,10 +51,8 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Декоративный градиент при наведении */}
       <div className={`absolute inset-0 bg-gradient-to-br from-yellow-500/0 via-yellow-500/0 to-yellow-500/0 group-hover:from-yellow-500/5 group-hover:via-yellow-500/5 group-hover:to-yellow-500/10 transition-all duration-700 pointer-events-none`}></div>
       
-      {/* Верхняя часть с иконкой и бейджем */}
       <div className="p-6 border-b border-gray-700 flex justify-between items-center relative">
         <div className="flex items-center gap-3">
           <div className={`${iconBgColor} text-black w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
@@ -76,7 +73,6 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
         )}
       </div>
 
-      {/* Основной контент */}
       <div className="p-6">
         <div className="aspect-video bg-gray-900 rounded-xl overflow-hidden mb-4 relative group/image">
           <div className={`w-full h-full bg-gradient-to-br ${iconBgColor.replace('bg-', 'from-')}/20 to-${iconBgColor.replace('bg-', '')}/20 flex items-center justify-center transition-all duration-500 ${isHovered ? 'scale-110' : ''}`}>
@@ -92,7 +88,6 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
 
         <p className="text-gray-400 mb-4 line-clamp-2 leading-relaxed">{description}</p>
 
-        {/* Метки категорий и времени */}
         <div className="flex flex-wrap gap-2 mb-4">
           <span className={`${badgeColor} px-3 py-1 rounded-full text-xs`}>{badgeText}</span>
           <span className={`${difficultyColor} px-3 py-1 rounded-full text-xs`}>{difficulty}</span>
@@ -106,7 +101,7 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
           </span>
         </div>
 
-        {/* Информация о разработчике — добавляем в каждую карточку */}
+        {/* Информация о разработчике */}
         <div className="mt-4 pt-4 border-t border-gray-700 flex items-center gap-2 text-xs text-gray-500 group-hover:text-gray-400 transition-colors">
           <Users className="w-4 h-4 text-yellow-500/70" />
           <span>Разработано <span className="text-yellow-500/90 font-medium">Командой Цифровой Образовательной Среды «Югра.Нефть»</span></span>
@@ -117,7 +112,7 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
   );
 };
 
-// ==================== СИМУЛЯТОРЫ ====================
+// ==================== СИМУЛЯТОРЫ (все наши) ====================
 const GrpSimulator: React.FC = () => {
   const openSimulator = () => {
     window.location.href = '/simulators/grp-simulator.html';
@@ -129,7 +124,7 @@ const GrpSimulator: React.FC = () => {
       description="Гидроразрыв пласта — моделируйте процесс и оптимизируйте параметры."
       icon="🏔️"
       iconBgColor="bg-yellow-500"
-      badgeText="Отечественный аналог"
+      badgeText="ГРП"
       badgeColor="bg-yellow-500/20 text-yellow-400"
       time="30 мин"
       difficulty="Средний"
@@ -152,7 +147,7 @@ const PetrelSimulator: React.FC = () => {
       description="Геологическое моделирование — пористость, песчаники, структуры."
       icon="🗻"
       iconBgColor="bg-purple-500"
-      badgeText="Аналог Schlumberger"
+      badgeText="Геология"
       badgeColor="bg-purple-500/20 text-purple-400"
       time="15 мин"
       difficulty="Начальный"
@@ -174,7 +169,7 @@ const EclipseSimulator: React.FC = () => {
       description="Гидродинамика — движение флюидов и оптимизация разработки."
       icon="🌊"
       iconBgColor="bg-blue-500"
-      badgeText="Аналог Schlumberger"
+      badgeText="Гидродинамика"
       badgeColor="bg-blue-500/20 text-blue-400"
       time="20 мин"
       difficulty="Средний"
@@ -196,7 +191,7 @@ const TNavigatorSimulator: React.FC = () => {
       description="Отечественный симулятор для моделирования месторождений."
       icon="🇷🇺"
       iconBgColor="bg-red-500"
-      badgeText="Rock Flow Dynamics"
+      badgeText="Гидродинамика"
       badgeColor="bg-red-500/20 text-red-400"
       time="25 мин"
       difficulty="Средний"
@@ -218,7 +213,7 @@ const DrillingSimulator: React.FC = () => {
       description="Проектирование бурения — траектории скважин, параметры."
       icon="🛢️"
       iconBgColor="bg-orange-500"
-      badgeText="Аналог Schlumberger"
+      badgeText="Бурение"
       badgeColor="bg-orange-500/20 text-orange-400"
       time="20 мин"
       difficulty="Средний"
@@ -240,7 +235,7 @@ const FieldDirectorSimulator: React.FC = () => {
       description="Стратегический симулятор управления нефтяной компанией."
       icon="🏭"
       iconBgColor="bg-green-500"
-      badgeText="Отечественная разработка"
+      badgeText="Управление"
       badgeColor="bg-green-500/20 text-green-400"
       time="60 мин"
       difficulty="Средний"
@@ -257,8 +252,10 @@ const SimulatorsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'popular' | 'difficulty' | 'time'>('popular');
   const navigate = useNavigate();
 
+  // Добавлена категория "Разработанные нами" (ours)
   const categories = [
     { id: 'all', name: 'Все симуляторы', icon: Filter },
+    { id: 'ours', name: 'Разработанные нами', icon: Users },
     { id: 'grp', name: 'ГРП', icon: Target },
     { id: 'geology', name: 'Геология', icon: Mountain },
     { id: 'hydrodynamic', name: 'Гидродинамика', icon: Waves },
@@ -277,7 +274,11 @@ const SimulatorsPage: React.FC = () => {
   ];
 
   const filteredSimulators = allSimulators
-    .filter(sim => selectedCategory === 'all' ? true : sim.category === selectedCategory)
+    .filter(sim => {
+      if (selectedCategory === 'all') return true;
+      if (selectedCategory === 'ours') return true; // показываем все
+      return sim.category === selectedCategory;
+    })
     .sort((a, b) => {
       if (sortBy === 'popular') return b.rating - a.rating;
       if (sortBy === 'difficulty') {
@@ -339,7 +340,7 @@ const SimulatorsPage: React.FC = () => {
             </p>
             
             {/* Статистика */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl">
               <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 text-center border border-gray-700 hover:border-yellow-500 transition">
                 <div className="text-3xl font-bold text-yellow-400">6</div>
                 <div className="text-sm text-gray-400">Симуляторов</div>
@@ -349,12 +350,8 @@ const SimulatorsPage: React.FC = () => {
                 <div className="text-sm text-gray-400">Средний рейтинг</div>
               </div>
               <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 text-center border border-gray-700 hover:border-yellow-500 transition">
-                <div className="text-3xl font-bold text-yellow-400">5</div>
-                <div className="text-sm text-gray-400">Отечественные аналоги</div>
-              </div>
-              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 text-center border border-gray-700 hover:border-yellow-500 transition">
-                <div className="text-3xl font-bold text-yellow-400">1</div>
-                <div className="text-sm text-gray-400">Оригинальный</div>
+                <div className="text-3xl font-bold text-yellow-400">6</div>
+                <div className="text-sm text-gray-400">Разработано нами</div>
               </div>
             </div>
           </div>
