@@ -89,10 +89,10 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
     </>
   );
 
-  // Стилизованная карточка контента (полупрозрачный чёрный фон с размытием)
-  const contentCardClass = "relative z-10 bg-black/10 backdrop-blur-sm rounded-3xl p-10 md:p-16 shadow-2xl border border-white/20";
+  // Светлая карточка для контента (чёрный текст будет хорошо виден)
+  const contentCardClass = "relative z-10 bg-white/90 backdrop-blur-sm rounded-3xl p-10 md:p-16 shadow-2xl border border-white/30";
 
-  // Универсальный стиль кнопки
+  // Универсальный стиль кнопки (чёрная с жёлтым текстом)
   const buttonClass = "group bg-black text-yellow-400 hover:bg-gray-900 font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-black/30 border-2 border-black/50 inline-flex items-center gap-3 text-lg";
 
   // Пользователь авторизован
@@ -109,10 +109,10 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
                 <div className="bg-black rounded-full p-4 mb-6 shadow-lg transform hover:scale-110 transition">
                   <Sparkles className="w-12 h-12 text-yellow-400" />
                 </div>
-                <h2 className="text-4xl md:text-5xl font-black mb-4">
-                  Привет, <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-400">{profile?.first_name || "друг"}!</span>
+                <h2 className="text-4xl md:text-5xl font-black text-black mb-4">
+                  Привет, {profile?.first_name || "друг"}! 👋
                 </h2>
-                <p className="text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
+                <p className="text-xl text-black/80 mb-8 max-w-2xl leading-relaxed">
                   Похоже, ты ещё не выбрал направление. Пройди наш тест, чтобы мы могли порекомендовать подходящие курсы.
                 </p>
                 <button
@@ -141,14 +141,12 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
               <div className="bg-black rounded-full p-4 mb-6 shadow-lg transform hover:scale-110 transition">
                 <Rocket className="w-12 h-12 text-yellow-400" />
               </div>
-              <h2 className="text-4xl md:text-5xl font-black mb-4">
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-400">
-                  Добро пожаловать, {profile?.first_name || "друзья"}!
-                </span>
+              <h2 className="text-4xl md:text-5xl font-black text-black mb-4">
+                Добро пожаловать, {profile?.first_name || "друзья"}!
               </h2>
-              <p className="text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
+              <p className="text-xl text-black/80 mb-8 max-w-2xl leading-relaxed">
                 Успехов в обучении и отличных результатов на платформе{" "}
-                <span className="font-bold text-yellow-400">«Югра.Нефть»</span>!
+                <span className="font-bold text-black">«Югра.Нефть»</span>!
               </p>
               <button
                 onClick={() => navigate("/cabinet")}
@@ -175,14 +173,12 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
             <div className="bg-black rounded-full p-4 mb-6 shadow-lg transform hover:scale-110 transition">
               <Zap className="w-12 h-12 text-yellow-400" />
             </div>
-            <h2 className="text-4xl md:text-5xl font-black mb-4">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 to-yellow-400">
-                Готовы начать обучение?
-              </span>
+            <h2 className="text-4xl md:text-5xl font-black text-black mb-4">
+              Готовы начать обучение?
             </h2>
-            <p className="text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
+            <p className="text-xl text-black/80 mb-8 max-w-2xl leading-relaxed">
               Присоединяйтесь к платформе{" "}
-              <span className="font-bold text-yellow-400">«Югра.Нефть»</span> и откройте
+              <span className="font-bold text-black">«Югра.Нефть»</span> и откройте
               для себя увлекательный мир нефтегазовой отрасли!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
