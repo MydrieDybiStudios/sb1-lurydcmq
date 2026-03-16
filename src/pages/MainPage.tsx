@@ -1,19 +1,24 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import HeroSection from "../components/HeroSection";
-import AboutSection from "../components/AboutSection";
 import CtaSection from "../components/CtaSection";
 import Footer from "../components/Footer";
-import { Compass, X, Home, Users, BookOpen, Award, MessageCircle } from "lucide-react";
+import { 
+  Compass, X, Home, Users, BookOpen, Award, MessageCircle, 
+  Sparkles, Target, Zap, Rocket, Globe, ChevronRight, 
+  GraduationCap, Video, CheckCircle, Trophy, Eye, ArrowRight,
+  User, Mail, Lock, Heart, Star, Layers, Cpu, Brain, 
+  TrendingUp, BarChart, Clock, ThumbsUp, Share2
+} from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 // Импорты логотипов из папки src/logos/
 import school1Logo from "../logos/school1-logo.png";
 import educationDepartmentLogo from "../logos/education-department-logo.png";
 import rnYuganskLogo from "../logos/rn-yugansk-logo.png";
-import varwinLogo from "../logos/varwin-logo.png"; // Добавлен импорт логотипа Varwin
+import varwinLogo from "../logos/varwin-logo.png";
 
-// Компонент путеводителя для мобильных устройств
+// ================== Мобильный путеводитель (улучшенный дизайн) ==================
 const MobileGuide: React.FC = () => {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const navigate = useNavigate();
@@ -47,11 +52,10 @@ const MobileGuide: React.FC = () => {
 
   return (
     <>
-      {/* Кнопка открытия путеводителя - УВЕЛИЧЕНА */}
+      {/* Кнопка открытия путеводителя */}
       <button
         onClick={() => setIsGuideOpen(true)}
-        className="fixed bottom-6 right-6 z-40 bg-yellow-500 hover:bg-yellow-600 text-black rounded-full p-4 shadow-2xl lg:hidden transition-all duration-300 hover:scale-110"
-        aria-label="Открыть навигацию"
+        className="fixed bottom-6 right-6 z-40 bg-gradient-to-br from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-black rounded-full p-4 shadow-2xl lg:hidden transition-all duration-300 hover:scale-110 hover:shadow-yellow-500/50"
         style={{ width: '60px', height: '60px' }}
       >
         <Compass className="w-7 h-7" />
@@ -59,13 +63,18 @@ const MobileGuide: React.FC = () => {
 
       {/* Модальное окно путеводителя */}
       {isGuideOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 lg:hidden flex items-end">
-          <div className="bg-white w-full rounded-t-2xl p-6 animate-slide-up">
+        <div className="fixed inset-0 z-50 flex items-end lg:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsGuideOpen(false)} />
+          <div className="relative w-full bg-gradient-to-br from-gray-900 to-black rounded-t-3xl p-6 animate-slide-up border-t border-yellow-500/30">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-gray-900">Быстрая навигация</h3>
+              <h3 className="text-xl font-bold text-white">
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-200">
+                  Быстрая навигация
+                </span>
+              </h3>
               <button 
                 onClick={() => setIsGuideOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
+                className="text-gray-400 hover:text-yellow-400 transition"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -78,10 +87,12 @@ const MobileGuide: React.FC = () => {
                   <button
                     key={index}
                     onClick={item.action}
-                    className="flex flex-col items-center p-4 bg-gray-50 rounded-lg hover:bg-yellow-50 transition-colors"
+                    className="group flex flex-col items-center p-4 bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 hover:border-yellow-400 transition-all hover:scale-105"
                   >
-                    <IconComponent className="w-6 h-6 text-yellow-600 mb-2" />
-                    <span className="text-sm font-medium text-gray-700">{item.label}</span>
+                    <div className="bg-yellow-500/10 rounded-full p-3 mb-2 group-hover:bg-yellow-500/20 transition">
+                      <IconComponent className="w-5 h-5 text-yellow-400" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-300 group-hover:text-white">{item.label}</span>
                   </button>
                 );
               })}
@@ -93,80 +104,114 @@ const MobileGuide: React.FC = () => {
   );
 };
 
+// ================== Секция "Как работает" (улучшенный дизайн) ==================
 const HowItWorksSection: React.FC = () => {
   const steps = [
     {
       number: "1",
-      icon: "👤",
+      icon: <User className="w-6 h-6" />,
       title: "Регистрация",
       description: "Создайте аккаунт и укажите ваш класс или образовательное учреждение",
-      details: ["Быстрая регистрация через email", "Указание класса/курса", "Создание личного профиля"]
+      details: ["Быстрая регистрация через email", "Указание класса/курса", "Создание личного профиля"],
+      color: "from-blue-500 to-blue-600"
     },
     {
       number: "2",
-      icon: "📚",
+      icon: <BookOpen className="w-6 h-6" />,
       title: "Выбор курса",
       description: "Выберите подходящий курс по нефтегазовой тематике из нашего каталога",
-      details: ["7 основных курсов", "Разные уровни сложности", "Постепенное изучение"]
+      details: ["7 основных курсов", "Разные уровни сложности", "Постепенное изучение"],
+      color: "from-green-500 to-green-600"
     },
     {
       number: "3",
-      icon: "🎓",
+      icon: <GraduationCap className="w-6 h-6" />,
       title: "Обучение",
       description: "Проходите интерактивные уроки, изучайте материалы и выполняйте задания",
-      details: ["Интерактивные материалы", "Практические задания", "Пошаговое изучение"]
+      details: ["Интерактивные материалы", "Практические задания", "Пошаговое изучение"],
+      color: "from-purple-500 to-purple-600"
     },
     {
       number: "4",
-      icon: "🏆",
+      icon: <CheckCircle className="w-6 h-6" />,
       title: "Тестирование",
       description: "Пройдите итоговый тест для проверки полученных знаний",
-      details: ["Контрольные вопросы", "Минимальный порог - 70%", "Неограниченное количество попыток"]
+      details: ["Контрольные вопросы", "Минимальный порог - 70%", "Неограниченное количество попыток"],
+      color: "from-red-500 to-red-600"
     },
     {
       number: "5",
-      icon: "⭐",
+      icon: <Trophy className="w-6 h-6" />,
       title: "Достижения",
       description: "Получайте достижения и сертификаты за успешное прохождение курсов",
-      details: ["Система достижений", "Именные сертификаты", "Прогресс обучения"]
+      details: ["Система достижений", "Именные сертификаты", "Прогресс обучения"],
+      color: "from-yellow-500 to-yellow-600"
     },
     {
       number: "6",
-      icon: "👥",
+      icon: <Users className="w-6 h-6" />,
       title: "Сообщество",
       description: "Присоединяйтесь к образовательному сообществу и делитесь успехами",
-      details: ["Обмен опытом", "Совместные проекты", "Поддержка преподавателей"]
+      details: ["Обмен опытом", "Совместные проекты", "Поддержка преподавателей"],
+      color: "from-indigo-500 to-indigo-600"
     }
   ];
 
+  const advantages = [
+    { icon: <Zap className="w-5 h-5" />, title: "Бесплатный доступ", desc: "Все курсы доступны совершенно бесплатно для учащихся", color: "text-green-400", bg: "bg-green-500/10" },
+    { icon: <Award className="w-5 h-5" />, title: "Сертификаты", desc: "Получайте именные сертификаты о прохождении курсов", color: "text-blue-400", bg: "bg-blue-500/10" },
+    { icon: <Target className="w-5 h-5" />, title: "Геймификация", desc: "Система достижений делает обучение увлекательным", color: "text-purple-400", bg: "bg-purple-500/10" },
+    { icon: <Brain className="w-5 h-5" />, title: "Практические знания", desc: "Курсы разработаны при участии industry-экспертов", color: "text-red-400", bg: "bg-red-500/10" },
+  ];
+
   return (
-    <section id="how-it-works" className="py-8 md:py-16 bg-gray-50 w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
-        <div className="text-center mb-8 md:mb-16">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Как работает платформа</h2>
-          <p className="text-base sm:text-xl text-gray-600 max-w-3xl mx-auto px-2">
+    <section id="how-it-works" className="relative py-24 overflow-hidden bg-gradient-to-b from-gray-900 to-black">
+      {/* Декоративные элементы */}
+      <div className="absolute top-40 left-0 w-72 h-72 bg-yellow-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-40 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl mb-6 shadow-2xl">
+            <Layers className="w-8 h-8 text-black" />
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400">
+              Как работает платформа
+            </span>
+          </h2>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             Простой и понятный процесс обучения, который поможет вам освоить основы нефтегазовой отрасли
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-8 md:mb-16">
+        {/* Сетка шагов */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
           {steps.map((step, index) => (
-            <div key={index} className="bg-white rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-4 sm:p-6 text-center hover:shadow-lg sm:hover:shadow-xl transition-shadow w-full">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <span className="text-white font-bold text-sm sm:text-xl">{step.number}</span>
+            <div
+              key={index}
+              className="group relative bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-500/20"
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${step.color} opacity-0 group-hover:opacity-10 rounded-3xl transition-opacity duration-500`}></div>
+              
+              <div className="flex items-center gap-4 mb-4">
+                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition`}>
+                  <span className="text-white font-bold text-lg">{step.number}</span>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                  {step.icon}
+                </div>
               </div>
-              
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <span className="text-xl sm:text-2xl">{step.icon}</span>
-              </div>
-              
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">{step.title}</h3>
-              <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{step.description}</p>
-              
-              <ul className="text-xs sm:text-sm text-gray-500 text-left space-y-1 sm:space-y-2">
+
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-yellow-400 transition">
+                {step.title}
+              </h3>
+              <p className="text-gray-400 mb-4 text-sm">{step.description}</p>
+
+              <ul className="space-y-2">
                 {step.details.map((detail, idx) => (
-                  <li key={idx} className="flex items-start">
-                    <span className="text-yellow-500 mr-2">•</span>
+                  <li key={idx} className="flex items-start text-sm text-gray-300">
+                    <ChevronRight className="w-4 h-4 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" />
                     <span>{detail}</span>
                   </li>
                 ))}
@@ -175,48 +220,19 @@ const HowItWorksSection: React.FC = () => {
           ))}
         </div>
 
-        <div className="bg-white rounded-lg sm:rounded-2xl p-4 sm:p-6 md:p-8 shadow-md sm:shadow-lg w-full">
-          <h3 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6 md:mb-8">Преимущества нашей платформы</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            <div className="flex items-start space-x-3 sm:space-x-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <span className="text-green-600 font-bold text-sm sm:text-base">✓</span>
+        {/* Преимущества */}
+        <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-8 border border-gray-700">
+          <h3 className="text-2xl font-bold text-white text-center mb-8">Преимущества нашей платформы</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {advantages.map((adv, idx) => (
+              <div key={idx} className="flex flex-col items-center text-center p-4 rounded-2xl bg-gray-700/30 border border-gray-600 hover:border-yellow-500 transition group">
+                <div className={`w-12 h-12 rounded-xl ${adv.bg} flex items-center justify-center mb-3 group-hover:scale-110 transition`}>
+                  <div className={adv.color}>{adv.icon}</div>
+                </div>
+                <h4 className="font-bold text-white mb-1">{adv.title}</h4>
+                <p className="text-sm text-gray-400">{adv.desc}</p>
               </div>
-              <div>
-                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Бесплатный доступ</h4>
-                <p className="text-gray-600 text-sm sm:text-base">Все курсы доступны совершенно бесплатно для учащихся</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start space-x-3 sm:space-x-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <span className="text-blue-600 font-bold text-sm sm:text-base">✓</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Сертификаты</h4>
-                <p className="text-gray-600 text-sm sm:text-base">Получайте именные сертификаты о прохождении курсов</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start space-x-3 sm:space-x-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <span className="text-purple-600 font-bold text-sm sm:text-base">✓</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Геймификация</h4>
-                <p className="text-gray-600 text-sm sm:text-base">Система достижений делает обучение увлекательным</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start space-x-3 sm:space-x-4">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <span className="text-red-600 font-bold text-sm sm:text-base">✓</span>
-              </div>
-              <div>
-                <h4 className="font-bold text-base sm:text-lg mb-1 sm:mb-2">Практические знания</h4>
-                <p className="text-gray-600 text-sm sm:text-base">Курсы разработаны при участии industry-экспертов</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
@@ -224,252 +240,293 @@ const HowItWorksSection: React.FC = () => {
   );
 };
 
+// ================== Секция партнёров (улучшенный дизайн) ==================
 const PartnersSection: React.FC = () => {
   const partners = [
     {
       name: "МОБУ СОШ №1",
       type: "Образовательный партнёр",
-      description: "Ведущая общеобразовательная школа Нефтеюганского района, предоставляющая площадку для реализации образовательных программ",
+      description: "Ведущая общеобразовательная школа Нефтеюганского района",
       logo: school1Logo,
-      icon: "🏫"
+      color: "from-green-500 to-green-600",
+      bgColor: "bg-green-500/10",
+      borderColor: "border-green-500/30",
+      textColor: "text-green-400"
     },
     {
-      name: "Департамент Образования Нефтеюганского района",
+      name: "Департамент Образования",
       type: "Организационный партнёр",
       description: "Координатор образовательных инициатив и программ в районе",
       logo: educationDepartmentLogo,
-      icon: "🏢"
+      color: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-500/10",
+      borderColor: "border-purple-500/30",
+      textColor: "text-purple-400"
     },
     {
       name: "РН-Юганскнефтегаз",
       type: "Информационный партнёр",
-      description: "Ведущее нефтегазодобывающее предприятие региона, предоставляющее экспертизу и материалы для образовательных курсов",
+      description: "Ведущее нефтегазодобывающее предприятие региона",
       logo: rnYuganskLogo,
-      icon: "⛽"
+      color: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-500/10",
+      borderColor: "border-blue-500/30",
+      textColor: "text-blue-400"
     },
     {
       name: "Varwin",
       type: "Технический партнёр",
-      description: "Платформа для создания VR-решений без программирования, предоставляющая технологии для образовательного контента",
+      description: "Платформа для создания VR-решений без программирования",
       logo: varwinLogo,
-      icon: "🛠️"
+      color: "from-orange-500 to-orange-600",
+      bgColor: "bg-orange-500/10",
+      borderColor: "border-orange-500/30",
+      textColor: "text-orange-400"
     }
   ];
 
-  // Функция для открытия формы партнерства
   const handlePartnerForm = () => {
     window.open('https://forms.yandex.ru/u/68efb425e010db1cab0dd08b', '_blank', 'noopener,noreferrer');
   };
 
   return (
-    <section id="partners" className="py-8 md:py-16 bg-white w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
-        <div className="text-center mb-8 md:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Наши партнёры</h2>
-          <p className="text-base sm:text-xl text-gray-600 max-w-3xl mx-auto px-2">
+    <section id="partners" className="relative py-24 overflow-hidden bg-gradient-to-b from-black to-gray-900">
+      <div className="absolute top-0 left-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl mb-6 shadow-2xl">
+            <Users className="w-8 h-8 text-black" />
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400">
+              Наши партнёры
+            </span>
+          </h2>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             Совместными усилиями мы создаём качественное образование для будущего нефтегазовой отрасли
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8 mb-8 md:mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
           {partners.map((partner, index) => (
-            <div key={index} className="bg-gray-50 rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-4 sm:p-6 text-center hover:shadow-lg sm:hover:shadow-xl transition-shadow w-full">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-3 sm:mb-4 bg-gradient-to-br from-yellow-100 to-yellow-200 rounded-full flex items-center justify-center">
-                <img 
-                  src={partner.logo} 
-                  alt={`Логотип ${partner.name}`}
-                  className={`object-contain ${
-                    partner.name === "РН-Юганскнефтегаз" 
-                      ? "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24" 
-                      : partner.name === "Varwin"
-                      ? "w-14 h-14 sm:w-16 sm:h-16 p-1" // Добавлен padding для Varwin
-                      : "w-14 h-14 sm:w-16 sm:h-16"
-                  }`}
-                />
+            <div
+              key={index}
+              className="group relative bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-500/20"
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${partner.color} opacity-0 group-hover:opacity-10 rounded-3xl transition-opacity duration-500`}></div>
+              
+              <div className="flex justify-center mb-4">
+                <div className={`w-24 h-24 rounded-2xl ${partner.bgColor} border ${partner.borderColor} flex items-center justify-center p-3 group-hover:scale-110 transition`}>
+                  <img 
+                    src={partner.logo} 
+                    alt={partner.name}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
               </div>
-              
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">{partner.name}</h3>
-              
-              <span className={`inline-block px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium mb-3 sm:mb-4 ${
-                partner.type.includes("Информационный") 
-                  ? "bg-blue-100 text-blue-800"
-                  : partner.type.includes("Образовательный")
-                  ? "bg-green-100 text-green-800"
-                  : partner.type.includes("Технический")
-                  ? "bg-orange-100 text-orange-800"
-                  : "bg-purple-100 text-purple-800"
-              }`}>
-                {partner.type}
-              </span>
-              
-              <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+
+              <h3 className="text-lg font-bold text-white text-center mb-2 group-hover:text-yellow-400 transition">
+                {partner.name}
+              </h3>
+
+              <div className="flex justify-center mb-3">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${partner.bgColor} ${partner.textColor} border ${partner.borderColor}`}>
+                  {partner.type}
+                </span>
+              </div>
+
+              <p className="text-sm text-gray-400 text-center leading-relaxed">
                 {partner.description}
               </p>
             </div>
           ))}
         </div>
 
-        <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg sm:rounded-2xl p-4 sm:p-6 md:p-8 text-center text-white w-full">
-          <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Станьте нашим партнёром</h3>
-          <p className="text-yellow-100 mb-4 sm:mb-6 max-w-2xl mx-auto text-sm sm:text-base">
-            Мы открыты для сотрудничества с образовательными учреждениями и компаниями нефтегазовой отрасли
-          </p>
-          <button 
-            onClick={handlePartnerForm}
-            className="bg-black hover:bg-gray-900 text-white font-medium py-2 px-4 sm:py-3 sm:px-8 rounded-lg transition text-sm sm:text-base"
-          >
-            Связаться с нами
-          </button>
+        {/* Блок сотрудничества */}
+        <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-3xl p-12 text-center relative overflow-hidden">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-black/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative z-10">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-black rounded-2xl mb-6 shadow-2xl animate-bounce">
+              <Heart className="w-8 h-8 text-yellow-400" />
+            </div>
+            <h3 className="text-2xl md:text-3xl font-bold text-black mb-4">Станьте нашим партнёром</h3>
+            <p className="text-black/80 mb-8 max-w-2xl mx-auto">
+              Мы открыты для сотрудничества с образовательными учреждениями и компаниями нефтегазовой отрасли
+            </p>
+            <button 
+              onClick={handlePartnerForm}
+              className="group bg-black hover:bg-gray-900 text-white font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 hover:shadow-2xl inline-flex items-center gap-3"
+            >
+              <span>Связаться с нами</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+            </button>
+          </div>
         </div>
       </div>
     </section>
   );
 };
 
+// ================== Секция "О проекте" (улучшенный дизайн) ==================
 const AboutProjectSection: React.FC = () => {
   return (
-    <section id="about" className="py-8 md:py-16 bg-gradient-to-br from-gray-50 to-yellow-50 w-full">
-      <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
-        <div className="bg-white rounded-lg sm:rounded-2xl shadow-lg sm:shadow-xl p-6 sm:p-8 md:p-12 w-full border border-yellow-100">
+    <section id="about" className="relative py-24 overflow-hidden bg-gradient-to-b from-gray-900 to-black">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"></div>
+
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-4xl mx-auto">
           {/* Заголовок */}
-          <div className="text-center mb-8 md:mb-12">
-            <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-4">
-              Цифровая образовательная среда <span className="text-yellow-600">«ЮГРА.НЕФТЬ»</span>
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl mb-6 shadow-2xl">
+              <Sparkles className="w-8 h-8 text-black" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black mb-4">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400">
+                Цифровая образовательная среда
+              </span>
             </h1>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-4xl mx-auto">
+            <p className="text-2xl font-bold text-yellow-400">«ЮГРА.НЕФТЬ»</p>
+            <p className="text-lg text-gray-400 mt-4 max-w-2xl mx-auto">
               Инновационная платформа, объединяющая обучение, профориентацию и музейную экспозицию
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-            {/* Левая колонка - основная информация */}
-            <div className="space-y-6">
-              <div className="bg-blue-50 rounded-lg p-4 sm:p-6 border-l-4 border-blue-500">
-                <h3 className="font-bold text-gray-900 mb-3 text-lg">Авторы проекта</h3>
-                <p className="text-gray-700">
-                  Пестриков Кирилл Валерьевич и Морозов Антон Павлович,<br />
-                  учащиеся 10А Роснефть-класса МБОУ «Средняя общеобразовательная школа № 1» пгт. Пойковский
-                </p>
+          {/* Основной контент в виде карточек */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Авторы */}
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition group">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Авторы проекта</h3>
               </div>
-
-              <div className="bg-green-50 rounded-lg p-4 sm:p-6 border-l-4 border-green-500">
-                <h3 className="font-bold text-gray-900 mb-3 text-lg">Научный руководитель</h3>
-                <p className="text-gray-700">Рахманов Александр Валерьевич</p>
-              </div>
-
-              <div className="bg-purple-50 rounded-lg p-4 sm:p-6 border-l-4 border-purple-500">
-                <h3 className="font-bold text-gray-900 mb-3 text-lg">Место реализации</h3>
-                <p className="text-gray-700">
-                  Музей нефти имени Романа Ивановича Кузоваткина,<br />
-                  школа № 1, пгт. Пойковский, Ханты-Мансийский автономный округ — Югра
-                </p>
-              </div>
-
-              <div className="prose prose-sm sm:prose-base max-w-none">
-                <p className="text-gray-700 leading-relaxed">
-                  <strong>Цифровая образовательная среда «ЮГРА.НЕФТЬ»</strong> — это инновационная платформа, 
-                  объединяющая обучение, профориентацию и музейную экспозицию. Проект разработан школьниками 
-                  для школьников и направлен на то, чтобы сделать процесс изучения нефтегазовой отрасли 
-                  современным, наглядным и интерактивным.
-                </p>
-              </div>
+              <p className="text-gray-300 leading-relaxed">
+                <span className="font-semibold text-yellow-400">Пестриков Кирилл Валерьевич</span> и{' '}
+                <span className="font-semibold text-yellow-400">Морозов Антон Павлович</span>,<br />
+                учащиеся 10А Роснефть-класса МБОУ «СОШ №1» пгт. Пойковский
+              </p>
             </div>
 
-            {/* Правая колонка - цели и особенности */}
-            <div className="space-y-6">
-              <div className="bg-yellow-50 rounded-lg p-4 sm:p-6 border-l-4 border-yellow-500">
-                <h3 className="font-bold text-gray-900 mb-4 text-lg">Цели проекта</h3>
-                <ul className="space-y-3 text-gray-700">
-                  <li className="flex items-start">
-                    <span className="text-yellow-600 mr-2 mt-1">•</span>
-                    <span>Повышение интереса учащихся к нефтегазовой отрасли и инженерным специальностям</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-yellow-600 mr-2 mt-1">•</span>
-                    <span>Создание современной интерактивной платформы на базе школьного музея</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-yellow-600 mr-2 mt-1">•</span>
-                    <span>Формирование практических знаний о добыче, переработке и транспортировке нефти и газа</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-yellow-600 mr-2 mt-1">•</span>
-                    <span>Развитие профориентационной активности школьников и помощь в выборе профессии</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-red-50 rounded-lg p-4 sm:p-6 border-l-4 border-red-500">
-                <h3 className="font-bold text-gray-900 mb-4 text-lg">Технологии</h3>
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                    <span>VR технологии</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                    <span>AR приложения</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
-                    <span>Геймификация</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>
-                    <span>Веб-портал</span>
-                  </div>
+            {/* Научный руководитель */}
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition group">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                  <GraduationCap className="w-6 h-6 text-white" />
                 </div>
+                <h3 className="text-xl font-bold text-white">Научный руководитель</h3>
               </div>
+              <p className="text-gray-300 text-lg">
+                <span className="font-semibold text-yellow-400">Рахманов Александр Валерьевич</span>
+              </p>
+            </div>
 
-              <div className="text-center p-4 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-lg text-white">
-                <h3 className="font-bold mb-2">Основной образовательный ресурс</h3>
-                <p className="text-yellow-100 text-sm">ugra-oil.vercel.app</p>
+            {/* Место реализации */}
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition group">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+                  <Globe className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Место реализации</h3>
+              </div>
+              <p className="text-gray-300 leading-relaxed">
+                Музей нефти имени Романа Ивановича Кузоваткина,<br />
+                школа №1, пгт. Пойковский, ХМАО — Югра
+              </p>
+            </div>
+
+            {/* Технологии */}
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition group">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
+                  <Cpu className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-white">Технологии</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {["VR технологии", "AR приложения", "Геймификация", "Веб-портал"].map((tech, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                    <span className="text-sm text-gray-300">{tech}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Дополнительная информация */}
-          <div className="mt-8 md:mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
-              <h3 className="font-bold text-gray-900 mb-3 text-lg">Результаты внедрения</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2 mt-1">✓</span>
-                  <span>Тестирование среди учащихся 8–11 классов</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2 mt-1">✓</span>
-                  <span>Повышение вовлечённости и интереса к нефтегазовой тематике</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-green-600 mr-2 mt-1">✓</span>
-                  <span>Более высокие результаты по тематическим тестам</span>
-                </li>
+          {/* Цели проекта */}
+          <div className="mt-6 bg-gray-800/30 backdrop-blur-sm rounded-3xl p-8 border border-gray-700 hover:border-yellow-500 transition">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center">
+                <Target className="w-6 h-6 text-black" />
+              </div>
+              <h3 className="text-2xl font-bold text-white">Цели проекта</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                "Повышение интереса учащихся к нефтегазовой отрасли и инженерным специальностям",
+                "Создание современной интерактивной платформы на базе школьного музея",
+                "Формирование практических знаний о добыче, переработке и транспортировке нефти и газа",
+                "Развитие профориентационной активности школьников и помощь в выборе профессии"
+              ].map((goal, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-4 bg-gray-700/30 rounded-xl">
+                  <span className="text-yellow-400 font-bold text-lg">{idx+1}.</span>
+                  <p className="text-gray-300 text-sm">{goal}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Результаты и перспективы */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-green-400" />
+                Результаты внедрения
+              </h3>
+              <ul className="space-y-3">
+                {[
+                  "Тестирование среди учащихся 8–11 классов",
+                  "Повышение вовлечённости и интереса к нефтегазовой тематике",
+                  "Более высокие результаты по тематическим тестам"
+                ].map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span className="text-gray-300 text-sm">{item}</span>
+                  </li>
+                ))}
               </ul>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
-              <h3 className="font-bold text-gray-900 mb-3 text-lg">Перспективы развития</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2 mt-1">→</span>
-                  <span>Внедрение в профильные Роснефть-классы</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2 mt-1">→</span>
-                  <span>Новые модули по геологии и экологии</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-blue-600 mr-2 mt-1">→</span>
-                  <span>Интеграция с системами дистанционного обучения</span>
-                </li>
+            <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Rocket className="w-5 h-5 text-blue-400" />
+                Перспективы развития
+              </h3>
+              <ul className="space-y-3">
+                {[
+                  "Внедрение в профильные Роснефть-классы",
+                  "Новые модули по геологии и экологии",
+                  "Интеграция с системами дистанционного обучения"
+                ].map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2">
+                    <span className="text-blue-400 font-bold">→</span>
+                    <span className="text-gray-300 text-sm">{item}</span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
 
           {/* Заключение */}
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 italic text-sm sm:text-base">
+          <div className="mt-8 p-8 bg-gradient-to-br from-yellow-500/10 to-purple-500/10 rounded-3xl border border-yellow-500/20 text-center">
+            <p className="text-gray-300 italic leading-relaxed">
               Цифровая образовательная среда «ЮГРА.НЕФТЬ» — пример того, как школьная инициатива и современные 
               технологии VR/AR могут объединить музей, образование и инновации, открывая новое поколение для 
               профессий нефтегазовой отрасли.
@@ -481,27 +538,24 @@ const AboutProjectSection: React.FC = () => {
   );
 };
 
-// Главный компонент страницы
+// ================== Главная страница ==================
 const MainPage: React.FC<{
   onLogin: () => void;
   onRegister: () => void;
 }> = ({ onLogin, onRegister }) => {
   return (
-    <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-black">
       <Header onLogin={onLogin} onRegister={onRegister} />
       
-      <main className="flex-grow w-full">
+      <main className="flex-grow">
         <HeroSection />
         <CtaSection onLogin={onLogin} onRegister={onRegister} />
         <AboutProjectSection />
         <HowItWorksSection />
         <PartnersSection />
-        {/* TestimonialsSection удален с главной страницы */}
       </main>
       
-      {/* Путеводитель для мобильных устройств */}
       <MobileGuide />
-      
       <Footer />
     </div>
   );
