@@ -167,9 +167,6 @@ const HowItWorksSection: React.FC = () => {
         </svg>
       </div>
 
-      {/* Чёрная полоска вверху */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-black"></div>
-
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-black mb-4 text-black">Как работает платформа</h2>
@@ -291,9 +288,6 @@ const PartnersSection: React.FC = () => {
         </svg>
       </div>
 
-      {/* Чёрная полоска вверху */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-black"></div>
-
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-black mb-4 text-black">Наши партнёры</h2>
@@ -374,9 +368,6 @@ const AboutProjectSection: React.FC = () => {
           <path d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,170.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
         </svg>
       </div>
-
-      {/* Чёрная полоска вверху */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-black"></div>
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto">
