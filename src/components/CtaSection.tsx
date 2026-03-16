@@ -69,7 +69,7 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
     );
   }
 
-  // Общий фон hero
+  // Общий фон hero (без отдельной карточки)
   const commonClasses = "relative bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 text-black overflow-hidden py-20 md:py-28";
 
   // Волнистый элемент внизу (как в hero)
@@ -89,11 +89,8 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
     </>
   );
 
-  // Светлая карточка для контента (чёрный текст будет хорошо виден)
-  const contentCardClass = "relative z-10 bg-white/90 backdrop-blur-sm rounded-3xl p-10 md:p-16 shadow-2xl border border-white/30";
-
-  // Универсальный стиль кнопки (чёрная с жёлтым текстом)
-  const buttonClass = "group bg-black text-yellow-400 hover:bg-gray-900 font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-black/30 border-2 border-black/50 inline-flex items-center gap-3 text-lg";
+  // Стиль кнопки (чёрная с жёлтым текстом, как в hero)
+  const buttonClass = "group bg-black text-yellow-400 hover:bg-gray-900 font-bold py-4 px-8 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-black/30 border-2 border-black inline-flex items-center gap-3 text-lg";
 
   // Пользователь авторизован
   if (user) {
@@ -103,27 +100,26 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
         <section className={commonClasses}>
           {blobs}
           {waveSvg}
-          <div className="container mx-auto px-4 relative">
-            <div className={contentCardClass}>
-              <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-                <div className="bg-black rounded-full p-4 mb-6 shadow-lg transform hover:scale-110 transition">
-                  <Sparkles className="w-12 h-12 text-yellow-400" />
-                </div>
-                <h2 className="text-4xl md:text-5xl font-black text-black mb-4">
-                  Привет, {profile?.first_name || "друг"}! 👋
-                </h2>
-                <p className="text-xl text-black/80 mb-8 max-w-2xl leading-relaxed">
-                  Похоже, ты ещё не выбрал направление. Пройди наш тест, чтобы мы могли порекомендовать подходящие курсы.
-                </p>
-                <button
-                  onClick={() => navigate("/career-test")}
-                  className={buttonClass}
-                >
-                  <Target className="w-5 h-5 group-hover:rotate-12 transition" />
-                  Пройти тест на профессию
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
-                </button>
+          <div className="container mx-auto px-4 relative z-10">
+            <div className="max-w-4xl mx-auto text-center">
+              {/* Иконка на жёлтом фоне */}
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-black rounded-full mb-8 shadow-2xl transform hover:scale-110 transition">
+                <Sparkles className="w-12 h-12 text-yellow-400" />
               </div>
+              <h2 className="text-4xl md:text-5xl font-extrabold text-black mb-6">
+                Привет, {profile?.first_name || "друг"}! 👋
+              </h2>
+              <p className="text-xl md:text-2xl text-black/80 mb-10 max-w-3xl mx-auto leading-relaxed">
+                Похоже, ты ещё не выбрал направление. Пройди наш тест, чтобы мы могли порекомендовать подходящие курсы.
+              </p>
+              <button
+                onClick={() => navigate("/career-test")}
+                className={buttonClass}
+              >
+                <Target className="w-5 h-5 group-hover:rotate-12 transition" />
+                Пройти тест на профессию
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+              </button>
             </div>
           </div>
         </section>
@@ -135,27 +131,25 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
       <section className={commonClasses}>
         {blobs}
         {waveSvg}
-        <div className="container mx-auto px-4 relative">
-          <div className={contentCardClass}>
-            <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-              <div className="bg-black rounded-full p-4 mb-6 shadow-lg transform hover:scale-110 transition">
-                <Rocket className="w-12 h-12 text-yellow-400" />
-              </div>
-              <h2 className="text-4xl md:text-5xl font-black text-black mb-4">
-                Добро пожаловать, {profile?.first_name || "друзья"}!
-              </h2>
-              <p className="text-xl text-black/80 mb-8 max-w-2xl leading-relaxed">
-                Успехов в обучении и отличных результатов на платформе{" "}
-                <span className="font-bold text-black">«Югра.Нефть»</span>!
-              </p>
-              <button
-                onClick={() => navigate("/cabinet")}
-                className={buttonClass}
-              >
-                Перейти в личный кабинет
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
-              </button>
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center justify-center w-24 h-24 bg-black rounded-full mb-8 shadow-2xl transform hover:scale-110 transition">
+              <Rocket className="w-12 h-12 text-yellow-400" />
             </div>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-black mb-6">
+              Добро пожаловать, {profile?.first_name || "друзья"}!
+            </h2>
+            <p className="text-xl md:text-2xl text-black/80 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Успехов в обучении и отличных результатов на платформе{" "}
+              <span className="font-bold text-black">«Югра.Нефть»</span>!
+            </p>
+            <button
+              onClick={() => navigate("/cabinet")}
+              className={buttonClass}
+            >
+              Перейти в личный кабинет
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+            </button>
           </div>
         </div>
       </section>
@@ -167,36 +161,34 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
     <section className={commonClasses}>
       {blobs}
       {waveSvg}
-      <div className="container mx-auto px-4 relative">
-        <div className={contentCardClass}>
-          <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-            <div className="bg-black rounded-full p-4 mb-6 shadow-lg transform hover:scale-110 transition">
-              <Zap className="w-12 h-12 text-yellow-400" />
-            </div>
-            <h2 className="text-4xl md:text-5xl font-black text-black mb-4">
-              Готовы начать обучение?
-            </h2>
-            <p className="text-xl text-black/80 mb-8 max-w-2xl leading-relaxed">
-              Присоединяйтесь к платформе{" "}
-              <span className="font-bold text-black">«Югра.Нефть»</span> и откройте
-              для себя увлекательный мир нефтегазовой отрасли!
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-              <button
-                onClick={onRegister}
-                className={buttonClass}
-              >
-                Зарегистрироваться
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
-              </button>
-              <button
-                onClick={onLogin}
-                className={buttonClass}
-              >
-                Войти
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
-              </button>
-            </div>
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-black rounded-full mb-8 shadow-2xl transform hover:scale-110 transition">
+            <Zap className="w-12 h-12 text-yellow-400" />
+          </div>
+          <h2 className="text-4xl md:text-5xl font-extrabold text-black mb-6">
+            Готовы начать обучение?
+          </h2>
+          <p className="text-xl md:text-2xl text-black/80 mb-10 max-w-3xl mx-auto leading-relaxed">
+            Присоединяйтесь к платформе{" "}
+            <span className="font-bold text-black">«Югра.Нефть»</span> и откройте
+            для себя увлекательный мир нефтегазовой отрасли!
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={onRegister}
+              className={buttonClass}
+            >
+              Зарегистрироваться
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+            </button>
+            <button
+              onClick={onLogin}
+              className={buttonClass}
+            >
+              Войти
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+            </button>
           </div>
         </div>
       </div>
