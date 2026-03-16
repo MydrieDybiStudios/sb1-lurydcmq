@@ -18,7 +18,7 @@ import educationDepartmentLogo from "../logos/education-department-logo.png";
 import rnYuganskLogo from "../logos/rn-yugansk-logo.png";
 import varwinLogo from "../logos/varwin-logo.png";
 
-// ================== Мобильный путеводитель (стиль hero) ==================
+// ================== Мобильный путеводитель (тёмная тема) ==================
 const MobileGuide: React.FC = () => {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const navigate = useNavigate();
@@ -62,8 +62,8 @@ const MobileGuide: React.FC = () => {
 
       {isGuideOpen && (
         <div className="fixed inset-0 z-50 flex items-end lg:hidden">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsGuideOpen(false)} />
-          <div className="relative w-full bg-black/80 backdrop-blur-md rounded-t-3xl p-6 animate-slide-up border-t border-yellow-500/30">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsGuideOpen(false)} />
+          <div className="relative w-full bg-gray-900/95 backdrop-blur-md rounded-t-3xl p-6 animate-slide-up border-t border-yellow-500/30">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-white">
                 <span className="bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-yellow-200">
@@ -85,9 +85,9 @@ const MobileGuide: React.FC = () => {
                   <button
                     key={index}
                     onClick={item.action}
-                    className="group flex flex-col items-center p-4 bg-black/40 backdrop-blur-sm rounded-2xl border border-yellow-500/30 hover:border-yellow-400 transition-all hover:scale-105"
+                    className="group flex flex-col items-center p-4 bg-gray-800/80 backdrop-blur-sm rounded-2xl border border-gray-700 hover:border-yellow-500 transition-all hover:scale-105"
                   >
-                    <div className="bg-yellow-500/20 rounded-full p-3 mb-2 group-hover:bg-yellow-500/30 transition">
+                    <div className="bg-yellow-500/10 rounded-full p-3 mb-2 group-hover:bg-yellow-500/20 transition">
                       <IconComponent className="w-5 h-5 text-yellow-400" />
                     </div>
                     <span className="text-sm font-medium text-gray-300 group-hover:text-white">{item.label}</span>
@@ -102,7 +102,7 @@ const MobileGuide: React.FC = () => {
   );
 };
 
-// ================== Секция "Как работает" (стиль hero) ==================
+// ================== Секция "Как работает" (тёмная тема) ==================
 const HowItWorksSection: React.FC = () => {
   const steps = [
     {
@@ -156,27 +156,27 @@ const HowItWorksSection: React.FC = () => {
   ];
 
   const advantages = [
-    { icon: <Zap className="w-5 h-5" />, title: "Бесплатный доступ", desc: "Все курсы доступны совершенно бесплатно для учащихся", color: "text-green-500", bg: "bg-green-500/20" },
-    { icon: <Award className="w-5 h-5" />, title: "Сертификаты", desc: "Получайте именные сертификаты о прохождении курсов", color: "text-blue-500", bg: "bg-blue-500/20" },
-    { icon: <Target className="w-5 h-5" />, title: "Геймификация", desc: "Система достижений делает обучение увлекательным", color: "text-purple-500", bg: "bg-purple-500/20" },
-    { icon: <Brain className="w-5 h-5" />, title: "Практические знания", desc: "Курсы разработаны при участии industry-экспертов", color: "text-red-500", bg: "bg-red-500/20" },
+    { icon: <Zap className="w-5 h-5" />, title: "Бесплатный доступ", desc: "Все курсы доступны совершенно бесплатно для учащихся", color: "text-green-400", bg: "bg-green-500/20" },
+    { icon: <Award className="w-5 h-5" />, title: "Сертификаты", desc: "Получайте именные сертификаты о прохождении курсов", color: "text-blue-400", bg: "bg-blue-500/20" },
+    { icon: <Target className="w-5 h-5" />, title: "Геймификация", desc: "Система достижений делает обучение увлекательным", color: "text-purple-400", bg: "bg-purple-500/20" },
+    { icon: <Brain className="w-5 h-5" />, title: "Практические знания", desc: "Курсы разработаны при участии industry-экспертов", color: "text-red-400", bg: "bg-red-500/20" },
   ];
 
   return (
-    <section id="how-it-works" className="relative py-24 overflow-hidden bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600">
+    <section id="how-it-works" className="relative py-24 overflow-hidden bg-gradient-to-b from-gray-900 to-black">
       {/* Декоративные элементы */}
-      <div className="absolute top-40 left-0 w-72 h-72 bg-black/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-40 right-0 w-96 h-96 bg-black/5 rounded-full blur-3xl"></div>
+      <div className="absolute top-40 left-0 w-72 h-72 bg-yellow-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-40 right-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-black/80 backdrop-blur-sm rounded-2xl mb-6 shadow-2xl border border-yellow-500/30">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-500/10 rounded-2xl mb-6 shadow-2xl border border-yellow-500/30">
             <Layers className="w-8 h-8 text-yellow-400" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-black mb-4 text-black">
+          <h2 className="text-4xl md:text-5xl font-black mb-4 text-white">
             Как работает платформа
           </h2>
-          <p className="text-xl text-black/80 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Простой и понятный процесс обучения, который поможет вам освоить основы нефтегазовой отрасли
           </p>
         </div>
@@ -186,28 +186,28 @@ const HowItWorksSection: React.FC = () => {
           {steps.map((step, index) => (
             <div
               key={index}
-              className="group relative bg-black/5 backdrop-blur-sm rounded-3xl p-6 border border-yellow-500/30 hover:border-yellow-400 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-500/30"
+              className="group relative bg-gray-800/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-500/20"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${step.color} opacity-0 group-hover:opacity-20 rounded-3xl transition-opacity duration-500`}></div>
+              <div className={`absolute inset-0 bg-gradient-to-br ${step.color} opacity-0 group-hover:opacity-10 rounded-3xl transition-opacity duration-500`}></div>
               
               <div className="flex items-center gap-4 mb-4">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition`}>
                   <span className="text-white font-bold text-lg">{step.number}</span>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-black/20 flex items-center justify-center text-2xl group-hover:scale-110 transition">
+                <div className="w-12 h-12 rounded-full bg-gray-700/80 flex items-center justify-center text-2xl group-hover:scale-110 transition">
                   {step.icon}
                 </div>
               </div>
 
-              <h3 className="text-xl font-bold text-black mb-2 group-hover:text-yellow-700 transition">
+              <h3 className="text-xl font-bold text-white mb-2 group-hover:text-yellow-400 transition">
                 {step.title}
               </h3>
-              <p className="text-black/70 mb-4 text-sm">{step.description}</p>
+              <p className="text-gray-400 mb-4 text-sm">{step.description}</p>
 
               <ul className="space-y-2">
                 {step.details.map((detail, idx) => (
-                  <li key={idx} className="flex items-start text-sm text-black/80">
-                    <ChevronRight className="w-4 h-4 text-yellow-600 mr-2 flex-shrink-0 mt-0.5" />
+                  <li key={idx} className="flex items-start text-sm text-gray-300">
+                    <ChevronRight className="w-4 h-4 text-yellow-500 mr-2 flex-shrink-0 mt-0.5" />
                     <span>{detail}</span>
                   </li>
                 ))}
@@ -217,16 +217,16 @@ const HowItWorksSection: React.FC = () => {
         </div>
 
         {/* Преимущества */}
-        <div className="bg-black/5 backdrop-blur-sm rounded-3xl p-8 border border-yellow-500/30">
-          <h3 className="text-2xl font-bold text-black text-center mb-8">Преимущества нашей платформы</h3>
+        <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-8 border border-gray-700">
+          <h3 className="text-2xl font-bold text-white text-center mb-8">Преимущества нашей платформы</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {advantages.map((adv, idx) => (
-              <div key={idx} className="flex flex-col items-center text-center p-4 rounded-2xl bg-black/10 backdrop-blur-sm border border-yellow-500/20 hover:border-yellow-400 transition group">
+              <div key={idx} className="flex flex-col items-center text-center p-4 rounded-2xl bg-gray-700/30 border border-gray-600 hover:border-yellow-500 transition group">
                 <div className={`w-12 h-12 rounded-xl ${adv.bg} flex items-center justify-center mb-3 group-hover:scale-110 transition`}>
                   <div className={adv.color}>{adv.icon}</div>
                 </div>
-                <h4 className="font-bold text-black mb-1">{adv.title}</h4>
-                <p className="text-sm text-black/70">{adv.desc}</p>
+                <h4 className="font-bold text-white mb-1">{adv.title}</h4>
+                <p className="text-sm text-gray-400">{adv.desc}</p>
               </div>
             ))}
           </div>
@@ -236,7 +236,7 @@ const HowItWorksSection: React.FC = () => {
   );
 };
 
-// ================== Секция партнёров (стиль hero) ==================
+// ================== Секция партнёров (тёмная тема) ==================
 const PartnersSection: React.FC = () => {
   const partners = [
     {
@@ -245,9 +245,9 @@ const PartnersSection: React.FC = () => {
       description: "Ведущая общеобразовательная школа Нефтеюганского района",
       logo: school1Logo,
       color: "from-green-500 to-green-600",
-      bgColor: "bg-green-500/20",
+      bgColor: "bg-green-500/10",
       borderColor: "border-green-500/30",
-      textColor: "text-green-600"
+      textColor: "text-green-400"
     },
     {
       name: "Департамент Образования",
@@ -255,9 +255,9 @@ const PartnersSection: React.FC = () => {
       description: "Координатор образовательных инициатив и программ в районе",
       logo: educationDepartmentLogo,
       color: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-500/20",
+      bgColor: "bg-purple-500/10",
       borderColor: "border-purple-500/30",
-      textColor: "text-purple-600"
+      textColor: "text-purple-400"
     },
     {
       name: "РН-Юганскнефтегаз",
@@ -265,9 +265,9 @@ const PartnersSection: React.FC = () => {
       description: "Ведущее нефтегазодобывающее предприятие региона",
       logo: rnYuganskLogo,
       color: "from-blue-500 to-blue-600",
-      bgColor: "bg-blue-500/20",
+      bgColor: "bg-blue-500/10",
       borderColor: "border-blue-500/30",
-      textColor: "text-blue-600"
+      textColor: "text-blue-400"
     },
     {
       name: "Varwin",
@@ -275,9 +275,9 @@ const PartnersSection: React.FC = () => {
       description: "Платформа для создания VR-решений без программирования",
       logo: varwinLogo,
       color: "from-orange-500 to-orange-600",
-      bgColor: "bg-orange-500/20",
+      bgColor: "bg-orange-500/10",
       borderColor: "border-orange-500/30",
-      textColor: "text-orange-600"
+      textColor: "text-orange-400"
     }
   ];
 
@@ -286,19 +286,19 @@ const PartnersSection: React.FC = () => {
   };
 
   return (
-    <section id="partners" className="relative py-24 overflow-hidden bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600">
-      <div className="absolute top-0 left-0 w-96 h-96 bg-black/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-black/5 rounded-full blur-3xl"></div>
+    <section id="partners" className="relative py-24 overflow-hidden bg-gradient-to-b from-black to-gray-900">
+      <div className="absolute top-0 left-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-black/80 backdrop-blur-sm rounded-2xl mb-6 shadow-2xl border border-yellow-500/30">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-500/10 rounded-2xl mb-6 shadow-2xl border border-yellow-500/30">
             <Users className="w-8 h-8 text-yellow-400" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-black mb-4 text-black">
+          <h2 className="text-4xl md:text-5xl font-black mb-4 text-white">
             Наши партнёры
           </h2>
-          <p className="text-xl text-black/80 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Совместными усилиями мы создаём качественное образование для будущего нефтегазовой отрасли
           </p>
         </div>
@@ -307,9 +307,9 @@ const PartnersSection: React.FC = () => {
           {partners.map((partner, index) => (
             <div
               key={index}
-              className="group relative bg-black/5 backdrop-blur-sm rounded-3xl p-6 border border-yellow-500/30 hover:border-yellow-400 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-500/30"
+              className="group relative bg-gray-800/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-500/20"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${partner.color} opacity-0 group-hover:opacity-20 rounded-3xl transition-opacity duration-500`}></div>
+              <div className={`absolute inset-0 bg-gradient-to-br ${partner.color} opacity-0 group-hover:opacity-10 rounded-3xl transition-opacity duration-500`}></div>
               
               <div className="flex justify-center mb-4">
                 <div className={`w-24 h-24 rounded-2xl ${partner.bgColor} border ${partner.borderColor} flex items-center justify-center p-3 group-hover:scale-110 transition`}>
@@ -321,7 +321,7 @@ const PartnersSection: React.FC = () => {
                 </div>
               </div>
 
-              <h3 className="text-lg font-bold text-black text-center mb-2 group-hover:text-yellow-700 transition">
+              <h3 className="text-lg font-bold text-white text-center mb-2 group-hover:text-yellow-400 transition">
                 {partner.name}
               </h3>
 
@@ -331,7 +331,7 @@ const PartnersSection: React.FC = () => {
                 </span>
               </div>
 
-              <p className="text-sm text-black/70 text-center leading-relaxed">
+              <p className="text-sm text-gray-400 text-center leading-relaxed">
                 {partner.description}
               </p>
             </div>
@@ -339,21 +339,21 @@ const PartnersSection: React.FC = () => {
         </div>
 
         {/* Блок сотрудничества */}
-        <div className="bg-black/10 backdrop-blur-sm rounded-3xl p-12 text-center relative overflow-hidden border border-yellow-500/30">
-          <div className="absolute top-0 left-0 w-64 h-64 bg-yellow-500/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-yellow-500/20 rounded-full blur-3xl"></div>
+        <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-12 text-center relative overflow-hidden border border-gray-700">
+          <div className="absolute top-0 left-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl"></div>
           
           <div className="relative z-10">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-black/80 backdrop-blur-sm rounded-2xl mb-6 shadow-2xl border border-yellow-500/30 animate-bounce">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-500/10 rounded-2xl mb-6 shadow-2xl border border-yellow-500/30 animate-bounce">
               <Heart className="w-8 h-8 text-yellow-400" />
             </div>
-            <h3 className="text-2xl md:text-3xl font-bold text-black mb-4">Станьте нашим партнёром</h3>
-            <p className="text-black/70 mb-8 max-w-2xl mx-auto">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">Станьте нашим партнёром</h3>
+            <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
               Мы открыты для сотрудничества с образовательными учреждениями и компаниями нефтегазовой отрасли
             </p>
             <button 
               onClick={handlePartnerForm}
-              className="group bg-black hover:bg-gray-800 text-white font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 hover:shadow-2xl inline-flex items-center gap-3 border border-yellow-500/30"
+              className="group bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 px-8 rounded-full transition-all transform hover:scale-105 hover:shadow-2xl inline-flex items-center gap-3 border border-yellow-400"
             >
               <span>Связаться с нами</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition" />
@@ -365,25 +365,25 @@ const PartnersSection: React.FC = () => {
   );
 };
 
-// ================== Секция "О проекте" (стиль hero) ==================
+// ================== Секция "О проекте" (тёмная тема) ==================
 const AboutProjectSection: React.FC = () => {
   return (
-    <section id="about" className="relative py-24 overflow-hidden bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-black/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/5 rounded-full blur-3xl"></div>
+    <section id="about" className="relative py-24 overflow-hidden bg-gradient-to-b from-gray-900 to-black">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto">
           {/* Заголовок */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-black/80 backdrop-blur-sm rounded-2xl mb-6 shadow-2xl border border-yellow-500/30">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-500/10 rounded-2xl mb-6 shadow-2xl border border-yellow-500/30">
               <Sparkles className="w-8 h-8 text-yellow-400" />
             </div>
-            <h1 className="text-4xl md:text-5xl font-black mb-4 text-black">
+            <h1 className="text-4xl md:text-5xl font-black mb-4 text-white">
               Цифровая образовательная среда
             </h1>
-            <p className="text-2xl font-bold text-black/80">«ЮГРА.НЕФТЬ»</p>
-            <p className="text-lg text-black/70 mt-4 max-w-2xl mx-auto">
+            <p className="text-2xl font-bold text-yellow-400">«ЮГРА.НЕФТЬ»</p>
+            <p className="text-lg text-gray-300 mt-4 max-w-2xl mx-auto">
               Инновационная платформа, объединяющая обучение, профориентацию и музейную экспозицию
             </p>
           </div>
@@ -391,60 +391,60 @@ const AboutProjectSection: React.FC = () => {
           {/* Основной контент в виде карточек */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Авторы */}
-            <div className="bg-black/5 backdrop-blur-sm rounded-3xl p-6 border border-yellow-500/30 hover:border-yellow-400 transition group">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition group">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                   <Users className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-black">Авторы проекта</h3>
+                <h3 className="text-xl font-bold text-white">Авторы проекта</h3>
               </div>
-              <p className="text-black/70 leading-relaxed">
-                <span className="font-semibold text-yellow-700">Пестриков Кирилл Валерьевич</span> и{' '}
-                <span className="font-semibold text-yellow-700">Морозов Антон Павлович</span>,<br />
+              <p className="text-gray-300 leading-relaxed">
+                <span className="font-semibold text-yellow-400">Пестриков Кирилл Валерьевич</span> и{' '}
+                <span className="font-semibold text-yellow-400">Морозов Антон Павлович</span>,<br />
                 учащиеся 10А Роснефть-класса МБОУ «СОШ №1» пгт. Пойковский
               </p>
             </div>
 
             {/* Научный руководитель */}
-            <div className="bg-black/5 backdrop-blur-sm rounded-3xl p-6 border border-yellow-500/30 hover:border-yellow-400 transition group">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition group">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
                   <GraduationCap className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-black">Научный руководитель</h3>
+                <h3 className="text-xl font-bold text-white">Научный руководитель</h3>
               </div>
-              <p className="text-black/70 text-lg">
-                <span className="font-semibold text-yellow-700">Рахманов Александр Валерьевич</span>
+              <p className="text-gray-300 text-lg">
+                <span className="font-semibold text-yellow-400">Рахманов Александр Валерьевич</span>
               </p>
             </div>
 
             {/* Место реализации */}
-            <div className="bg-black/5 backdrop-blur-sm rounded-3xl p-6 border border-yellow-500/30 hover:border-yellow-400 transition group">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition group">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
                   <Globe className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-black">Место реализации</h3>
+                <h3 className="text-xl font-bold text-white">Место реализации</h3>
               </div>
-              <p className="text-black/70 leading-relaxed">
+              <p className="text-gray-300 leading-relaxed">
                 Музей нефти имени Романа Ивановича Кузоваткина,<br />
                 школа №1, пгт. Пойковский, ХМАО — Югра
               </p>
             </div>
 
             {/* Технологии */}
-            <div className="bg-black/5 backdrop-blur-sm rounded-3xl p-6 border border-yellow-500/30 hover:border-yellow-400 transition group">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition group">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
                   <Cpu className="w-6 h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-black">Технологии</h3>
+                <h3 className="text-xl font-bold text-white">Технологии</h3>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {["VR технологии", "AR приложения", "Геймификация", "Веб-портал"].map((tech, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                    <span className="text-sm text-black/70">{tech}</span>
+                    <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                    <span className="text-sm text-gray-300">{tech}</span>
                   </div>
                 ))}
               </div>
@@ -452,12 +452,12 @@ const AboutProjectSection: React.FC = () => {
           </div>
 
           {/* Цели проекта */}
-          <div className="mt-6 bg-black/5 backdrop-blur-sm rounded-3xl p-8 border border-yellow-500/30 hover:border-yellow-400 transition">
+          <div className="mt-6 bg-gray-800/50 backdrop-blur-sm rounded-3xl p-8 border border-gray-700 hover:border-yellow-500 transition">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center">
                 <Target className="w-6 h-6 text-black" />
               </div>
-              <h3 className="text-2xl font-bold text-black">Цели проекта</h3>
+              <h3 className="text-2xl font-bold text-white">Цели проекта</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
@@ -466,9 +466,9 @@ const AboutProjectSection: React.FC = () => {
                 "Формирование практических знаний о добыче, переработке и транспортировке нефти и газа",
                 "Развитие профориентационной активности школьников и помощь в выборе профессии"
               ].map((goal, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-4 bg-black/10 backdrop-blur-sm rounded-xl">
-                  <span className="text-yellow-600 font-bold text-lg">{idx+1}.</span>
-                  <p className="text-black/80 text-sm">{goal}</p>
+                <div key={idx} className="flex items-start gap-3 p-4 bg-gray-700/30 rounded-xl">
+                  <span className="text-yellow-400 font-bold text-lg">{idx+1}.</span>
+                  <p className="text-gray-300 text-sm">{goal}</p>
                 </div>
               ))}
             </div>
@@ -476,9 +476,9 @@ const AboutProjectSection: React.FC = () => {
 
           {/* Результаты и перспективы */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            <div className="bg-black/5 backdrop-blur-sm rounded-3xl p-6 border border-yellow-500/30 hover:border-yellow-400 transition">
-              <h3 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-green-600" />
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-green-400" />
                 Результаты внедрения
               </h3>
               <ul className="space-y-3">
@@ -488,16 +488,16 @@ const AboutProjectSection: React.FC = () => {
                   "Более высокие результаты по тематическим тестам"
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold">✓</span>
-                    <span className="text-black/70 text-sm">{item}</span>
+                    <span className="text-green-400 font-bold">✓</span>
+                    <span className="text-gray-300 text-sm">{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="bg-black/5 backdrop-blur-sm rounded-3xl p-6 border border-yellow-500/30 hover:border-yellow-400 transition">
-              <h3 className="text-xl font-bold text-black mb-4 flex items-center gap-2">
-                <Rocket className="w-5 h-5 text-blue-600" />
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-3xl p-6 border border-gray-700 hover:border-yellow-500 transition">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <Rocket className="w-5 h-5 text-blue-400" />
                 Перспективы развития
               </h3>
               <ul className="space-y-3">
@@ -507,8 +507,8 @@ const AboutProjectSection: React.FC = () => {
                   "Интеграция с системами дистанционного обучения"
                 ].map((item, idx) => (
                   <li key={idx} className="flex items-start gap-2">
-                    <span className="text-blue-600 font-bold">→</span>
-                    <span className="text-black/70 text-sm">{item}</span>
+                    <span className="text-blue-400 font-bold">→</span>
+                    <span className="text-gray-300 text-sm">{item}</span>
                   </li>
                 ))}
               </ul>
@@ -516,8 +516,8 @@ const AboutProjectSection: React.FC = () => {
           </div>
 
           {/* Заключение */}
-          <div className="mt-8 p-8 bg-black/5 backdrop-blur-sm rounded-3xl border border-yellow-500/30 text-center">
-            <p className="text-black/80 italic leading-relaxed">
+          <div className="mt-8 p-8 bg-gray-800/30 backdrop-blur-sm rounded-3xl border border-gray-700 text-center">
+            <p className="text-gray-300 italic leading-relaxed">
               Цифровая образовательная среда «ЮГРА.НЕФТЬ» — пример того, как школьная инициатива и современные 
               технологии VR/AR могут объединить музей, образование и инновации, открывая новое поколение для 
               профессий нефтегазовой отрасли.
