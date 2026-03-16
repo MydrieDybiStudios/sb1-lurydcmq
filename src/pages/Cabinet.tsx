@@ -1,3 +1,4 @@
+// src/pages/Cabinet.tsx
 import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Footer from "../components/Footer";
@@ -6,7 +7,10 @@ import AchievementsSection from "../components/AchievementsSection";
 import CourseModal from "../components/CourseModal";
 import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, ChevronRight, Award, BookOpen, User, Compass, LogOut } from "lucide-react";
+import { 
+  Menu, X, ChevronRight, Award, BookOpen, User, Compass, 
+  LogOut, Map, Book, FileText, BarChart, Library, Globe 
+} from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
 import DirectionSelector from "../components/DirectionSelector";
@@ -32,6 +36,7 @@ const Cabinet: React.FC = () => {
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<"courses" | "profile" | "ar" | "vr">("courses");
   const [isDirectionModalOpen, setIsDirectionModalOpen] = useState(false);
+  const [isLibraryMenuOpen, setIsLibraryMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,6 +90,18 @@ const Cabinet: React.FC = () => {
     };
   }, []);
 
+  // Закрытие выпадающего меню при клике вне его
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.library-menu')) {
+        setIsLibraryMenuOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const handleDirectionSelect = async (directionId: string) => {
     if (user) {
       const { error } = await supabase
@@ -124,12 +141,29 @@ const Cabinet: React.FC = () => {
     navigate("/vr-module");
   };
 
-    const handleNavigateToSim = () => {
+  const handleNavigateToSim = () => {
     navigate("/simulators");
   };
 
-    const handleNavigateToMap = () => {
+  const handleNavigateToMap = () => {
     navigate("/map");
+  };
+
+  // Навигация по библиотеке
+  const handleNavigateToGlossary = () => {
+    navigate("/glossary");
+  };
+
+  const handleNavigateToInfographics = () => {
+    navigate("/infographics");
+  };
+
+  const handleNavigateToArticles = () => {
+    navigate("/articles");
+  };
+
+  const handleNavigateToBooks = () => {
+    navigate("/books");
   };
 
   const handleLogout = async () => {
@@ -244,9 +278,47 @@ const Cabinet: React.FC = () => {
                   onClick={handleNavigateToMap}
                   className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-yellow-400 hover:bg-yellow-500 hover:text-black"
                 >
-                  <Compass className="w-4 h-4 inline mr-1" />
-                  Карта месторождений
+                  <Map className="w-4 h-4 inline mr-1" />
+                  Карта
                 </button>
+
+                {/* Выпадающее меню "Библиотека" */}
+                <div className="relative library-menu">
+                  <button
+                    onClick={() => setIsLibraryMenuOpen(!isLibraryMenuOpen)}
+                    className="flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  >
+                    <Library className="w-4 h-4 mr-1" />
+                    Библиотека
+                    <ChevronRight className={`w-4 h-4 transition-transform ${isLibraryMenuOpen ? 'rotate-90' : ''}`} />
+                  </button>
+
+                  {isLibraryMenuOpen && (
+                    <div className="absolute top-full right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden z-50">
+                      <button
+                        onClick={() => { handleNavigateToGlossary(); setIsLibraryMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                      >
+                        <BookOpen className="w-4 h-4 text-yellow-400" />
+                        <span>Словарь терминов</span>
+                      </button>
+                      <button
+                        onClick={() => { handleNavigateToArticles(); setIsLibraryMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                      >
+                        <FileText className="w-4 h-4 text-yellow-400" />
+                        <span>Технические статьи</span>
+                      </button>
+                      <button
+                        onClick={() => { handleNavigateToBooks(); setIsLibraryMenuOpen(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                      >
+                        <Book className="w-4 h-4 text-yellow-400" />
+                        <span>Книги и методички</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </nav>
 
               {/* Профиль и выход */}
@@ -349,6 +421,50 @@ const Cabinet: React.FC = () => {
                 <Compass className="w-5 h-5 mr-3" />
                 VR-модуль
               </button>
+              <button
+                onClick={() => { handleNavigateToSim(); setIsMobileMenuOpen(false); }}
+                className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+              >
+                <Compass className="w-5 h-5 mr-3" />
+                Симуляторы
+              </button>
+              <button
+                onClick={() => { handleNavigateToMap(); setIsMobileMenuOpen(false); }}
+                className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+              >
+                <Map className="w-5 h-5 mr-3" />
+                Карта месторождений
+              </button>
+
+              {/* Библиотека в мобильном меню */}
+              <div className="border-t border-gray-800 pt-2 mt-2">
+                <div className="px-4 py-2 text-yellow-400 font-bold flex items-center">
+                  <Library className="w-5 h-5 mr-3" />
+                  Библиотека
+                </div>
+                <button
+                  onClick={() => { handleNavigateToGlossary(); setIsMobileMenuOpen(false); }}
+                  className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                >
+                  <BookOpen className="w-4 h-4 mr-3" />
+                  Словарь терминов
+                </button>
+                <button
+                  onClick={() => { handleNavigateToArticles(); setIsMobileMenuOpen(false); }}
+                  className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                >
+                  <FileText className="w-4 h-4 mr-3" />
+                  Технические статьи
+                </button>
+                <button
+                  onClick={() => { handleNavigateToBooks(); setIsMobileMenuOpen(false); }}
+                  className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                >
+                  <Book className="w-4 h-4 mr-3" />
+                  Книги и методички
+                </button>
+              </div>
+
               <div className="border-t border-gray-800 pt-2 mt-2">
                 <button
                   onClick={() => { handleExitToMain(); setIsMobileMenuOpen(false); }}
