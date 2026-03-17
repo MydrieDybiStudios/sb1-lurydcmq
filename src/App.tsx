@@ -20,7 +20,9 @@ import GlossaryPage from './pages/GlossaryPage';
 import ArticlesPage from './pages/ArticlesPage';
 import BooksPage from './pages/BooksPage';
 import GigaChatBot from "./components/GigaChatBot"; // <-- Импортируем компонент
-
+import { EventsPage } from './pages/EventsPage';
+import { EventDetailPage } from './pages/EventDetailPage';
+import AdminEventsPage from './pages/AdminEventsPage';
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -69,9 +71,11 @@ function App() {
           <Route path="/simulators" element={<SimulatorsPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/glossary" element={<GlossaryPage />} />
-         
+          <Route path="/events" element={<EventsPage />} />
           <Route path="/articles" element={<ArticlesPage />} />
           <Route path="/books" element={<BooksPage />} />
+          <Route path="/events/:id" element={<EventDetailPage />} />
+          <Route path="/admin/events" element={<AdminEventsPage />} />
         </Routes>
 
         {/* Модальные окна */}

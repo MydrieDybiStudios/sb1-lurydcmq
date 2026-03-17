@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, ZoomIn, ZoomOut, X, ArrowLeft, Scan, Smartphone, QrCode, Aperture, Maximize2, MinusCircle, PlusCircle } from "lucide-react";
+import { Download, ZoomIn, X, ArrowLeft, Scan, Smartphone, QrCode, Aperture, MinusCircle, PlusCircle } from "lucide-react";
 import Footer from "../components/Footer";
 
 // Импортируем фото из папки logos
@@ -11,18 +11,28 @@ import history4 from "../logos/история4.jpg";
 import career1 from "../logos/оператор.jpg";
 import career2 from "../logos/бурильщик (2).jpg";
 import career3 from "../logos/лаборант.jpg";
-
-// Импортируем круглый логотип
 import logo from "../logos/logo.png";
 
 const ARModule: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<"history" | "career">("history");
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [imageLoaded, setImageLoaded] = useState<{[key: string]: boolean}>({});
+  const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>({});
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  // Данные для модуля "История Югорской Нефти" - ФОТО
+  // Блокировка скролла body при открытом модальном окне
+  useEffect(() => {
+    if (selectedImage) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedImage]);
+
+  // Данные для модуля "История Югорской Нефти"
   const historyImages = [
     {
       id: 1,
@@ -58,7 +68,7 @@ const ARModule: React.FC = () => {
     }
   ];
 
-  // Данные для профориентационного модуля - ФОТО
+  // Данные для профориентационного модуля
   const careerImages = [
     {
       id: 1,
@@ -111,27 +121,25 @@ const ARModule: React.FC = () => {
   };
 
   const handleImageLoad = (id: number) => {
-    setImageLoaded(prev => ({...prev, [id]: true}));
+    setImageLoaded(prev => ({ ...prev, [id]: true }));
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-900 to-gray-800">
-      {/* ===== HEADER ===== */}
+      {/* HEADER */}
       <header className="bg-black text-white shadow-2xl sticky top-0 z-40 border-b border-yellow-500/20">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <img 
-                src={logo} 
-                alt="Югра.Нефть" 
+              <img
+                src={logo}
+                alt="Югра.Нефть"
                 className="w-12 h-12 rounded-full object-cover border-2 border-yellow-400 shadow-lg"
               />
               <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-yellow-400">
-                AR-модуль
-              </h1>
+              <h1 className="text-xl md:text-2xl font-bold text-yellow-400">AR-модуль</h1>
               <p className="text-xs text-gray-400 hidden md:block">Дополненная реальность • Югра.Нефть</p>
             </div>
           </div>
@@ -145,7 +153,7 @@ const ARModule: React.FC = () => {
         </div>
       </header>
 
-      {/* ===== MAIN CONTENT ===== */}
+      {/* MAIN CONTENT */}
       <main className="flex-grow py-8">
         <div className="container mx-auto px-4">
           {/* Hero Section */}
@@ -157,7 +165,7 @@ const ARModule: React.FC = () => {
               Дополненная реальность
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Исследуйте историю и профессии нефтяной промышленности через инновационные 
+              Исследуйте историю и профессии нефтяной промышленности через инновационные
               <span className="font-semibold text-yellow-400"> AR-технологии</span>
             </p>
           </div>
@@ -199,12 +207,12 @@ const ARModule: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {currentImages.map((item) => (
-                <div 
+                <div
                   key={item.id}
                   className="group bg-gray-800 rounded-3xl shadow-2xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-700 hover:border-yellow-500/30"
                 >
                   <div className="relative overflow-hidden">
-                    <div 
+                    <div
                       className="aspect-[4/3] bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center cursor-pointer relative"
                       onClick={() => openImageModal(item.image)}
                     >
@@ -229,7 +237,7 @@ const ARModule: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Badge */}
                       <div className="absolute top-4 left-4 bg-black/80 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm border border-yellow-500/30">
                         {activeTab === "history" ? `📅 ${item.year}` : `🎯 ${item.requirements}`}
@@ -241,10 +249,8 @@ const ARModule: React.FC = () => {
                     <h3 className="text-2xl font-bold text-white mb-3 group-hover:text-yellow-400 transition-colors">
                       {item.title}
                     </h3>
-                    <p className="text-gray-400 mb-4 leading-relaxed">
-                      {item.description}
-                    </p>
-                    
+                    <p className="text-gray-400 mb-4 leading-relaxed">{item.description}</p>
+
                     <div className="bg-gray-700/50 rounded-xl p-4 border border-gray-600">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-yellow-500/20 rounded-full flex items-center justify-center flex-shrink-0">
@@ -278,7 +284,10 @@ const ARModule: React.FC = () => {
                 { icon: Scan, step: "3", title: "Наведите камеру", desc: "Наведите камеру на изображения с метками" },
                 { icon: Aperture, step: "4", title: "Исследуйте", desc: "Наслаждайтесь интерактивным контентом" }
               ].map((item, index) => (
-                <div key={index} className="group text-center bg-gray-800 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-700 hover:border-yellow-500/50">
+                <div
+                  key={index}
+                  className="group text-center bg-gray-800 rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-700 hover:border-yellow-500/50"
+                >
                   <div className="relative inline-flex mb-6">
                     <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-lg">
                       <item.icon className="w-8 h-8 text-black" />
@@ -302,21 +311,19 @@ const ARModule: React.FC = () => {
                 <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white rounded-full"></div>
                 <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-white rounded-full"></div>
               </div>
-              
+
               <div className="max-w-4xl mx-auto relative z-10">
                 <div className="flex justify-center mb-6">
                   <div className="w-24 h-24 bg-black/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-white/30">
                     <Download className="w-12 h-12 text-white" />
                   </div>
                 </div>
-                
-                <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                  Начните AR-путешествие
-                </h2>
+
+                <h2 className="text-4xl md:text-5xl font-bold mb-6">Начните AR-путешествие</h2>
                 <p className="text-xl md:text-2xl mb-8 text-yellow-100 leading-relaxed">
                   Скачайте приложение и откройте мир дополненной реальности
                 </p>
-                
+
                 <button
                   onClick={handleDownloadApp}
                   className="bg-black text-yellow-400 hover:bg-gray-900 font-bold py-5 px-12 rounded-2xl transition-all duration-500 transform hover:scale-105 inline-flex items-center text-lg shadow-2xl hover:shadow-3xl"
@@ -324,7 +331,7 @@ const ARModule: React.FC = () => {
                   <Download className="w-6 h-6 mr-3" />
                   Скачать приложение
                 </button>
-                
+
                 <div className="flex justify-center space-x-8 mt-8 text-yellow-200">
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 bg-green-400 rounded-full"></div>
@@ -354,62 +361,62 @@ const ARModule: React.FC = () => {
 
       <Footer />
 
-      {/* Image Modal with zoom */}
+      {/* Image Modal with scrollable content */}
       {selectedImage && (
         <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="max-w-6xl max-h-full w-full animate-scaleIn">
-            <div className="relative bg-gray-900 rounded-3xl overflow-hidden border border-yellow-500/20 shadow-2xl">
-              <div className="absolute top-4 right-4 flex space-x-2 z-20">
-                <button
-                  onClick={handleZoomIn}
-                  className="bg-yellow-500 hover:bg-yellow-400 text-black rounded-full p-3 shadow-lg transition-all duration-200"
-                  title="Увеличить"
-                >
-                  <PlusCircle className="w-6 h-6" />
-                </button>
-                <button
-                  onClick={handleZoomOut}
-                  className="bg-yellow-500 hover:bg-yellow-400 text-black rounded-full p-3 shadow-lg transition-all duration-200"
-                  title="Уменьшить"
-                >
-                  <MinusCircle className="w-6 h-6" />
-                </button>
-                <button
-                  onClick={closeImageModal}
-                  className="bg-red-500 hover:bg-red-600 text-white rounded-full p-3 shadow-lg transition-all duration-200"
-                  title="Закрыть"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+          <div className="max-w-6xl w-full relative bg-gray-900 rounded-3xl border border-yellow-500/20 shadow-2xl">
+            {/* Fixed control buttons */}
+            <div className="absolute top-4 right-4 flex space-x-2 z-20">
+              <button
+                onClick={handleZoomIn}
+                className="bg-yellow-500 hover:bg-yellow-400 text-black rounded-full p-3 shadow-lg transition-all duration-200"
+                title="Увеличить"
+              >
+                <PlusCircle className="w-6 h-6" />
+              </button>
+              <button
+                onClick={handleZoomOut}
+                className="bg-yellow-500 hover:bg-yellow-400 text-black rounded-full p-3 shadow-lg transition-all duration-200"
+                title="Уменьшить"
+              >
+                <MinusCircle className="w-6 h-6" />
+              </button>
+              <button
+                onClick={closeImageModal}
+                className="bg-red-500 hover:bg-red-600 text-white rounded-full p-3 shadow-lg transition-all duration-200"
+                title="Закрыть"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="overflow-y-auto max-h-[90vh] p-8">
+              <div className="text-center mb-4">
+                <div className="inline-flex items-center space-x-2 text-yellow-400 bg-black/50 rounded-full px-4 py-2 backdrop-blur-sm border border-yellow-500/30">
+                  <ZoomIn className="w-4 h-4" />
+                  <span className="text-sm">Используйте кнопки + / - для масштабирования</span>
+                </div>
               </div>
-              
-              <div className="p-8">
-                <div className="text-center mb-4">
-                  <div className="inline-flex items-center space-x-2 text-yellow-400 bg-black/50 rounded-full px-4 py-2 backdrop-blur-sm border border-yellow-500/30">
-                    <ZoomIn className="w-4 h-4" />
-                    <span className="text-sm">Используйте кнопки + / - для масштабирования</span>
-                  </div>
-                </div>
-                
-                <div className="flex justify-center bg-black rounded-2xl p-6 border border-yellow-500/20 overflow-auto max-h-[70vh]">
-                  <img
-                    src={selectedImage}
-                    alt="Увеличенное изображение"
-                    style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s' }}
-                    className="max-w-full object-contain rounded-lg cursor-zoom-in"
-                  />
-                </div>
-                
-                <div className="text-center mt-6">
-                  <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 rounded-2xl p-6 border border-yellow-500/30 backdrop-blur-sm">
-                    <p className="text-white text-lg mb-3">Для AR-просмотра скачайте мобильное приложение</p>
-                    <button 
-                      onClick={handleDownloadApp}
-                      className="text-yellow-400 hover:text-yellow-300 font-semibold text-lg underline transition-colors"
-                    >
-                      Скачать приложение "Югра.Нефть AR"
-                    </button>
-                  </div>
+
+              <div className="flex justify-center bg-black rounded-2xl p-6 border border-yellow-500/20">
+                <img
+                  src={selectedImage}
+                  alt="Увеличенное изображение"
+                  style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s' }}
+                  className="max-w-full object-contain rounded-lg cursor-zoom-in"
+                />
+              </div>
+
+              <div className="text-center mt-6">
+                <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-600/20 rounded-2xl p-6 border border-yellow-500/30 backdrop-blur-sm">
+                  <p className="text-white text-lg mb-3">Для AR-просмотра скачайте мобильное приложение</p>
+                  <button
+                    onClick={handleDownloadApp}
+                    className="text-yellow-400 hover:text-yellow-300 font-semibold text-lg underline transition-colors"
+                  >
+                    Скачать приложение "Югра.Нефть AR"
+                  </button>
                 </div>
               </div>
             </div>

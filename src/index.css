@@ -238,20 +238,3 @@ img {
 ::-webkit-scrollbar-thumb:hover {
   background: #FFC000;
 }
-
-/* Скрываем копирайт Leaflet */
-.leaflet-control-attribution {
-  display: none !important;
-}
-
-/* Если нужно скрыть и логотип Leaflet */
-.leaflet-control-attribution,
-.leaflet-control-attribution a {
-  display: none !important;
-}
-
-.leaflet-control-attribution {
-  font-size: 8px !important;
-  opacity: 0.5 !important;
-  background: transparent !important;
-}

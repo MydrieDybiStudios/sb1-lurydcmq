@@ -9,7 +9,7 @@ import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
 import { 
   Menu, X, ChevronRight, Award, BookOpen, User, Compass, 
-  LogOut, Map, Book, FileText, BarChart, Library, Globe 
+  LogOut, Map, Book, FileText, BarChart, Library, Globe, Calendar, Settings
 } from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
@@ -37,8 +37,54 @@ const Cabinet: React.FC = () => {
   const [activeSection, setActiveSection] = useState<"courses" | "profile" | "ar" | "vr">("courses");
   const [isDirectionModalOpen, setIsDirectionModalOpen] = useState(false);
   const [isLibraryMenuOpen, setIsLibraryMenuOpen] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
+  // Функция загрузки предстоящих мероприятий
+  const fetchUpcomingEvents = async () => {
+    if (!user) {
+      setUpcomingEvents([]);
+      return;
+    }
+
+    // Получаем список event_id, на которые пользователь подписан
+    const { data: regs, error: regError } = await supabase
+      .from('event_registrations')
+      .select('event_id')
+      .eq('user_id', user.id);
+
+    if (regError) {
+      console.error('Ошибка получения регистраций:', regError);
+      return;
+    }
+
+    if (!regs || regs.length === 0) {
+      setUpcomingEvents([]);
+      return;
+    }
+
+    const eventIds = regs.map(r => r.event_id);
+    const now = new Date().toISOString();
+
+    // Получаем сами мероприятия, которые ещё не начались (будущие)
+    const { data: events, error: eventsError } = await supabase
+      .from('events')
+      .select('*')
+      .in('id', eventIds)
+      .gt('start_time', now)
+      .order('start_time', { ascending: true })
+      .limit(3);
+
+    if (eventsError) {
+      console.error('Ошибка получения мероприятий:', eventsError);
+      return;
+    }
+
+    setUpcomingEvents(events || []);
+  };
+
+  // Эффект для загрузки пользователя и профиля (выполняется один раз при монтировании)
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
@@ -53,6 +99,9 @@ const Cabinet: React.FC = () => {
             .single();
 
           setProfile(profileData);
+
+          const { data: adminCheck } = await supabase.rpc('is_admin');
+          setIsAdmin(!!adminCheck);
         } else {
           const savedDirection = localStorage.getItem('preferredDirection');
           if (savedDirection) {
@@ -80,8 +129,13 @@ const Cabinet: React.FC = () => {
           .eq("id", session.user.id)
           .single();
         setProfile(profileData);
+
+        const { data: adminCheck } = await supabase.rpc('is_admin');
+        setIsAdmin(!!adminCheck);
       } else {
         setProfile(null);
+        setUpcomingEvents([]);
+        setIsAdmin(false);
       }
     });
 
@@ -89,6 +143,15 @@ const Cabinet: React.FC = () => {
       authListener?.subscription.unsubscribe();
     };
   }, []);
+
+  // Отдельный эффект для загрузки мероприятий при изменении user
+  useEffect(() => {
+    if (user) {
+      fetchUpcomingEvents();
+    } else {
+      setUpcomingEvents([]);
+    }
+  }, [user]);
 
   // Закрытие выпадающего меню при клике вне его
   useEffect(() => {
@@ -164,6 +227,10 @@ const Cabinet: React.FC = () => {
 
   const handleNavigateToBooks = () => {
     navigate("/books");
+  };
+
+  const handleNavigateToAdminEvents = () => {
+    navigate("/admin/events");
   };
 
   const handleLogout = async () => {
@@ -353,6 +420,18 @@ const Cabinet: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Админская кнопка (только для администраторов) */}
+                {isAdmin && (
+                  <button
+                    onClick={handleNavigateToAdminEvents}
+                    className="hidden sm:inline-flex items-center space-x-1 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black text-yellow-400 font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                    title="Управление мероприятиями"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Управление</span>
+                  </button>
+                )}
+
                 <button
                   onClick={handleLogout}
                   className="hidden sm:inline-flex items-center space-x-1 border border-red-500/30 hover:bg-red-500 hover:text-white text-red-400 font-medium py-2 px-4 rounded-lg transition-all duration-200"
@@ -463,6 +542,17 @@ const Cabinet: React.FC = () => {
                   <Book className="w-4 h-4 mr-3" />
                   Книги и методички
                 </button>
+
+                {/* Админская кнопка в мобильном меню */}
+                {isAdmin && (
+                  <button
+                    onClick={() => { handleNavigateToAdminEvents(); setIsMobileMenuOpen(false); }}
+                    className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black mt-2"
+                  >
+                    <Settings className="w-4 h-4 mr-3" />
+                    Управление мероприятиями
+                  </button>
+                )}
               </div>
 
               <div className="border-t border-gray-800 pt-2 mt-2">
@@ -530,6 +620,73 @@ const Cabinet: React.FC = () => {
                     Мои достижения
                   </h2>
                   <AchievementsSection />
+                </section>
+
+                {/* Виджет предстоящих мероприятий */}
+                <section className="mt-12">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center">
+                      <Calendar className="w-8 h-8 mr-3 text-yellow-500" />
+                      Мои мероприятия
+                    </h2>
+                    
+                  </div>
+
+                  {upcomingEvents.length === 0 ? (
+                    <div className="bg-gray-100 rounded-xl p-8 text-center">
+                      <p className="text-gray-500">У вас пока нет запланированных мероприятий</p>
+                      <button
+                        onClick={() => navigate('/events')}
+                        className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
+                      >
+                        Перейти к афише
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {upcomingEvents.map((event) => (
+                          <div
+                            key={event.id}
+                            className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition cursor-pointer"
+                            onClick={() => navigate(`/events/${event.id}`)}
+                          >
+                            <div className="p-5">
+                              <div className="flex justify-between items-start mb-2">
+                                <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">
+                                  {new Date(event.start_time).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(event.start_time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <h3 className="font-bold text-lg mb-2 line-clamp-2">{event.title}</h3>
+                              {event.speaker_name && (
+                                <p className="text-sm text-gray-600 mb-3">{event.speaker_name}</p>
+                              )}
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-gray-500">
+                                  {event.format === 'online' ? '🌐 Онлайн' : '📍 Офлайн'}
+                                </span>
+                                <button className="text-yellow-600 hover:text-yellow-700 text-sm font-medium">
+                                  Подробнее →
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="text-center mt-6">
+                        <button
+                          onClick={() => navigate('/events')}
+                          className="inline-flex items-center gap-1 text-yellow-600 hover:text-yellow-700 font-medium"
+                        >
+                          Все мероприятия
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </section>
               </>
             )}

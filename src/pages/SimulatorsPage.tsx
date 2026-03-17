@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
+import {
   Cpu, Sparkles, Target, Award, ChevronRight, Info,
   Filter, GraduationCap, ArrowUpDown, Eye,
   ArrowLeft, Mountain, Waves, Flag, Drill as DrillIcon,
@@ -39,20 +39,19 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
-  const difficultyColor = 
+  const difficultyColor =
     difficulty === 'Начальный' ? 'bg-green-500/20 text-green-400' :
-    difficulty === 'Средний' ? 'bg-yellow-500/20 text-yellow-400' :
-    'bg-red-500/20 text-red-400';
+      difficulty === 'Средний' ? 'bg-yellow-500/20 text-yellow-400' :
+        'bg-red-500/20 text-red-400';
 
   return (
-    <div 
+    <div
       className="group relative bg-gray-800/30 backdrop-blur-sm rounded-3xl overflow-hidden border border-gray-700 hover:border-yellow-500 transition-all duration-500 cursor-pointer transform hover:-translate-y-2 hover:shadow-2xl hover:shadow-yellow-500/20"
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div className={`absolute inset-0 bg-gradient-to-br from-yellow-500/0 via-yellow-500/0 to-yellow-500/0 group-hover:from-yellow-500/5 group-hover:via-yellow-500/5 group-hover:to-yellow-500/10 transition-all duration-700 pointer-events-none`}></div>
-      
       <div className="p-6 border-b border-gray-700 flex justify-between items-center relative">
         <div className="flex items-center gap-3">
           <div className={`${iconBgColor} text-black w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
@@ -67,7 +66,7 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
           {badgeText}
         </div>
         {isNew && (
-          <div className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full animate-pulse shadow-lg">
+          <div className="absolute top-2 right-2 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full animate-pulse shadow-lg z-10">
             NEW
           </div>
         )}
@@ -289,7 +288,7 @@ const SimulatorsPage: React.FC = () => {
     });
 
   const renderSimulator = (id: string) => {
-    switch(id) {
+    switch (id) {
       case 'grp': return <GrpSimulator />;
       case 'petrel': return <PetrelSimulator />;
       case 'eclipse': return <EclipseSimulator />;
@@ -316,9 +315,6 @@ const SimulatorsPage: React.FC = () => {
       {/* Герой-секция */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-transparent"></div>
-        <div className="absolute top-0 left-0 w-96 h-96 bg-yellow-500 rounded-full filter blur-3xl opacity-10 animate-pulse"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full filter blur-3xl opacity-10 animate-pulse animation-delay-2000"></div>
-        
         <div className="container mx-auto px-4 py-16 relative">
           <div className="max-w-4xl">
             <div className="flex items-center gap-4 mb-4">
@@ -338,7 +334,7 @@ const SimulatorsPage: React.FC = () => {
               <Users className="w-6 h-6" />
               <span>Все симуляторы разработаны <span className="font-bold">Командой Цифровой Образовательной Среды «Югра.Нефть»</span></span>
             </p>
-            
+
             {/* Статистика */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-3xl">
               <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 text-center border border-gray-700 hover:border-yellow-500 transition">
@@ -370,11 +366,10 @@ const SimulatorsPage: React.FC = () => {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      selectedCategory === cat.id
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${selectedCategory === cat.id
                         ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/50'
                         : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
-                    }`}
+                      }`}
                   >
                     <Icon className="w-4 h-4" />
                     {cat.name}
@@ -389,7 +384,7 @@ const SimulatorsPage: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="bg-transparent text-white px-3 py-2 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="bg-transparent text-black px-3 py-2 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-yellow-400"
               >
                 <option value="popular">По популярности</option>
                 <option value="difficulty">По сложности</option>
@@ -426,7 +421,7 @@ const SimulatorsPage: React.FC = () => {
               Выберите симулятор и погрузитесь в мир нефтегазовых технологий вместе с командой «Югра.Нефть»
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <button 
+              <button
                 onClick={() => setSelectedCategory('all')}
                 className="bg-black hover:bg-gray-900 text-white font-bold py-4 px-10 rounded-xl transition transform hover:-translate-y-1 hover:shadow-2xl text-lg flex items-center gap-2"
               >

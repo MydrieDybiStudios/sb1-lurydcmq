@@ -301,6 +301,7 @@ const coursesData: Course[] = [
     id: 2,
     title: "История нефтедобычи в России",
     description: "Развитие нефтедобычи от первых скважин до современных технологий.",
+    videoUrl: "https://rutube.ru/play/embed/1e3e2aecc7ca41a8876c26b2873e6d0d",
     directions: ['oil-gas', 'geology'],
     lessons: [
       {
