@@ -102,12 +102,8 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
           {waveSvg}
           <div className="container mx-auto px-4 relative z-10">
             <div className="max-w-4xl mx-auto text-center">
-              {/* Иконка на жёлтом фоне */}
-              <div className="inline-flex items-center justify-center w-24 h-24 bg-black rounded-full mb-8 shadow-2xl transform hover:scale-110 transition">
-                <Sparkles className="w-12 h-12 text-yellow-400" />
-              </div>
               <h2 className="text-4xl md:text-5xl font-extrabold text-black mb-6">
-                Привет, {profile?.first_name || "друг"}! 👋
+                Привет, {profile?.first_name || "друг"}!
               </h2>
               <p className="text-xl md:text-2xl text-black/80 mb-10 max-w-3xl mx-auto leading-relaxed">
                 Похоже, ты ещё не выбрал направление. Пройди наш тест, чтобы мы могли порекомендовать подходящие курсы.
@@ -161,9 +157,6 @@ const CtaSection: React.FC<CtaSectionProps> = ({ onLogin, onRegister }) => {
       {waveSvg}
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-black rounded-full mb-8 shadow-2xl transform hover:scale-110 transition">
-            <Zap className="w-12 h-12 text-yellow-400" />
-          </div>
           <h2 className="text-4xl md:text-5xl font-extrabold text-black mb-6">
             Готовы начать обучение?
           </h2>
