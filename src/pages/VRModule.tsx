@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Clock, Award, Star, Users, BarChart3, GraduationCap, Info, X, Video, Headphones, Zap, Shield, Download, PlusCircle, MinusCircle } from "lucide-react";
+import { Play, Clock, GraduationCap, Info, X, Video, Headphones, Zap, Shield, Download, PlusCircle, MinusCircle } from "lucide-react";
 import Footer from "../components/Footer";
 
 // Импортируем фото для VR модулей
@@ -79,7 +79,7 @@ const VRModule: React.FC = () => {
       type: "simulation",
       fullDescription: "Освойте работу насосных станций и принципы добычи нефти. Научитесь запускать и обслуживать насосы-качалки, а также устранять типичные неисправности.",
       icon: Play,
-      downloadLink: "#"
+      downloadLink: "https://cloud.mail.ru/public/SSPv/fhzCUyftR"
     },
     {
       id: 5,
@@ -125,25 +125,10 @@ const VRModule: React.FC = () => {
     }
   ];
 
-  // Пример заполненной статистики (для демонстрации)
-  const exampleStats = [
-    { label: "Общее время", value: "127 минут", icon: Clock, color: "from-blue-500 to-cyan-500" },
-    { label: "Средний балл", value: "87%", icon: Award, color: "from-green-500 to-emerald-500" },
-    { label: "Пройдено модулей", value: "3 из 7", icon: BarChart3, color: "from-purple-500 to-pink-500" },
-    { label: "Достижения", value: "7 из 15", icon: Star, color: "from-yellow-500 to-orange-500" },
-    { label: "Попыток", value: "12", icon: Users, color: "from-orange-500 to-red-500" },
-    { label: "Прогресс", value: "43%", icon: GraduationCap, color: "from-red-500 to-rose-500" }
-  ];
+ 
 
   // Пустая статистика (текущая)
-  const emptyStats = [
-    { label: "Общее время", value: "0 минут", icon: Clock, color: "from-gray-500 to-gray-600" },
-    { label: "Средний балл", value: "0%", icon: Award, color: "from-gray-500 to-gray-600" },
-    { label: "Пройдено модулей", value: "0 из 7", icon: BarChart3, color: "from-gray-500 to-gray-600" },
-    { label: "Достижения", value: "0 из 15", icon: Star, color: "from-gray-500 to-gray-600" },
-    { label: "Попыток", value: "0", icon: Users, color: "from-gray-500 to-gray-600" },
-    { label: "Прогресс", value: "0%", icon: GraduationCap, color: "from-gray-500 to-gray-600" }
-  ];
+  
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -236,9 +221,6 @@ const VRModule: React.FC = () => {
         <div className="container mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl mb-6 shadow-2xl">
-              <div className="text-2xl">🥽</div>
-            </div>
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
               Виртуальная реальность
             </h1>
@@ -248,81 +230,13 @@ const VRModule: React.FC = () => {
             </p>
           </div>
 
-          {/* Demo Info */}
-          <div className="bg-gradient-to-r from-yellow-600 to-yellow-800 rounded-3xl p-8 mb-12 text-center text-white shadow-2xl">
-            <div className="max-w-4xl mx-auto">
-              <div className="flex items-center justify-center mb-4">
-                <Info className="w-8 h-8 mr-3" />
-                <h2 className="text-3xl font-bold">Демонстрационная версия</h2>
-              </div>
-              <p className="text-xl opacity-90 leading-relaxed">
-                На этой странице представлены демонстрационные данные. Статистика и прогресс модулей 
-                будут работать в ближайшем будущем после подключения системы отслеживания.
-              </p>
-            </div>
-          </div>
+        
 
-          {/* Statistics */}
-          <div className="mb-16">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-white mb-4">Ваша статистика</h2>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                Отслеживайте ваш прогресс в виртуальной реальности
-              </p>
-            </div>
-
-            {/* Current Stats */}
-            <div className="mb-12">
-              <h3 className="text-2xl font-bold text-yellow-400 mb-6 text-center">Текущая статистика</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {emptyStats.map((stat, index) => {
-                  const IconComponent = stat.icon;
-                  return (
-                    <div key={index} className="group bg-gray-800 rounded-2xl p-6 text-center shadow-xl hover:shadow-2xl transition-all duration-500 border border-gray-700">
-                      <div className={`w-16 h-16 bg-gradient-to-r ${stat.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                        <IconComponent className="w-8 h-8 text-white" />
-                      </div>
-                      <div className="text-2xl font-bold text-white mb-2">{stat.value}</div>
-                      <div className="text-sm text-gray-400 font-medium uppercase tracking-wide">
-                        {stat.label}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Example Stats */}
-            <div>
-              <h3 className="text-2xl font-bold text-yellow-400 mb-6 text-center">Пример статистики (будет доступно в будущем)</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {exampleStats.map((stat, index) => {
-                  const IconComponent = stat.icon;
-                  return (
-                    <div key={index} className="group bg-gray-800 rounded-2xl p-6 text-center shadow-xl hover:shadow-2xl transition-all duration-500 border border-yellow-500/30">
-                      <div className={`w-16 h-16 bg-gradient-to-r ${stat.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                        <IconComponent className="w-8 h-8 text-white" />
-                      </div>
-                      <div className="text-2xl font-bold text-white mb-2">{stat.value}</div>
-                      <div className="text-sm text-gray-400 font-medium uppercase tracking-wide">
-                        {stat.label}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+        
 
           {/* VR Modules */}
           <div className="mb-16">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-white mb-4">VR Модули</h2>
-              <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-                7 иммерсивных модулей виртуальной реальности для практического обучения
-              </p>
-              <div className="w-24 h-1 bg-gradient-to-r from-yellow-400 to-yellow-600 mx-auto rounded-full mt-4"></div>
-            </div>
+            
 
             {/* Горизонтальный скролл на мобильных, сетка на десктопе */}
             <div 
@@ -431,10 +345,7 @@ const VRModule: React.FC = () => {
                             href={module.downloadLink}
                             className="bg-gray-700 hover:bg-gray-600 text-white font-bold p-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md"
                             title="Скачать сцену"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              alert('Ссылка на скачивание будет добавлена позже');
-                            }}
+                            
                           >
                             <Download className="w-5 h-5" />
                           </a>
@@ -478,11 +389,7 @@ const VRModule: React.FC = () => {
               </div>
               
               <div className="max-w-4xl mx-auto relative z-10">
-                <div className="flex justify-center mb-6">
-                  <div className="w-24 h-24 bg-black/20 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-                    <div className="text-3xl">🥽</div>
-                  </div>
-                </div>
+                
                 
                 <h2 className="text-4xl md:text-5xl font-bold mb-6">
                   Готовы к погружению в VR?
@@ -668,10 +575,7 @@ const VRModule: React.FC = () => {
                     <a
                       href={selectedModule.downloadLink}
                       className="block bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-4 px-6 rounded-xl transition-all duration-300 text-center text-lg shadow-lg"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert('Ссылка на скачивание будет добавлена позже');
-                      }}
+                      
                     >
                       <Download className="inline-block w-5 h-5 mr-2" />
                       Скачать сцену

@@ -113,7 +113,7 @@ const AdminCoursesPage: React.FC = () => {
           .insert([payload]);
       }
 
-      const { data, error } = result;
+      const { error } = result;
       if (error) {
         setError(`Ошибка: ${error.message}${error.details ? ` (${error.details})` : ''}`);
         console.error('Детали ошибки:', error);
