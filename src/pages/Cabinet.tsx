@@ -7,9 +7,9 @@ import AchievementsSection from "../components/AchievementsSection";
 import CourseModal from "../components/CourseModal";
 import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
-import { 
-  Menu, X, ChevronRight, Award, BookOpen, User, Compass, 
-  LogOut, Map, Book, FileText, BarChart, Library, Globe, Calendar, Settings
+import {
+  Menu, X, ChevronRight, Award, BookOpen, User, Compass,
+  LogOut, Map, Book, FileText,Library, Calendar, Settings
 } from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
@@ -39,6 +39,7 @@ const Cabinet: React.FC = () => {
   const [isLibraryMenuOpen, setIsLibraryMenuOpen] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   // Функция загрузки предстоящих мероприятий
@@ -48,7 +49,6 @@ const Cabinet: React.FC = () => {
       return;
     }
 
-    // Получаем список event_id, на которые пользователь подписан
     const { data: regs, error: regError } = await supabase
       .from('event_registrations')
       .select('event_id')
@@ -67,7 +67,6 @@ const Cabinet: React.FC = () => {
     const eventIds = regs.map(r => r.event_id);
     const now = new Date().toISOString();
 
-    // Получаем сами мероприятия, которые ещё не начались (будущие)
     const { data: events, error: eventsError } = await supabase
       .from('events')
       .select('*')
@@ -84,7 +83,7 @@ const Cabinet: React.FC = () => {
     setUpcomingEvents(events || []);
   };
 
-  // Эффект для загрузки пользователя и профиля (выполняется один раз при монтировании)
+  // Эффект для загрузки пользователя и профиля
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
@@ -121,7 +120,7 @@ const Cabinet: React.FC = () => {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         const { data: profileData } = await supabase
           .from("profiles")
@@ -153,12 +152,13 @@ const Cabinet: React.FC = () => {
     }
   }, [user]);
 
-  // Закрытие выпадающего меню при клике вне его
+  // Закрытие выпадающих меню при клике вне их
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.library-menu')) {
+      if (!target.closest('.library-menu') && !target.closest('.admin-menu')) {
         setIsLibraryMenuOpen(false);
+        setIsAdminMenuOpen(false);
       }
     };
     document.addEventListener('click', handleClickOutside);
@@ -212,13 +212,8 @@ const Cabinet: React.FC = () => {
     navigate("/map");
   };
 
-  // Навигация по библиотеке
   const handleNavigateToGlossary = () => {
     navigate("/glossary");
-  };
-
-  const handleNavigateToInfographics = () => {
-    navigate("/infographics");
   };
 
   const handleNavigateToArticles = () => {
@@ -227,10 +222,6 @@ const Cabinet: React.FC = () => {
 
   const handleNavigateToBooks = () => {
     navigate("/books");
-  };
-
-  const handleNavigateToAdminEvents = () => {
-    navigate("/admin/events");
   };
 
   const handleLogout = async () => {
@@ -250,10 +241,10 @@ const Cabinet: React.FC = () => {
   }
 
   const displayName = profile
-    ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() || 
+    ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
       (user?.email ? user.email.split("@")[0] : "Пользователь")
-    : user?.email 
-      ? user.email.split("@")[0] 
+    : user?.email
+      ? user.email.split("@")[0]
       : "Пользователь";
 
   const getInitials = () => {
@@ -271,15 +262,14 @@ const Cabinet: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* Header с улучшенным дизайном */}
       <header className="bg-black text-white shadow-2xl sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 border-b border-yellow-500/20">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           {/* Логотип и название */}
           <div className="flex items-center space-x-3 group cursor-pointer" onClick={() => navigate("/")}>
             <div className="relative">
-              <img 
-                src={logo} 
-                alt="Югра.Нефть" 
+              <img
+                src={logo}
+                alt="Югра.Нефть"
                 className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-yellow-400 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
               />
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
@@ -300,10 +290,9 @@ const Cabinet: React.FC = () => {
               <nav className="hidden md:flex items-center space-x-1 bg-gray-900/50 rounded-lg p-1">
                 <button
                   onClick={() => setActiveSection("courses")}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    activeSection === "courses"
-                      ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/50"
-                      : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${activeSection === "courses"
+                    ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/50"
+                    : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
                   }`}
                 >
                   <BookOpen className="w-4 h-4 inline mr-1" />
@@ -311,10 +300,9 @@ const Cabinet: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveSection("profile")}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                    activeSection === "profile"
-                      ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/50"
-                      : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${activeSection === "profile"
+                    ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/50"
+                    : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
                   }`}
                 >
                   <User className="w-4 h-4 inline mr-1" />
@@ -349,7 +337,7 @@ const Cabinet: React.FC = () => {
                   Карта
                 </button>
 
-                {/* Выпадающее меню "Библиотека" */}
+                {/* Библиотека */}
                 <div className="relative library-menu">
                   <button
                     onClick={() => setIsLibraryMenuOpen(!isLibraryMenuOpen)}
@@ -388,24 +376,18 @@ const Cabinet: React.FC = () => {
                 </div>
               </nav>
 
-              {/* Профиль и выход */}
+              {/* Профиль и админ-меню */}
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <div 
+                <div
                   className="flex items-center gap-2 cursor-pointer group bg-gray-900/50 rounded-full pl-2 pr-3 py-1 hover:bg-gray-800 transition-all duration-300"
                   onClick={handleGoToProfile}
                   title="Перейти в профиль"
                 >
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 overflow-hidden flex items-center justify-center border-2 border-yellow-400 shadow-lg group-hover:shadow-yellow-400/50 transition-all duration-300">
                     {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt="avatar"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-black font-bold text-lg">
-                        {getInitials()}
-                      </span>
+                      <span className="text-black font-bold text-lg">{getInitials()}</span>
                     )}
                   </div>
                   <div className="hidden sm:block">
@@ -413,23 +395,42 @@ const Cabinet: React.FC = () => {
                       {displayName}
                     </span>
                     {profile?.class_num && (
-                      <span className="text-gray-300 text-xs block">
-                        {profile.class_num} класс
-                      </span>
+                      <span className="text-gray-300 text-xs block">{profile.class_num} класс</span>
                     )}
                   </div>
                 </div>
 
-                {/* Админская кнопка (только для администраторов) */}
+                {/* Админское меню */}
                 {isAdmin && (
-                  <button
-                    onClick={handleNavigateToAdminEvents}
-                    className="hidden sm:inline-flex items-center space-x-1 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black text-yellow-400 font-medium py-2 px-4 rounded-lg transition-all duration-200"
-                    title="Управление мероприятиями"
-                  >
-                    <Settings className="w-4 h-4" />
-                    <span>Управление</span>
-                  </button>
+                  <div className="relative admin-menu">
+                    <button
+                      onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
+                      className="flex items-center gap-1 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black text-yellow-400 font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                    >
+                      <Settings className="w-4 h-4" />
+                      <span>Управление</span>
+                      <ChevronRight className={`w-4 h-4 transition-transform ${isAdminMenuOpen ? 'rotate-90' : ''}`} />
+                    </button>
+
+                    {isAdminMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden z-50">
+                        <button
+                          onClick={() => { navigate('/admin/events'); setIsAdminMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                        >
+                          <Calendar className="w-4 h-4 text-yellow-400" />
+                          <span>Мероприятия</span>
+                        </button>
+                        <button
+                          onClick={() => { navigate('/admin/courses'); setIsAdminMenuOpen(false); }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                        >
+                          <BookOpen className="w-4 h-4 text-yellow-400" />
+                          <span>Курсы</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 <button
@@ -446,16 +447,15 @@ const Cabinet: React.FC = () => {
                 >
                   На главную
                 </button>
-              </div>
 
-              {/* Мобильная кнопка меню */}
-              <button
-                className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                aria-label="menu"
-              >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-              </button>
+                <button
+                  className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  aria-label="menu"
+                >
+                  {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -466,10 +466,9 @@ const Cabinet: React.FC = () => {
             <nav className="flex flex-col space-y-2">
               <button
                 onClick={() => { setActiveSection("courses"); setIsMobileMenuOpen(false); }}
-                className={`px-4 py-3 rounded-lg font-medium text-left transition flex items-center ${
-                  activeSection === "courses"
-                    ? "bg-yellow-500 text-black"
-                    : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                className={`px-4 py-3 rounded-lg font-medium text-left transition flex items-center ${activeSection === "courses"
+                  ? "bg-yellow-500 text-black"
+                  : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
                 }`}
               >
                 <BookOpen className="w-5 h-5 mr-3" />
@@ -477,10 +476,9 @@ const Cabinet: React.FC = () => {
               </button>
               <button
                 onClick={() => { setActiveSection("profile"); setIsMobileMenuOpen(false); }}
-                className={`px-4 py-3 rounded-lg font-medium text-left transition flex items-center ${
-                  activeSection === "profile"
-                    ? "bg-yellow-500 text-black"
-                    : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                className={`px-4 py-3 rounded-lg font-medium text-left transition flex items-center ${activeSection === "profile"
+                  ? "bg-yellow-500 text-black"
+                  : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
                 }`}
               >
                 <User className="w-5 h-5 mr-3" />
@@ -543,15 +541,30 @@ const Cabinet: React.FC = () => {
                   Книги и методички
                 </button>
 
-                {/* Админская кнопка в мобильном меню */}
+                {/* Админские пункты в мобильной версии */}
                 {isAdmin && (
-                  <button
-                    onClick={() => { handleNavigateToAdminEvents(); setIsMobileMenuOpen(false); }}
-                    className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black mt-2"
-                  >
-                    <Settings className="w-4 h-4 mr-3" />
-                    Управление мероприятиями
-                  </button>
+                  <>
+                    <div className="border-t border-gray-800 pt-2 mt-2">
+                      <div className="px-4 py-2 text-yellow-400 font-bold flex items-center">
+                        <Settings className="w-5 h-5 mr-3" />
+                        Управление
+                      </div>
+                      <button
+                        onClick={() => { navigate('/admin/events'); setIsMobileMenuOpen(false); }}
+                        className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                      >
+                        <Calendar className="w-4 h-4 mr-3" />
+                        Мероприятия
+                      </button>
+                      <button
+                        onClick={() => { navigate('/admin/courses'); setIsMobileMenuOpen(false); }}
+                        className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                      >
+                        <BookOpen className="w-4 h-4 mr-3" />
+                        Курсы
+                      </button>
+                    </div>
+                  </>
                 )}
               </div>
 
@@ -608,8 +621,8 @@ const Cabinet: React.FC = () => {
                       <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                     </button>
                   </div>
-                  <CoursesSection 
-                    onStartCourse={handleStartCourse} 
+                  <CoursesSection
+                    onStartCourse={handleStartCourse}
                     selectedDirection={profile?.direction}
                   />
                 </section>
@@ -629,7 +642,6 @@ const Cabinet: React.FC = () => {
                       <Calendar className="w-8 h-8 mr-3 text-yellow-500" />
                       Мои мероприятия
                     </h2>
-                    
                   </div>
 
                   {upcomingEvents.length === 0 ? (
@@ -704,11 +716,7 @@ const Cabinet: React.FC = () => {
         ) : (
           <div className="max-w-md mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300">
             <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6 text-center">
-              <img 
-                src={logo} 
-                alt="Югра.Нефть" 
-                className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-4"
-              />
+              <img src={logo} alt="Югра.Нефть" className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-black">Доступ ограничен</h2>
             </div>
             <div className="p-8 text-center">
@@ -716,16 +724,10 @@ const Cabinet: React.FC = () => {
                 Для доступа к курсам, достижениям и личному кабинету необходимо войти или зарегистрироваться.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={() => navigate("/")}
-                  className="bg-black hover:bg-gray-900 text-yellow-400 font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105"
-                >
+                <button onClick={() => navigate("/")} className="bg-black hover:bg-gray-900 text-yellow-400 font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105">
                   Войти
                 </button>
-                <button
-                  onClick={() => navigate("/")}
-                  className="border-2 border-black hover:bg-black hover:text-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105"
-                >
+                <button onClick={() => navigate("/")} className="border-2 border-black hover:bg-black hover:text-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105">
                   Регистрация
                 </button>
               </div>
@@ -736,13 +738,7 @@ const Cabinet: React.FC = () => {
 
       <Footer />
 
-      {/* Модальные окна */}
-      <CourseModal 
-        isOpen={isCourseModalOpen} 
-        onClose={() => setIsCourseModalOpen(false)} 
-        course={selectedCourse} 
-      />
-
+      <CourseModal isOpen={isCourseModalOpen} onClose={() => setIsCourseModalOpen(false)} course={selectedCourse} />
       <DirectionSelector
         isOpen={isDirectionModalOpen}
         onClose={() => setIsDirectionModalOpen(false)}

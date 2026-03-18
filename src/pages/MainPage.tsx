@@ -5,10 +5,6 @@ import CtaSection from "../components/CtaSection";
 import Footer from "../components/Footer";
 import { 
   Compass, X, Home, Users, BookOpen, Award, MessageCircle, 
-  Sparkles, Target, Zap, Rocket, Globe, ChevronRight, 
-  GraduationCap, Video, CheckCircle, Trophy, Eye, ArrowRight,
-  User, Mail, Lock, Heart, Star, Layers, Cpu, Brain, 
-  TrendingUp, BarChart, Clock, ThumbsUp, Share2
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 

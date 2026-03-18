@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Edit, Trash2, Calendar, Users, Tag, Globe, Video, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2} from 'lucide-react';
 
 // Тип мероприятия (можно импортировать из общего файла, но продублируем для наглядности)
 interface Event {

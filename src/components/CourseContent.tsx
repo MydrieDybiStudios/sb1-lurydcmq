@@ -1,12 +1,17 @@
-import React from "react";
 import parse from "html-react-parser";
-import MiniQuest from "./MiniQuest";
 
-const CourseContent = ({ lesson }) => {
+interface Lesson {
+  content: string;
+}
+
+interface CourseContentProps {
+  lesson: Lesson;
+}
+
+const CourseContent: React.FC<CourseContentProps> = ({ lesson }) => {
   return (
     <div className="prose max-w-none">
       {parse(lesson.content)}
-      {lesson.quiz && <MiniQuest quiz={lesson.quiz} />}
     </div>
   );
 };

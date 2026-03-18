@@ -23,6 +23,7 @@ import GigaChatBot from "./components/GigaChatBot"; // <-- Импортируе�
 import { EventsPage } from './pages/EventsPage';
 import { EventDetailPage } from './pages/EventDetailPage';
 import AdminEventsPage from './pages/AdminEventsPage';
+import AdminCoursesPage from './pages/AdminCoursesPage';
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -76,6 +77,7 @@ function App() {
           <Route path="/books" element={<BooksPage />} />
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/admin/events" element={<AdminEventsPage />} />
+          <Route path="/admin/courses" element={<AdminCoursesPage />} />
         </Routes>
 
         {/* Модальные окна */}
