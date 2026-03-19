@@ -4,16 +4,18 @@ import {
   Cpu, Sparkles, Target, Award, ChevronRight, Info,
   Filter, GraduationCap, ArrowUpDown, Eye,
   ArrowLeft, Mountain, Waves, Flag, Drill as DrillIcon,
-  Users, Code, Zap, Star, Heart, Rocket, Globe
+  Users, Code, Zap, Star, Heart, Rocket, Globe,
+  MousePointer, ExternalLink, RefreshCw, HelpCircle, Lightbulb
 } from 'lucide-react';
 
 // ==================== КОМПОНЕНТ КАРТОЧКИ СИМУЛЯТОРА ====================
 interface SimulatorCardProps {
   title: string;
   description: string;
+  simpleExplanation: string;  // простое объяснение без пометки "для школьников"
   icon: string;
   iconBgColor: string;
-  badgeText: string;        // теперь это тематический бейдж (ГРП, Геология и т.д.)
+  badgeText: string;
   badgeColor: string;
   time: string;
   difficulty: string;
@@ -26,6 +28,7 @@ interface SimulatorCardProps {
 const SimulatorCard: React.FC<SimulatorCardProps> = ({
   title,
   description,
+  simpleExplanation,
   icon,
   iconBgColor,
   badgeText,
@@ -85,9 +88,18 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
           </div>
         </div>
 
-        <p className="text-gray-400 mb-4 line-clamp-2 leading-relaxed">{description}</p>
+        {/* Основное описание (короткое) */}
+        <p className="text-gray-400 mb-2 line-clamp-2 leading-relaxed">{description}</p>
 
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* Простое объяснение (без пометки "для школьников") */}
+        <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl flex items-start gap-2">
+          <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-gray-300 leading-relaxed">
+            {simpleExplanation}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-3">
           <span className={`${badgeColor} px-3 py-1 rounded-full text-xs`}>{badgeText}</span>
           <span className={`${difficultyColor} px-3 py-1 rounded-full text-xs`}>{difficulty}</span>
           <span className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-xs flex items-center gap-1">
@@ -111,6 +123,67 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
   );
 };
 
+// ==================== ГАЙД ПО ИСПОЛЬЗОВАНИЮ СИМУЛЯТОРОВ ====================
+const GuideSection: React.FC = () => {
+  return (
+    <section className="container mx-auto px-4 py-12">
+      <div className="bg-gray-800/30 backdrop-blur-sm rounded-3xl p-8 border border-gray-700">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="bg-yellow-500/20 p-3 rounded-xl">
+            <HelpCircle className="w-8 h-8 text-yellow-400" />
+          </div>
+          <h2 className="text-3xl font-bold text-white">Как пользоваться симуляторами</h2>
+        </div>
+
+        <p className="text-gray-300 mb-8 text-lg">
+          Все симуляторы работают прямо в браузере, бесплатно и без установки. Вы можете экспериментировать, менять параметры и наблюдать за результатами — это безопасно и наглядно!
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-gray-700/30 rounded-xl p-5 border border-gray-600">
+            <div className="bg-yellow-500/20 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+              <MousePointer className="w-6 h-6 text-yellow-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">1. Выберите симулятор</h3>
+            <p className="text-sm text-gray-400">Нажмите на карточку интересующего вас симулятора. Можно использовать фильтры и сортировку, чтобы быстрее найти нужный.</p>
+          </div>
+
+          <div className="bg-gray-700/30 rounded-xl p-5 border border-gray-600">
+            <div className="bg-yellow-500/20 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+              <Eye className="w-6 h-6 text-yellow-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">2. Запустите</h3>
+            <p className="text-sm text-gray-400">Нажмите на кнопку «Запустить» или на любую область карточки. Большинство симуляторов откроются в этой же вкладке, а некоторые — в новой (вы всегда сможете вернуться).</p>
+          </div>
+
+          <div className="bg-gray-700/30 rounded-xl p-5 border border-gray-600">
+            <div className="bg-yellow-500/20 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+              <Zap className="w-6 h-6 text-yellow-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">3. Экспериментируйте</h3>
+            <p className="text-sm text-gray-400">Изменяйте параметры, нажимайте на кнопки, наблюдайте за изменениями на графиках или 3D-моделях. Не бойтесь ошибаться — это учебные симуляторы.</p>
+          </div>
+
+          <div className="bg-gray-700/30 rounded-xl p-5 border border-gray-600">
+            <div className="bg-yellow-500/20 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+              <RefreshCw className="w-6 h-6 text-yellow-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">4. Вернитесь к выбору</h3>
+            <p className="text-sm text-gray-400">Закончив работу, просто закройте вкладку или нажмите кнопку «Назад» в браузере, чтобы выбрать другой симулятор.</p>
+          </div>
+        </div>
+
+        <div className="mt-6 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4 flex items-start gap-3">
+          <Info className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-gray-300">
+            <span className="font-semibold text-yellow-400">Важно:</span> Если симулятор не запускается, проверьте подключение к интернету, разрешите всплывающие окна (для тех, что открываются в новой вкладке) или обновите страницу. Все симуляторы оптимизированы для работы на компьютерах и планшетах.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // ==================== СИМУЛЯТОРЫ (все наши) ====================
 const GrpSimulator: React.FC = () => {
   const openSimulator = () => {
@@ -120,7 +193,8 @@ const GrpSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="ГРП Симулятор"
-      description="Гидроразрыв пласта — моделируйте процесс и оптимизируйте параметры."
+      description="Гидроразрыв пласта — моделирование трещины."
+      simpleExplanation="Показывает, как создаются трещины в породе, чтобы нефть легче выходила. Можно менять давление и наблюдать за ростом трещины."
       icon="🏔️"
       iconBgColor="bg-yellow-500"
       badgeText="ГРП"
@@ -143,7 +217,8 @@ const PetrelSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="Petrel Lite"
-      description="Геологическое моделирование — пористость, песчаники, структуры."
+      description="Геологическое моделирование пластов."
+      simpleExplanation="Строит 3D-модель подземных слоёв. Помогает увидеть, где находятся нефть, газ и вода."
       icon="🗻"
       iconBgColor="bg-purple-500"
       badgeText="Геология"
@@ -165,7 +240,8 @@ const EclipseSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="Eclipse Lite"
-      description="Гидродинамика — движение флюидов и оптимизация разработки."
+      description="Гидродинамическое моделирование."
+      simpleExplanation="Моделирует движение нефти и газа в пласте. Показывает, как меняется добыча со временем."
       icon="🌊"
       iconBgColor="bg-blue-500"
       badgeText="Гидродинамика"
@@ -187,7 +263,8 @@ const TNavigatorSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="tNavigator Lite"
-      description="Отечественный симулятор для моделирования месторождений."
+      description="Отечественный симулятор месторождений."
+      simpleExplanation="Быстрый симулятор, похожий на Eclipse. Показывает, как работают скважины и как изменяются потоки нефти."
       icon="🇷🇺"
       iconBgColor="bg-red-500"
       badgeText="Гидродинамика"
@@ -209,7 +286,8 @@ const DrillingSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="Drilling Office Lite"
-      description="Проектирование бурения — траектории скважин, параметры."
+      description="Проектирование бурения."
+      simpleExplanation="Позволяет спроектировать траекторию скважины. Можно выбрать угол бурения, чтобы точно попасть в нефтяной пласт."
       icon="🛢️"
       iconBgColor="bg-orange-500"
       badgeText="Бурение"
@@ -231,7 +309,8 @@ const FieldDirectorSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="Директор месторождения"
-      description="Стратегический симулятор управления нефтяной компанией."
+      description="Стратегический симулятор управления."
+      simpleExplanation="Игра, где нужно управлять нефтяной компанией: бурить скважины, продавать нефть, конкурировать с другими компаниями."
       icon="🏭"
       iconBgColor="bg-green-500"
       badgeText="Управление"
@@ -251,7 +330,6 @@ const SimulatorsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'popular' | 'difficulty' | 'time'>('popular');
   const navigate = useNavigate();
 
-  // Добавлена категория "Разработанные нами" (ours)
   const categories = [
     { id: 'all', name: 'Все симуляторы', icon: Filter },
     { id: 'ours', name: 'Разработанные нами', icon: Users },
@@ -354,6 +432,9 @@ const SimulatorsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* ГАЙД ПО ИСПОЛЬЗОВАНИЮ */}
+      <GuideSection />
+
       {/* Фильтры и сортировка */}
       <div className="container mx-auto px-4 py-8">
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
@@ -384,7 +465,7 @@ const SimulatorsPage: React.FC = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="bg-transparent text-black px-3 py-2 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="bg-transparent text-white px-3 py-2 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-yellow-400"
               >
                 <option value="popular">По популярности</option>
                 <option value="difficulty">По сложности</option>
