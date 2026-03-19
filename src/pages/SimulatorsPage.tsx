@@ -12,7 +12,7 @@ import {
 interface SimulatorCardProps {
   title: string;
   description: string;
-  schoolExplanation: string;  // простое объяснение для школьников
+  simpleExplanation: string;  // простое объяснение без пометки "для школьников"
   icon: string;
   iconBgColor: string;
   badgeText: string;
@@ -28,7 +28,7 @@ interface SimulatorCardProps {
 const SimulatorCard: React.FC<SimulatorCardProps> = ({
   title,
   description,
-  schoolExplanation,
+  simpleExplanation,
   icon,
   iconBgColor,
   badgeText,
@@ -91,11 +91,11 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
         {/* Основное описание (короткое) */}
         <p className="text-gray-400 mb-2 line-clamp-2 leading-relaxed">{description}</p>
 
-        {/* Объяснение для школьников */}
+        {/* Простое объяснение (без пометки "для школьников") */}
         <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl flex items-start gap-2">
           <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-gray-300 leading-relaxed">
-            <span className="font-semibold text-yellow-400">Для школьников:</span> {schoolExplanation}
+            {simpleExplanation}
           </p>
         </div>
 
@@ -194,7 +194,7 @@ const GrpSimulator: React.FC = () => {
     <SimulatorCard
       title="ГРП Симулятор"
       description="Гидроразрыв пласта — моделирование трещины."
-      schoolExplanation="Показывает, как создаются трещины в породе, чтобы нефть легче выходила. Ты можешь менять давление и смотреть, как растёт трещина."
+      simpleExplanation="Показывает, как создаются трещины в породе, чтобы нефть легче выходила. Можно менять давление и наблюдать за ростом трещины."
       icon="🏔️"
       iconBgColor="bg-yellow-500"
       badgeText="ГРП"
@@ -218,7 +218,7 @@ const PetrelSimulator: React.FC = () => {
     <SimulatorCard
       title="Petrel Lite"
       description="Геологическое моделирование пластов."
-      schoolExplanation="Строит 3D-модель подземных слоёв. Помогает увидеть, где находятся нефть, газ и вода."
+      simpleExplanation="Строит 3D-модель подземных слоёв. Помогает увидеть, где находятся нефть, газ и вода."
       icon="🗻"
       iconBgColor="bg-purple-500"
       badgeText="Геология"
@@ -241,7 +241,7 @@ const EclipseSimulator: React.FC = () => {
     <SimulatorCard
       title="Eclipse Lite"
       description="Гидродинамическое моделирование."
-      schoolExplanation="Моделирует движение нефти и газа в пласте. Показывает, как меняется добыча со временем."
+      simpleExplanation="Моделирует движение нефти и газа в пласте. Показывает, как меняется добыча со временем."
       icon="🌊"
       iconBgColor="bg-blue-500"
       badgeText="Гидродинамика"
@@ -264,7 +264,7 @@ const TNavigatorSimulator: React.FC = () => {
     <SimulatorCard
       title="tNavigator Lite"
       description="Отечественный симулятор месторождений."
-      schoolExplanation="Отечественный симулятор, похожий на Eclipse, но быстрее. Показывает, как работают скважины."
+      simpleExplanation="Быстрый симулятор, похожий на Eclipse. Показывает, как работают скважины и как изменяются потоки нефти."
       icon="🇷🇺"
       iconBgColor="bg-red-500"
       badgeText="Гидродинамика"
@@ -287,7 +287,7 @@ const DrillingSimulator: React.FC = () => {
     <SimulatorCard
       title="Drilling Office Lite"
       description="Проектирование бурения."
-      schoolExplanation="Учит проектировать траекторию скважины. Можно выбрать угол бурения, чтобы попасть точно в цель."
+      simpleExplanation="Позволяет спроектировать траекторию скважины. Можно выбрать угол бурения, чтобы точно попасть в нефтяной пласт."
       icon="🛢️"
       iconBgColor="bg-orange-500"
       badgeText="Бурение"
@@ -310,7 +310,7 @@ const FieldDirectorSimulator: React.FC = () => {
     <SimulatorCard
       title="Директор месторождения"
       description="Стратегический симулятор управления."
-      schoolExplanation="Игра, где ты управляешь нефтяной компанией: буришь, продаёшь, конкурируешь. Показывает, как работает бизнес в нефтянке."
+      simpleExplanation="Игра, где нужно управлять нефтяной компанией: бурить скважины, продавать нефть, конкурировать с другими компаниями."
       icon="🏭"
       iconBgColor="bg-green-500"
       badgeText="Управление"
