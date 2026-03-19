@@ -238,3 +238,13 @@ img {
 ::-webkit-scrollbar-thumb:hover {
   background: #FFC000;
 }
+
+/* Скрываем атрибуцию Leaflet (логотип) */
+.leaflet-control-attribution {
+  display: none !important;
+}
+
+/* Если нужно скрыть и другие элементы управления (например, масштаб) */
+.leaflet-control-zoom {
+  /* можно настроить отображение или тоже скрыть */
+}

@@ -1,6 +1,6 @@
 // src/pages/ArticlesPage.tsx
 import React, { useState } from 'react';
-import { ArrowLeft, Clock, User, Search, X, Filter } from 'lucide-react';
+import { ArrowLeft, Clock, User, Search, X} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { articlesData, articleCategories } from '../data/articlesData';
 
@@ -93,38 +93,29 @@ const ArticlesPage: React.FC = () => {
               className="bg-gray-800/30 border border-gray-700 rounded-xl overflow-hidden hover:border-yellow-500 transition cursor-pointer"
               onClick={() => setSelectedArticle(article)}
             >
-              <div className="md:flex">
-                <div className="md:w-1/4 h-48 md:h-auto">
-                  <img
-                    src={article.imageUrl}
-                    alt={article.title}
-                    className="w-full h-full object-cover"
-                  />
+              <div className="p-6">
+                <div className="flex items-center gap-4 text-sm text-gray-400 mb-3 flex-wrap">
+                  <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full">
+                    {articleCategories.find(c => c.id === article.category)?.icon} {articleCategories.find(c => c.id === article.category)?.name}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {article.readTime}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <User className="w-4 h-4" />
+                    {article.author}
+                  </span>
+                  <span>{article.date}</span>
                 </div>
-                <div className="p-6 md:w-3/4">
-                  <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
-                    <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full">
-                      {articleCategories.find(c => c.id === article.category)?.icon} {articleCategories.find(c => c.id === article.category)?.name}
+                <h3 className="text-2xl font-bold text-yellow-400 mb-3">{article.title}</h3>
+                <p className="text-gray-400 mb-4">{article.excerpt}</p>
+                <div className="flex flex-wrap gap-2">
+                  {article.tags.slice(0, 3).map(tag => (
+                    <span key={tag} className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded-full">
+                      #{tag}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {article.readTime}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <User className="w-4 h-4" />
-                      {article.author}
-                    </span>
-                    <span>{article.date}</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-yellow-400 mb-3">{article.title}</h3>
-                  <p className="text-gray-400 mb-4">{article.excerpt}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {article.tags.slice(0, 3).map(tag => (
-                      <span key={tag} className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded-full">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -164,7 +155,7 @@ const ArticlesPage: React.FC = () => {
 
             <h2 className="text-3xl font-bold text-yellow-400 mb-4">{selectedArticle.title}</h2>
             
-            <div className="flex items-center gap-4 text-sm text-gray-400 mb-6">
+            <div className="flex items-center gap-4 text-sm text-gray-400 mb-6 flex-wrap">
               <span className="bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full">
                 {articleCategories.find(c => c.id === selectedArticle.category)?.icon} {articleCategories.find(c => c.id === selectedArticle.category)?.name}
               </span>
