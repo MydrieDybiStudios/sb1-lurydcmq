@@ -607,6 +607,7 @@ const coursesData: Course[] = [
     id: 3,
     title: "Геология нефти и газа",
     description: "Геологические процессы формирования месторождений нефти и газа.",
+    videoUrl: "https://rutube.ru/play/embed/9bee99d643d2998e15593f5c0adfac68",
     directions: ['geology', 'oil-gas'],
     lessons: [
       {
@@ -1045,6 +1046,7 @@ const coursesData: Course[] = [
     id: 4,
     title: "Методы добычи нефти",
     description: "Современные технологии и методы добычи нефтяных ресурсов.",
+    videoUrl: "https://rutube.ru/play/embed/94f7a0d964c05e491f4720561a58f4a1",
     directions: ['oil-gas'],
     lessons: [
       {
