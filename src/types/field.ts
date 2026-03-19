@@ -40,12 +40,14 @@ export interface OilField {
   infrastructure: string;
   ecology: string;
   facts: string[];
-  simulatorLink: string;
+  simulatorLink?: string;
   imageUrl: string;
   gallery?: string[];
+  panoramaIframeUrl?: string;
 }
 
 export const oilFieldsData: OilField[] = [
+  // Самотлорское месторождение
   {
     id: "samotlor",
     name: "Самотлорское",
@@ -93,6 +95,8 @@ export const oilFieldsData: OilField[] = [
     imageUrl: "/images/fields/samotlor.jpg",
     gallery: ["/images/fields/samotlor1.jpg", "/images/fields/samotlor2.jpg"]
   },
+
+  // Приобское месторождение
   {
     id: "priobskoe",
     name: "Приобское",
@@ -140,13 +144,15 @@ export const oilFieldsData: OilField[] = [
     imageUrl: "/images/fields/priobskoe.jpg",
     gallery: ["/images/fields/priobskoe1.jpg", "/images/fields/priobskoe2.jpg"]
   },
+
+  // Фёдоровское месторождение
   {
     id: "fedorovskoe",
     name: "Фёдоровское",
     description: "Одно из крупнейших месторождений Западной Сибири. Открыто в 1971 году.",
     fullDescription: "Фёдоровское нефтяное месторождение расположено в Сургутском районе ХМАО, в 40 км от Сургута. Относится к группе крупнейших месторождений России. Характеризуется сложным геологическим строением и многопластовостью.",
     history: "Открыто в 1971 году. Промышленная разработка началась в 1973 году. Месторождение стало полигоном для отработки новых технологий разработки многопластовых месторождений Западной Сибири.",
-    geology: "Месторождение приурочено к Сурготскому своду. Продуктивны отложения юры и мела. Выделено более 20 продуктивных пластов на глубинах 1,8-2,8 км. Коллекторы — песчаники с пористостью 16-22%.",
+    geology: "Месторождение приурочено к Сургутскому своду. Продуктивны отложения юры и мела. Выделено более 20 продуктивных пластов на глубинах 1,8-2,8 км. Коллекторы — песчаники с пористостью 16-22%.",
     development: "Разрабатывается с применением блочно-панельной системы. Активно применяются методы увеличения нефтеотдачи: гидроразрыв пласта, закачка полимеров, физико-химические методы.",
     coordinates: [61.3333, 73.3333],
     yearDiscovered: 1971,
@@ -186,6 +192,8 @@ export const oilFieldsData: OilField[] = [
     simulatorLink: "/simulators/tnavigator-lite.html",
     imageUrl: "/images/fields/fedorovskoe.jpg"
   },
+
+  // Мамонтовское месторождение
   {
     id: "mamontovskoe",
     name: "Мамонтовское",
@@ -231,6 +239,8 @@ export const oilFieldsData: OilField[] = [
     simulatorLink: "/simulators/eclipse-lite.html",
     imageUrl: "/images/fields/mamontovskoe.jpg"
   },
+
+  // Сургутское месторождение
   {
     id: "surgutskoe",
     name: "Сургутское",
@@ -276,6 +286,8 @@ export const oilFieldsData: OilField[] = [
     simulatorLink: "/simulators/drilling-lite.html",
     imageUrl: "/images/fields/surgutskoe.jpg"
   },
+
+  // Тевлинско-Русскинское месторождение
   {
     id: "tevlinskoe",
     name: "Тевлинско-Русскинское",
@@ -320,6 +332,8 @@ export const oilFieldsData: OilField[] = [
     simulatorLink: "/simulators/tnavigator-lite.html",
     imageUrl: "/images/fields/tevlinskoe.jpg"
   },
+
+  // Ватинское месторождение
   {
     id: "vatinskoe",
     name: "Ватинское",
@@ -364,6 +378,8 @@ export const oilFieldsData: OilField[] = [
     simulatorLink: "/simulators/eclipse-lite.html",
     imageUrl: "/images/fields/vatinskoe.jpg"
   },
+
+  // Повховское месторождение
   {
     id: "povhovskoe",
     name: "Повховское",
@@ -407,5 +423,35 @@ export const oilFieldsData: OilField[] = [
     ],
     simulatorLink: "/simulators/drilling-lite.html",
     imageUrl: "/images/fields/povhovskoe.jpg"
-  }
+  },
+
+  // Музей нефти им. Р.И. Кузоваткина
+  {
+    
+  id: "museum-kuzovatkin",
+  name: "Музей нефти им. Р.И. Кузоваткина",
+  description: "Интерактивный музей нефти и газа в школе №1 пгт. Пойковский",
+  fullDescription: "Музей открыт 24 марта 2016 года. Назван в честь Романа Ивановича Кузоваткина – нефтяника, участвовавшего в строительстве школы в 1977-1979 годах. В музее представлено около 400 экспонатов, включая пробирку нефти 1968 года с Правдинского месторождения. Музей интерактивный: посетители могут не только смотреть, но и трогать экспонаты, изучать документы на компьютерах, слушать записи голоса Р.И. Кузоваткина.",
+  history: "Инициатором создания музея выступил директор школы В.Н. Кокорев. В создании участвовали ученики, жители Пойковского и нефтяники. В музее представлены экспозиции: «История нефти», «История НГДУ «Правдинскнефть», «Быт нефтяников 1970-90-х годов». Также оформлена экспозиция «Вечерние улицы поселка» для фотографий.",
+  geology: "",
+  development: "",
+  coordinates: [61.0265, 71.8395],
+  yearDiscovered: 2016,
+  operator: "МОБУ «СОШ №1» пгт. Пойковский",
+  reserves: { total: 0, recoverable: 0, oil: 0, gas: 0 },
+  production: { annual: 0, cumulative: 0, peak: { year: 2016, value: 0 }, wells: 0 },
+  depth: { min: 0, max: 0, average: 0 },
+  oilProperties: { density: 0, sulfur: "", paraffin: "", viscosity: "", api: 0 },
+  infrastructure: "Музей расположен на третьем этаже школы. Имеет интерактивные компьютеры для доступа к электронным документам. Проводятся экскурсии для школьников, встречи с ветеранами нефтяной отрасли, мероприятия с участием «Роснефть-классов».",
+  ecology: "",
+  facts: [
+    "В музее можно услышать голос Романа Ивановича Кузоваткина – сохранены аудиозаписи",
+    "Уникальный экспонат – пробирка нефти 1968 года с Правдинского месторождения",
+    "В музее представлена нефть с четырёх месторождений: Западно-Салымского, Салымского, Приобского и Приразломного",
+    "Музей создан в рамках проекта «Имя героя»",
+    "В 2024 году здесь прошла «Встреча поколений» с ветеранами и молодыми специалистами «РН-Юганскнефтегаз»"
+  ],
+  imageUrl: "/images/fields/museum-kuzovatkin.jpg",
+  panoramaIframeUrl: "https://yandex.ru/map-widget/v1/?bookmarks=true&ll=71.905516%2C60.999119&mode=bookmarks&panorama%5Bdirection%5D=328.633192%2C-12.748522&panorama%5Bfull%5D=true&panorama%5Bpoint%5D=71.900581%2C60.995940&panorama%5Bspan%5D=101.079272%2C60.000000&utm_source=share&z=13"
+}
 ];
