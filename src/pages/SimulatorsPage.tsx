@@ -5,13 +5,14 @@ import {
   Filter, GraduationCap, ArrowUpDown, Eye,
   ArrowLeft, Mountain, Waves, Flag, Drill as DrillIcon,
   Users, Code, Zap, Star, Heart, Rocket, Globe,
-  MousePointer, ExternalLink, RefreshCw, HelpCircle
+  MousePointer, ExternalLink, RefreshCw, HelpCircle, Lightbulb
 } from 'lucide-react';
 
 // ==================== КОМПОНЕНТ КАРТОЧКИ СИМУЛЯТОРА ====================
 interface SimulatorCardProps {
   title: string;
   description: string;
+  schoolExplanation: string;  // простое объяснение для школьников
   icon: string;
   iconBgColor: string;
   badgeText: string;
@@ -27,6 +28,7 @@ interface SimulatorCardProps {
 const SimulatorCard: React.FC<SimulatorCardProps> = ({
   title,
   description,
+  schoolExplanation,
   icon,
   iconBgColor,
   badgeText,
@@ -86,9 +88,18 @@ const SimulatorCard: React.FC<SimulatorCardProps> = ({
           </div>
         </div>
 
-        <p className="text-gray-400 mb-4 line-clamp-2 leading-relaxed">{description}</p>
+        {/* Основное описание (короткое) */}
+        <p className="text-gray-400 mb-2 line-clamp-2 leading-relaxed">{description}</p>
 
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* Объяснение для школьников */}
+        <div className="mt-2 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl flex items-start gap-2">
+          <Lightbulb className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-gray-300 leading-relaxed">
+            <span className="font-semibold text-yellow-400">Для школьников:</span> {schoolExplanation}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-3">
           <span className={`${badgeColor} px-3 py-1 rounded-full text-xs`}>{badgeText}</span>
           <span className={`${difficultyColor} px-3 py-1 rounded-full text-xs`}>{difficulty}</span>
           <span className="bg-gray-700 text-gray-300 px-3 py-1 rounded-full text-xs flex items-center gap-1">
@@ -173,7 +184,7 @@ const GuideSection: React.FC = () => {
   );
 };
 
-// ==================== СИМУЛЯТОРЫ ====================
+// ==================== СИМУЛЯТОРЫ (все наши) ====================
 const GrpSimulator: React.FC = () => {
   const openSimulator = () => {
     window.location.href = '/simulators/grp-simulator.html';
@@ -182,7 +193,8 @@ const GrpSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="ГРП Симулятор"
-      description="Гидроразрыв пласта — моделируйте процесс и оптимизируйте параметры."
+      description="Гидроразрыв пласта — моделирование трещины."
+      schoolExplanation="Показывает, как создаются трещины в породе, чтобы нефть легче выходила. Ты можешь менять давление и смотреть, как растёт трещина."
       icon="🏔️"
       iconBgColor="bg-yellow-500"
       badgeText="ГРП"
@@ -205,7 +217,8 @@ const PetrelSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="Petrel Lite"
-      description="Геологическое моделирование — пористость, песчаники, структуры."
+      description="Геологическое моделирование пластов."
+      schoolExplanation="Строит 3D-модель подземных слоёв. Помогает увидеть, где находятся нефть, газ и вода."
       icon="🗻"
       iconBgColor="bg-purple-500"
       badgeText="Геология"
@@ -227,7 +240,8 @@ const EclipseSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="Eclipse Lite"
-      description="Гидродинамика — движение флюидов и оптимизация разработки."
+      description="Гидродинамическое моделирование."
+      schoolExplanation="Моделирует движение нефти и газа в пласте. Показывает, как меняется добыча со временем."
       icon="🌊"
       iconBgColor="bg-blue-500"
       badgeText="Гидродинамика"
@@ -249,7 +263,8 @@ const TNavigatorSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="tNavigator Lite"
-      description="Отечественный симулятор для моделирования месторождений."
+      description="Отечественный симулятор месторождений."
+      schoolExplanation="Отечественный симулятор, похожий на Eclipse, но быстрее. Показывает, как работают скважины."
       icon="🇷🇺"
       iconBgColor="bg-red-500"
       badgeText="Гидродинамика"
@@ -271,7 +286,8 @@ const DrillingSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="Drilling Office Lite"
-      description="Проектирование бурения — траектории скважин, параметры."
+      description="Проектирование бурения."
+      schoolExplanation="Учит проектировать траекторию скважины. Можно выбрать угол бурения, чтобы попасть точно в цель."
       icon="🛢️"
       iconBgColor="bg-orange-500"
       badgeText="Бурение"
@@ -293,7 +309,8 @@ const FieldDirectorSimulator: React.FC = () => {
   return (
     <SimulatorCard
       title="Директор месторождения"
-      description="Стратегический симулятор управления нефтяной компанией."
+      description="Стратегический симулятор управления."
+      schoolExplanation="Игра, где ты управляешь нефтяной компанией: буришь, продаёшь, конкурируешь. Показывает, как работает бизнес в нефтянке."
       icon="🏭"
       iconBgColor="bg-green-500"
       badgeText="Управление"
