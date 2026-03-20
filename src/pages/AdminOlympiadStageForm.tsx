@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 
@@ -22,7 +22,6 @@ const AdminOlympiadStageForm: React.FC = () => {
     if (stageId && stageId !== 'new') {
       fetchStage();
     } else {
-      // Для нового этапа получим следующий order_index
       fetchNextOrderIndex();
     }
   }, [stageId]);
