@@ -1,4 +1,4 @@
-// src/pages/Cabinet.tsx (без олимпиад)
+// src/pages/Cabinet.tsx
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Footer from "../components/Footer";
@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Menu, X, ChevronRight, Award, BookOpen, User, Compass,
   LogOut, Map, Book, FileText, Library, Calendar, Settings,
-  MoreHorizontal, ChevronDown
+  MoreHorizontal, ChevronDown, Trophy
 } from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
@@ -273,6 +273,7 @@ const Cabinet: React.FC = () => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [upcomingOlympiads, setUpcomingOlympiads] = useState<any[]>([]); // <-- новое состояние
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
@@ -317,6 +318,36 @@ const Cabinet: React.FC = () => {
     setUpcomingEvents(events || []);
   }, [user]);
 
+  // Функция загрузки олимпиад, на которые зарегистрирован пользователь
+  const fetchUpcomingOlympiads = useCallback(async () => {
+    if (!user) {
+      setUpcomingOlympiads([]);
+      return;
+    }
+    const { data: regs } = await supabase
+      .from("olympiad_registrations")
+      .select("olympiad_id, status, final_score, place, diploma_url")
+      .eq("user_id", user.id);
+    if (!regs?.length) {
+      setUpcomingOlympiads([]);
+      return;
+    }
+    const olympiadIds = regs.map(r => r.olympiad_id);
+    const { data: olympiads } = await supabase
+      .from("olympiads")
+      .select("*")
+      .in("id", olympiadIds)
+      .order("created_at", { ascending: false });
+    if (olympiads) {
+      // Добавляем информацию о регистрации к каждой олимпиаде
+      const enriched = olympiads.map(olympiad => {
+        const reg = regs.find(r => r.olympiad_id === olympiad.id);
+        return { ...olympiad, registration: reg };
+      });
+      setUpcomingOlympiads(enriched);
+    }
+  }, [user]);
+
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
@@ -359,6 +390,7 @@ const Cabinet: React.FC = () => {
       } else {
         setProfile(null);
         setUpcomingEvents([]);
+        setUpcomingOlympiads([]);
         setIsAdmin(false);
       }
     });
@@ -368,7 +400,8 @@ const Cabinet: React.FC = () => {
 
   useEffect(() => {
     fetchUpcomingEvents();
-  }, [user, fetchUpcomingEvents]);
+    fetchUpcomingOlympiads(); // <-- загружаем олимпиады
+  }, [user, fetchUpcomingEvents, fetchUpcomingOlympiads]);
 
   const handleDirectionSelect = async (directionId: string) => {
     if (user) {
@@ -420,6 +453,7 @@ const Cabinet: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      {/* ===== HEADER (без изменений, см. предыдущую версию) ===== */}
       <header className="bg-black text-white shadow-2xl sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 border-b border-yellow-500/20">
         <div className="container mx-auto px-4 py-2 flex justify-between items-center">
           <div className="flex items-center space-x-2 group cursor-pointer" onClick={handleExitToMain}>
@@ -442,6 +476,7 @@ const Cabinet: React.FC = () => {
 
           {user && (
             <div className="flex items-center space-x-2">
+              {/* Desktop навигация (сокращённая) */}
               <nav className="hidden xl:flex items-center space-x-1">
                 <NavButton
                   onClick={() => setActiveSection("courses")}
@@ -455,6 +490,7 @@ const Cabinet: React.FC = () => {
                   icon={<User className="w-4 h-4" />}
                   label="Профиль"
                 />
+                {/* Библиотека */}
                 <DropdownMenu
                   trigger={
                     <button
@@ -480,6 +516,7 @@ const Cabinet: React.FC = () => {
                     <Book className="w-4 h-4 text-yellow-400" /> Книги и методички
                   </button>
                 </DropdownMenu>
+                {/* Ещё (AR, VR, Симуляторы, Карта) */}
                 <DropdownMenu
                   trigger={
                     <button
@@ -524,22 +561,17 @@ const Cabinet: React.FC = () => {
                     onClose={() => setIsAdminMenuOpen(false)}
                     align="left"
                   >
-                    <button
-                      onClick={() => { navigate("/admin/events"); setIsAdminMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white"
-                    >
+                    <button onClick={() => { navigate("/admin/events"); setIsAdminMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
                       <Calendar className="w-4 h-4 text-yellow-400" /> Мероприятия
                     </button>
-                    <button
-                      onClick={() => { navigate("/admin/courses"); setIsAdminMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white"
-                    >
+                    <button onClick={() => { navigate("/admin/courses"); setIsAdminMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
                       <BookOpen className="w-4 h-4 text-yellow-400" /> Курсы
                     </button>
                   </DropdownMenu>
                 )}
               </nav>
 
+              {/* Блок пользователя */}
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <div
                   className="flex items-center gap-1 sm:gap-2 cursor-pointer group bg-gray-900/50 rounded-full pl-1 pr-2 sm:pl-2 sm:pr-3 py-1 hover:bg-gray-800 transition"
@@ -605,6 +637,7 @@ const Cabinet: React.FC = () => {
         )}
       </header>
 
+      {/* Основной контент */}
       <main className="flex-grow container mx-auto px-4 py-8 relative">
         <div className="absolute top-20 left-0 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob" />
         <div className="absolute top-40 right-0 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000" />
@@ -648,6 +681,7 @@ const Cabinet: React.FC = () => {
                   <AchievementsSection />
                 </section>
 
+                {/* Виджет предстоящих мероприятий */}
                 <section className="mt-12">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center">
@@ -701,6 +735,90 @@ const Cabinet: React.FC = () => {
                           className="inline-flex items-center gap-1 text-yellow-600 hover:text-yellow-700 font-medium"
                         >
                           Все мероприятия
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </section>
+
+                {/* Виджет моих олимпиад (аналогично мероприятиям) */}
+                <section className="mt-12">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center">
+                      <Trophy className="w-8 h-8 mr-3 text-yellow-500" />
+                      Мои олимпиады
+                    </h2>
+                  </div>
+                  {upcomingOlympiads.length === 0 ? (
+                    <div className="bg-gray-100 rounded-xl p-8 text-center">
+                      <p className="text-gray-500">Вы ещё не участвуете в олимпиадах</p>
+                      <button
+                        onClick={() => navigate("/olympiads")}
+                        className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
+                      >
+                        Перейти к олимпиадам
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {upcomingOlympiads.map(item => {
+                          const olympiad = item;
+                          const reg = item.registration;
+                          const statusText = reg?.status === 'completed' ? 'Завершена' : 'Участвую';
+                          const statusColor = reg?.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                          return (
+                            <div
+                              key={olympiad.id}
+                              className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition cursor-pointer"
+                              onClick={() => navigate(`/olympiads/${olympiad.id}`)}
+                            >
+                              {olympiad.cover_image_url && (
+                                <div className="h-32 overflow-hidden">
+                                  <img src={olympiad.cover_image_url} alt={olympiad.title} className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                              <div className="p-5">
+                                <div className="flex justify-between items-start mb-2">
+                                  <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${statusColor}`}>
+                                    {statusText}
+                                  </span>
+                                </div>
+                                <h3 className="font-bold text-lg mb-2 line-clamp-2">{olympiad.title}</h3>
+                                {reg?.place && (
+                                  <p className="text-sm text-gray-600 mb-2">Место: {reg.place}</p>
+                                )}
+                                {reg?.final_score && (
+                                  <p className="text-sm text-gray-600 mb-2">Баллы: {reg.final_score}</p>
+                                )}
+                                {reg?.diploma_url && (
+                                  <a
+                                    href={reg.diploma_url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-yellow-600 hover:text-yellow-700 text-sm font-medium block mt-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    Скачать диплом
+                                  </a>
+                                )}
+                                <div className="flex justify-end mt-3">
+                                  <button className="text-yellow-600 hover:text-yellow-700 text-sm font-medium">
+                                    Подробнее →
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <div className="text-center mt-6">
+                        <button
+                          onClick={() => navigate("/olympiads")}
+                          className="inline-flex items-center gap-1 text-yellow-600 hover:text-yellow-700 font-medium"
+                        >
+                          Все олимпиады
                           <ChevronRight className="w-4 h-4" />
                         </button>
                       </div>
