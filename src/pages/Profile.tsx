@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Menu, X, ChevronRight, Award, BookOpen, User, Compass,
   LogOut, Map, Book, FileText, Library, Calendar, Settings,
-  MoreHorizontal
+  MoreHorizontal, ChevronDown
 } from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
@@ -28,41 +28,22 @@ interface ProfileData {
   direction?: string | null;
 }
 
-// ========== Вспомогательные компоненты для навигации ==========
-
-interface NavButtonProps {
-  onClick: () => void;
-  active?: boolean;
-  icon: React.ReactNode;
-  label: string;
-  hideLabel?: boolean;
-}
-
-const NavButton: React.FC<NavButtonProps> = ({ onClick, active, icon, label, hideLabel = false }) => (
-  <button
-    onClick={onClick}
-    className={`
-      px-3 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-1
-      ${active
-        ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/50'
-        : 'text-yellow-400 hover:bg-yellow-500 hover:text-black'
-      }
-    `}
-    title={hideLabel ? label : undefined}
-  >
-    {icon}
-    {!hideLabel && <span>{label}</span>}
-  </button>
-);
-
+// ========== Универсальный компонент выпадающего меню ==========
 interface DropdownMenuProps {
   trigger: React.ReactNode;
   children: React.ReactNode;
   isOpen: boolean;
   onClose: () => void;
+  align?: "left" | "right";
 }
 
-const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, children, isOpen, onClose }) => {
+const DropdownMenu: React.FC<DropdownMenuProps> = ({
+  trigger,
+  children,
+  isOpen,
+  onClose,
+  align = "right"
+}) => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,8 +52,8 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, children, isOpen, 
         onClose();
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
 
   return (
@@ -80,9 +61,10 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, children, isOpen, 
       {trigger}
       <div
         className={`
-          absolute right-0 mt-2 w-56 bg-gray-800 rounded-lg shadow-xl border border-gray-700 
+          absolute ${align === "right" ? "right-0" : "left-0"} mt-2 w-56
+          bg-gray-800 rounded-lg shadow-xl border border-gray-700 
           overflow-hidden z-50 transform transition-all duration-200 origin-top-right
-          ${isOpen ? 'scale-100 opacity-100' : 'scale-95 opacity-0 pointer-events-none'}
+          ${isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"}
         `}
       >
         {children}
@@ -91,9 +73,8 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({ trigger, children, isOpen, 
   );
 };
 
+// ========== Мобильное меню (без изменений, но можно оставить) ==========
 interface MobileMenuProps {
-  activeSection: "courses" | "profile" | "ar" | "vr";
-  setActiveSection: (section: "courses" | "profile" | "ar" | "vr") => void;
   onClose: () => void;
   onNavigateToAR: () => void;
   onNavigateToVR: () => void;
@@ -107,11 +88,10 @@ interface MobileMenuProps {
   onExitToMain: () => void;
   onLogout: () => void;
   isAdmin: boolean;
+  setActiveSection: (section: "courses" | "profile" | "ar" | "vr") => void;
 }
 
 const MobileMenu: React.FC<MobileMenuProps> = ({
-  activeSection,
-  setActiveSection,
   onClose,
   onNavigateToAR,
   onNavigateToVR,
@@ -124,29 +104,22 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onNavigateToAdminCourses,
   onExitToMain,
   onLogout,
-  isAdmin
+  isAdmin,
+  setActiveSection
 }) => {
   return (
     <div className="md:hidden bg-black border-t border-gray-800 px-4 py-3 animate-slideDown">
       <nav className="flex flex-col space-y-2">
         <button
           onClick={() => { setActiveSection("courses"); onClose(); }}
-          className={`px-4 py-3 rounded-lg font-medium text-left transition flex items-center ${
-            activeSection === "courses"
-              ? "bg-yellow-500 text-black"
-              : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
-          }`}
+          className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
         >
           <BookOpen className="w-5 h-5 mr-3" />
           Курсы
         </button>
         <button
           onClick={() => { setActiveSection("profile"); onClose(); }}
-          className={`px-4 py-3 rounded-lg font-medium text-left transition flex items-center ${
-            activeSection === "profile"
-              ? "bg-yellow-500 text-black"
-              : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
-          }`}
+          className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
         >
           <User className="w-5 h-5 mr-3" />
           Профиль
@@ -180,7 +153,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
           Карта месторождений
         </button>
 
-        {/* Библиотека в мобильном меню */}
+        {/* Библиотека */}
         <div className="border-t border-gray-800 pt-2 mt-2">
           <div className="px-4 py-2 text-yellow-400 font-bold flex items-center">
             <Library className="w-5 h-5 mr-3" />
@@ -207,33 +180,30 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
             <Book className="w-4 h-4 mr-3" />
             Книги и методички
           </button>
-
-          {/* Админские пункты в мобильной версии */}
-          {isAdmin && (
-            <>
-              <div className="border-t border-gray-800 pt-2 mt-2">
-                <div className="px-4 py-2 text-yellow-400 font-bold flex items-center">
-                  <Settings className="w-5 h-5 mr-3" />
-                  Управление
-                </div>
-                <button
-                  onClick={() => { onNavigateToAdminEvents(); onClose(); }}
-                  className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                >
-                  <Calendar className="w-4 h-4 mr-3" />
-                  Мероприятия
-                </button>
-                <button
-                  onClick={() => { onNavigateToAdminCourses(); onClose(); }}
-                  className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                >
-                  <BookOpen className="w-4 h-4 mr-3" />
-                  Курсы
-                </button>
-              </div>
-            </>
-          )}
         </div>
+
+        {isAdmin && (
+          <div className="border-t border-gray-800 pt-2 mt-2">
+            <div className="px-4 py-2 text-yellow-400 font-bold flex items-center">
+              <Settings className="w-5 h-5 mr-3" />
+              Управление
+            </div>
+            <button
+              onClick={() => { onNavigateToAdminEvents(); onClose(); }}
+              className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+            >
+              <Calendar className="w-4 h-4 mr-3" />
+              Мероприятия
+            </button>
+            <button
+              onClick={() => { onNavigateToAdminCourses(); onClose(); }}
+              className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+            >
+              <BookOpen className="w-4 h-4 mr-3" />
+              Курсы
+            </button>
+          </div>
+        )}
 
         <div className="border-t border-gray-800 pt-2 mt-2">
           <button
@@ -268,12 +238,12 @@ const Cabinet: React.FC = () => {
   const [isDirectionModalOpen, setIsDirectionModalOpen] = useState(false);
   const [isLibraryMenuOpen, setIsLibraryMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Мемоизированные обработчики для навигации
+  // Мемоизированные обработчики
   const handleNavigateToAR = useCallback(() => navigate("/ar-module"), [navigate]);
   const handleNavigateToVR = useCallback(() => navigate("/vr-module"), [navigate]);
   const handleNavigateToSim = useCallback(() => navigate("/simulators"), [navigate]);
@@ -288,70 +258,48 @@ const Cabinet: React.FC = () => {
     navigate("/");
   }, [navigate]);
 
-  // Функция загрузки предстоящих мероприятий
   const fetchUpcomingEvents = useCallback(async () => {
     if (!user) {
       setUpcomingEvents([]);
       return;
     }
-
-    const { data: regs, error: regError } = await supabase
-      .from('event_registrations')
-      .select('event_id')
-      .eq('user_id', user.id);
-
-    if (regError) {
-      console.error('Ошибка получения регистраций:', regError);
-      return;
-    }
-
-    if (!regs || regs.length === 0) {
+    const { data: regs } = await supabase
+      .from("event_registrations")
+      .select("event_id")
+      .eq("user_id", user.id);
+    if (!regs?.length) {
       setUpcomingEvents([]);
       return;
     }
-
     const eventIds = regs.map(r => r.event_id);
     const now = new Date().toISOString();
-
-    const { data: events, error: eventsError } = await supabase
-      .from('events')
-      .select('*')
-      .in('id', eventIds)
-      .gt('start_time', now)
-      .order('start_time', { ascending: true })
+    const { data: events } = await supabase
+      .from("events")
+      .select("*")
+      .in("id", eventIds)
+      .gt("start_time", now)
+      .order("start_time", { ascending: true })
       .limit(3);
-
-    if (eventsError) {
-      console.error('Ошибка получения мероприятий:', eventsError);
-      return;
-    }
-
     setUpcomingEvents(events || []);
   }, [user]);
 
-  // Эффект для загрузки пользователя и профиля
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
         const { data: userData } = await supabase.auth.getUser();
         setUser(userData?.user ?? null);
-
         if (userData?.user) {
           const { data: profileData } = await supabase
             .from("profiles")
             .select("*")
             .eq("id", userData.user.id)
             .single();
-
           setProfile(profileData);
-
-          const { data: adminCheck } = await supabase.rpc('is_admin');
+          const { data: adminCheck } = await supabase.rpc("is_admin");
           setIsAdmin(!!adminCheck);
         } else {
-          const savedDirection = localStorage.getItem('preferredDirection');
-          if (savedDirection) {
-            setProfile({ direction: savedDirection } as ProfileData);
-          }
+          const savedDirection = localStorage.getItem("preferredDirection");
+          if (savedDirection) setProfile({ direction: savedDirection } as ProfileData);
         }
       } catch (err) {
         console.error("Ошибка получения данных:", err);
@@ -361,12 +309,10 @@ const Cabinet: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchUserAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
-
       if (session?.user) {
         const { data: profileData } = await supabase
           .from("profiles")
@@ -374,8 +320,7 @@ const Cabinet: React.FC = () => {
           .eq("id", session.user.id)
           .single();
         setProfile(profileData);
-
-        const { data: adminCheck } = await supabase.rpc('is_admin');
+        const { data: adminCheck } = await supabase.rpc("is_admin");
         setIsAdmin(!!adminCheck);
       } else {
         setProfile(null);
@@ -384,12 +329,9 @@ const Cabinet: React.FC = () => {
       }
     });
 
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
+    return () => authListener?.subscription.unsubscribe();
   }, []);
 
-  // Отдельный эффект для загрузки мероприятий при изменении user
   useEffect(() => {
     fetchUpcomingEvents();
   }, [user, fetchUpcomingEvents]);
@@ -397,22 +339,18 @@ const Cabinet: React.FC = () => {
   const handleDirectionSelect = async (directionId: string) => {
     if (user) {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ direction: directionId })
-        .eq('id', user.id);
-      if (error) {
-        console.error('Ошибка сохранения направления:', error);
-        return;
-      }
-      setProfile(prev => prev ? { ...prev, direction: directionId } : { direction: directionId } as ProfileData);
+        .eq("id", user.id);
+      if (!error) setProfile(prev => prev ? { ...prev, direction: directionId } : { direction: directionId } as ProfileData);
     } else {
-      localStorage.setItem('preferredDirection', directionId);
+      localStorage.setItem("preferredDirection", directionId);
       setProfile(prev => prev ? { ...prev, direction: directionId } : { direction: directionId } as ProfileData);
     }
   };
 
   const handleStartCourse = (courseId: number) => {
-    const course = coursesData.find((c) => c.id === courseId);
+    const course = coursesData.find(c => c.id === courseId);
     if (course) {
       setSelectedCourse(course);
       setIsCourseModalOpen(true);
@@ -423,7 +361,7 @@ const Cabinet: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-gray-600 font-medium">Загружаем ваш личный кабинет...</p>
         </div>
       </div>
@@ -434,229 +372,294 @@ const Cabinet: React.FC = () => {
     ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
       (user?.email ? user.email.split("@")[0] : "Пользователь")
     : user?.email
-      ? user.email.split("@")[0]
-      : "Пользователь";
+    ? user.email.split("@")[0]
+    : "Пользователь";
 
   const getInitials = () => {
     if (profile?.first_name && profile?.last_name) {
       return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
     }
-    if (profile?.first_name) {
-      return profile.first_name[0].toUpperCase();
-    }
-    if (profile?.last_name) {
-      return profile.last_name[0].toUpperCase();
-    }
+    if (profile?.first_name) return profile.first_name[0].toUpperCase();
+    if (profile?.last_name) return profile.last_name[0].toUpperCase();
     return String(displayName?.[0] ?? "U").toUpperCase();
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* Улучшенный header */}
+      {/* ===== КРАСИВЫЙ И МИНИМАЛИСТИЧНЫЙ HEADER ===== */}
       <header className="bg-black text-white shadow-2xl sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 border-b border-yellow-500/20">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          {/* Логотип и название */}
-          <div className="flex items-center space-x-3 group cursor-pointer" onClick={handleExitToMain}>
+        <div className="container mx-auto px-4 py-2 flex justify-between items-center">
+          {/* Логотип + название (сокращённое на мобильных) */}
+          <div className="flex items-center space-x-2 group cursor-pointer" onClick={handleExitToMain}>
             <div className="relative">
               <img
                 src={logo}
                 alt="Югра.Нефть"
-                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-yellow-400 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-yellow-400 shadow-lg transition-transform duration-300 group-hover:scale-110"
               />
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse" />
             </div>
             <div className="flex flex-col">
-              <h1 className="text-base sm:text-lg md:text-xl font-bold leading-tight tracking-tight">
-                <span className="hidden sm:inline">Личный кабинет</span>
-                <span className="sm:hidden">ЛК</span>
+              <h1 className="text-sm sm:text-base font-bold leading-tight">
+                <span className="hidden xs:inline">Личный кабинет</span>
+                <span className="xs:hidden">ЛК</span>
                 <span className="text-yellow-400 ml-1">«Югра.Нефть»</span>
               </h1>
-              <p className="text-xs text-gray-300 hidden md:block">Ваши курсы, достижения и прогресс</p>
             </div>
           </div>
 
           {user && (
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Десктопная навигация - компактная */}
-              <nav className="hidden md:flex items-center space-x-1 bg-gray-900/50 rounded-lg p-1">
-                <NavButton
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              {/* Десктопная навигация (lg и выше) — только основные кнопки, остальное в меню */}
+              <nav className="hidden lg:flex items-center space-x-1">
+                {/* Курсы и Профиль всегда видны */}
+                <button
                   onClick={() => setActiveSection("courses")}
-                  active={activeSection === "courses"}
-                  icon={<BookOpen className="w-4 h-4" />}
-                  label="Курсы"
-                />
-                <NavButton
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
+                    activeSection === "courses"
+                      ? "bg-yellow-500 text-black"
+                      : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span>Курсы</span>
+                </button>
+                <button
                   onClick={() => setActiveSection("profile")}
-                  active={activeSection === "profile"}
-                  icon={<User className="w-4 h-4" />}
-                  label="Профиль"
-                />
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
+                    activeSection === "profile"
+                      ? "bg-yellow-500 text-black"
+                      : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span>Профиль</span>
+                </button>
 
-                {/* Библиотека как Dropdown */}
+                {/* Меню "Библиотека" */}
                 <DropdownMenu
                   trigger={
                     <button
                       onClick={() => setIsLibraryMenuOpen(!isLibraryMenuOpen)}
-                      className="flex items-center gap-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-yellow-400 hover:bg-yellow-500 hover:text-black transition"
                     >
                       <Library className="w-4 h-4" />
-                      <span className="hidden lg:inline">Библиотека</span>
-                      <ChevronRight className={`w-4 h-4 transition-transform ${isLibraryMenuOpen ? 'rotate-90' : ''}`} />
+                      <span>Библиотека</span>
+                      <ChevronDown className={`w-3 h-3 transition-transform ${isLibraryMenuOpen ? "rotate-180" : ""}`} />
                     </button>
                   }
                   isOpen={isLibraryMenuOpen}
                   onClose={() => setIsLibraryMenuOpen(false)}
+                  align="left"
                 >
                   <button
                     onClick={() => { handleNavigateToGlossary(); setIsLibraryMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
                   >
                     <BookOpen className="w-4 h-4 text-yellow-400" />
                     <span>Словарь терминов</span>
                   </button>
                   <button
                     onClick={() => { handleNavigateToArticles(); setIsLibraryMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
                   >
                     <FileText className="w-4 h-4 text-yellow-400" />
                     <span>Технические статьи</span>
                   </button>
                   <button
                     onClick={() => { handleNavigateToBooks(); setIsLibraryMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
                   >
                     <Book className="w-4 h-4 text-yellow-400" />
                     <span>Книги и методички</span>
                   </button>
                 </DropdownMenu>
 
-                {/* Меню «Ещё» для второстепенных разделов */}
+                {/* Меню "Ещё" (AR, VR, Симуляторы, Карта) */}
                 <DropdownMenu
                   trigger={
                     <button
                       onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                      className="flex items-center gap-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-yellow-400 hover:bg-yellow-500 hover:text-black transition"
                     >
                       <MoreHorizontal className="w-4 h-4" />
-                      <span className="hidden lg:inline">Ещё</span>
-                      <ChevronRight className={`w-4 h-4 transition-transform ${isMoreMenuOpen ? 'rotate-90' : ''}`} />
+                      <span>Ещё</span>
+                      <ChevronDown className={`w-3 h-3 transition-transform ${isMoreMenuOpen ? "rotate-180" : ""}`} />
                     </button>
                   }
                   isOpen={isMoreMenuOpen}
                   onClose={() => setIsMoreMenuOpen(false)}
+                  align="left"
                 >
                   <button
                     onClick={() => { handleNavigateToAR(); setIsMoreMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
                   >
                     <Compass className="w-4 h-4 text-yellow-400" />
                     <span>AR-модуль</span>
                   </button>
                   <button
                     onClick={() => { handleNavigateToVR(); setIsMoreMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
                   >
                     <Compass className="w-4 h-4 text-yellow-400" />
                     <span>VR-модуль</span>
                   </button>
                   <button
                     onClick={() => { handleNavigateToSim(); setIsMoreMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
                   >
                     <Compass className="w-4 h-4 text-yellow-400" />
                     <span>Симуляторы</span>
                   </button>
                   <button
                     onClick={() => { handleNavigateToMap(); setIsMoreMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
                   >
                     <Map className="w-4 h-4 text-yellow-400" />
                     <span>Карта месторождений</span>
                   </button>
                 </DropdownMenu>
-              </nav>
 
-              {/* Блок пользователя и админ-меню */}
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                {/* Аватар с именем */}
-                <div
-                  className="flex items-center gap-2 cursor-pointer group bg-gray-900/50 rounded-full pl-2 pr-3 py-1 hover:bg-gray-800 transition-all duration-300"
-                  onClick={handleGoToProfile}
-                  title="Перейти в профиль"
-                >
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 overflow-hidden flex items-center justify-center border-2 border-yellow-400 shadow-lg group-hover:shadow-yellow-400/50 transition-all duration-300">
-                    {profile?.avatar_url ? (
-                      <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-black font-bold text-lg">{getInitials()}</span>
-                    )}
-                  </div>
-                  <div className="hidden sm:block">
-                    <span className="text-yellow-400 font-medium group-hover:text-yellow-300 transition-colors">
-                      {displayName}
-                    </span>
-                    {profile?.class_num && (
-                      <span className="text-gray-300 text-xs block">{profile.class_num} класс</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Админское меню (если админ) */}
+                {/* Админ-меню, если есть права */}
                 {isAdmin && (
                   <DropdownMenu
                     trigger={
                       <button
                         onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
-                        className="flex items-center gap-1 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black text-yellow-400 font-medium py-2 px-3 rounded-lg transition-all duration-200"
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-yellow-400 hover:bg-yellow-500 hover:text-black transition border border-yellow-500/30"
                       >
                         <Settings className="w-4 h-4" />
-                        <span className="hidden lg:inline">Управление</span>
-                        <ChevronRight className={`w-4 h-4 transition-transform ${isAdminMenuOpen ? 'rotate-90' : ''}`} />
+                        <span>Управление</span>
+                        <ChevronDown className={`w-3 h-3 transition-transform ${isAdminMenuOpen ? "rotate-180" : ""}`} />
                       </button>
                     }
                     isOpen={isAdminMenuOpen}
                     onClose={() => setIsAdminMenuOpen(false)}
+                    align="left"
                   >
                     <button
-                      onClick={() => { navigate('/admin/events'); setIsAdminMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                      onClick={() => { navigate("/admin/events"); setIsAdminMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
                     >
                       <Calendar className="w-4 h-4 text-yellow-400" />
                       <span>Мероприятия</span>
                     </button>
                     <button
-                      onClick={() => { navigate('/admin/courses'); setIsAdminMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                      onClick={() => { navigate("/admin/courses"); setIsAdminMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
                     >
                       <BookOpen className="w-4 h-4 text-yellow-400" />
                       <span>Курсы</span>
                     </button>
                   </DropdownMenu>
                 )}
+              </nav>
 
-                {/* Кнопка выхода (десктоп) */}
+              {/* Планшетная навигация (md, lg) — только иконки */}
+              <nav className="hidden md:flex lg:hidden items-center space-x-1">
+                <button
+                  onClick={() => setActiveSection("courses")}
+                  className={`p-2 rounded-lg transition ${
+                    activeSection === "courses" ? "bg-yellow-500 text-black" : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  }`}
+                  title="Курсы"
+                >
+                  <BookOpen className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setActiveSection("profile")}
+                  className={`p-2 rounded-lg transition ${
+                    activeSection === "profile" ? "bg-yellow-500 text-black" : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                  }`}
+                  title="Профиль"
+                >
+                  <User className="w-5 h-5" />
+                </button>
+                <DropdownMenu
+                  trigger={
+                    <button className="p-2 rounded-lg text-yellow-400 hover:bg-yellow-500 hover:text-black transition" title="Ещё">
+                      <MoreHorizontal className="w-5 h-5" />
+                    </button>
+                  }
+                  isOpen={isMoreMenuOpen}
+                  onClose={() => setIsMoreMenuOpen(false)}
+                >
+                  {/* Здесь те же пункты, что и в "Ещё" выше */}
+                  <button onClick={() => { handleNavigateToAR(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                    <Compass className="w-4 h-4 text-yellow-400" /> AR-модуль
+                  </button>
+                  <button onClick={() => { handleNavigateToVR(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                    <Compass className="w-4 h-4 text-yellow-400" /> VR-модуль
+                  </button>
+                  <button onClick={() => { handleNavigateToSim(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                    <Compass className="w-4 h-4 text-yellow-400" /> Симуляторы
+                  </button>
+                  <button onClick={() => { handleNavigateToMap(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                    <Map className="w-4 h-4 text-yellow-400" /> Карта
+                  </button>
+                  <div className="border-t border-gray-700 my-1" />
+                  <button onClick={() => { handleNavigateToGlossary(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                    <BookOpen className="w-4 h-4 text-yellow-400" /> Словарь
+                  </button>
+                  <button onClick={() => { handleNavigateToArticles(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                    <FileText className="w-4 h-4 text-yellow-400" /> Статьи
+                  </button>
+                  <button onClick={() => { handleNavigateToBooks(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                    <Book className="w-4 h-4 text-yellow-400" /> Книги
+                  </button>
+                  {isAdmin && (
+                    <>
+                      <div className="border-t border-gray-700 my-1" />
+                      <button onClick={() => { navigate("/admin/events"); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                        <Calendar className="w-4 h-4 text-yellow-400" /> Мероприятия
+                      </button>
+                      <button onClick={() => { navigate("/admin/courses"); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                        <BookOpen className="w-4 h-4 text-yellow-400" /> Курсы (админ)
+                      </button>
+                    </>
+                  )}
+                </DropdownMenu>
+              </nav>
+
+              {/* Блок пользователя: аватар, имя, выход */}
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <div
+                  className="flex items-center gap-1 sm:gap-2 cursor-pointer group bg-gray-900/50 rounded-full pl-1 pr-2 sm:pl-2 sm:pr-3 py-1 hover:bg-gray-800 transition"
+                  onClick={handleGoToProfile}
+                  title="Профиль"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 overflow-hidden flex items-center justify-center border-2 border-yellow-400 shadow-lg">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-black font-bold text-sm">{getInitials()}</span>
+                    )}
+                  </div>
+                  <span className="hidden sm:inline text-yellow-400 text-sm font-medium max-w-[100px] truncate">
+                    {displayName}
+                  </span>
+                </div>
+
                 <button
                   onClick={handleLogout}
-                  className="hidden sm:inline-flex items-center space-x-1 border border-red-500/30 hover:bg-red-500 hover:text-white text-red-400 font-medium py-2 px-3 rounded-lg transition-all duration-200"
+                  className="p-2 rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition hidden sm:inline-flex"
                   title="Выйти"
                 >
-                  <LogOut className="w-4 h-4" />
-                  <span className="hidden lg:inline">Выйти</span>
+                  <LogOut className="w-5 h-5" />
                 </button>
 
-                {/* Кнопка "На главную" (десктоп) */}
                 <button
                   onClick={handleExitToMain}
-                  className="hidden lg:inline-flex border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-3 rounded-lg transition-all duration-200"
+                  className="hidden lg:inline-flex px-3 py-1.5 border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 text-sm font-medium rounded-lg transition"
                 >
                   На главную
                 </button>
 
-                {/* Бургер-меню для мобильных */}
+                {/* Мобильное бургер-меню */}
                 <button
-                  className="md:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+                  className="md:hidden p-2 rounded-lg hover:bg-white/10 transition"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  aria-label="menu"
                 >
                   {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                 </button>
@@ -665,10 +668,9 @@ const Cabinet: React.FC = () => {
           )}
         </div>
 
-        {/* Мобильное меню */}
+        {/* Мобильное меню (только для < md) */}
         {isMobileMenuOpen && user && (
           <MobileMenu
-            activeSection={activeSection}
             setActiveSection={setActiveSection}
             onClose={() => setIsMobileMenuOpen(false)}
             onNavigateToAR={handleNavigateToAR}
@@ -678,8 +680,8 @@ const Cabinet: React.FC = () => {
             onNavigateToGlossary={handleNavigateToGlossary}
             onNavigateToArticles={handleNavigateToArticles}
             onNavigateToBooks={handleNavigateToBooks}
-            onNavigateToAdminEvents={() => navigate('/admin/events')}
-            onNavigateToAdminCourses={() => navigate('/admin/courses')}
+            onNavigateToAdminEvents={() => navigate("/admin/events")}
+            onNavigateToAdminCourses={() => navigate("/admin/courses")}
             onExitToMain={handleExitToMain}
             onLogout={handleLogout}
             isAdmin={isAdmin}
@@ -689,8 +691,8 @@ const Cabinet: React.FC = () => {
 
       {/* Основной контент (без изменений) */}
       <main className="flex-grow container mx-auto px-4 py-8 relative">
-        <div className="absolute top-20 left-0 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-        <div className="absolute top-40 right-0 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+        <div className="absolute top-20 left-0 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob" />
+        <div className="absolute top-40 right-0 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000" />
 
         {user ? (
           <div className="relative z-10">
@@ -705,7 +707,8 @@ const Cabinet: React.FC = () => {
                       </h2>
                       {profile?.direction && (
                         <p className="text-gray-600 ml-11">
-                          Направление: <span className="font-semibold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">
+                          Направление:{" "}
+                          <span className="font-semibold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">
                             {directions.find(d => d.id === profile.direction)?.name || profile.direction}
                           </span>
                         </p>
@@ -713,16 +716,13 @@ const Cabinet: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setIsDirectionModalOpen(true)}
-                      className="mt-3 sm:mt-0 bg-black hover:bg-gray-900 text-yellow-400 px-5 py-2 rounded-lg font-medium transition-all duration-200 flex items-center group"
+                      className="mt-3 sm:mt-0 bg-black hover:bg-gray-900 text-yellow-400 px-5 py-2 rounded-lg font-medium transition flex items-center group"
                     >
                       Сменить направление
-                      <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                      <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
                     </button>
                   </div>
-                  <CoursesSection
-                    onStartCourse={handleStartCourse}
-                    selectedDirection={profile?.direction}
-                  />
+                  <CoursesSection onStartCourse={handleStartCourse} selectedDirection={profile?.direction} />
                 </section>
 
                 <section id="achievements" className="relative">
@@ -740,12 +740,11 @@ const Cabinet: React.FC = () => {
                       Мои мероприятия
                     </h2>
                   </div>
-
                   {upcomingEvents.length === 0 ? (
                     <div className="bg-gray-100 rounded-xl p-8 text-center">
                       <p className="text-gray-500">У вас пока нет запланированных мероприятий</p>
                       <button
-                        onClick={() => navigate('/events')}
+                        onClick={() => navigate("/events")}
                         className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
                       >
                         Перейти к афише
@@ -754,7 +753,7 @@ const Cabinet: React.FC = () => {
                   ) : (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {upcomingEvents.map((event) => (
+                        {upcomingEvents.map(event => (
                           <div
                             key={event.id}
                             className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition cursor-pointer"
@@ -763,23 +762,19 @@ const Cabinet: React.FC = () => {
                             <div className="p-5">
                               <div className="flex justify-between items-start mb-2">
                                 <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">
-                                  {new Date(event.start_time).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+                                  {new Date(event.start_time).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}
                                 </span>
                                 <span className="text-xs text-gray-500">
-                                  {new Date(event.start_time).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                                  {new Date(event.start_time).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
                                 </span>
                               </div>
                               <h3 className="font-bold text-lg mb-2 line-clamp-2">{event.title}</h3>
-                              {event.speaker_name && (
-                                <p className="text-sm text-gray-600 mb-3">{event.speaker_name}</p>
-                              )}
+                              {event.speaker_name && <p className="text-sm text-gray-600 mb-3">{event.speaker_name}</p>}
                               <div className="flex justify-between items-center">
                                 <span className="text-xs text-gray-500">
-                                  {event.format === 'online' ? '🌐 Онлайн' : '📍 Офлайн'}
+                                  {event.format === "online" ? "🌐 Онлайн" : "📍 Офлайн"}
                                 </span>
-                                <button className="text-yellow-600 hover:text-yellow-700 text-sm font-medium">
-                                  Подробнее →
-                                </button>
+                                <button className="text-yellow-600 hover:text-yellow-700 text-sm font-medium">Подробнее →</button>
                               </div>
                             </div>
                           </div>
@@ -787,7 +782,7 @@ const Cabinet: React.FC = () => {
                       </div>
                       <div className="text-center mt-6">
                         <button
-                          onClick={() => navigate('/events')}
+                          onClick={() => navigate("/events")}
                           className="inline-flex items-center gap-1 text-yellow-600 hover:text-yellow-700 font-medium"
                         >
                           Все мероприятия
@@ -821,10 +816,16 @@ const Cabinet: React.FC = () => {
                 Для доступа к курсам, достижениям и личному кабинету необходимо войти или зарегистрироваться.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button onClick={() => navigate("/")} className="bg-black hover:bg-gray-900 text-yellow-400 font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105">
+                <button
+                  onClick={() => navigate("/")}
+                  className="bg-black hover:bg-gray-900 text-yellow-400 font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105"
+                >
                   Войти
                 </button>
-                <button onClick={() => navigate("/")} className="border-2 border-black hover:bg-black hover:text-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105">
+                <button
+                  onClick={() => navigate("/")}
+                  className="border-2 border-black hover:bg-black hover:text-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105"
+                >
                   Регистрация
                 </button>
               </div>
