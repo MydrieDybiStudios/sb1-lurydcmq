@@ -50,7 +50,7 @@ const VRModule: React.FC = () => {
       type: "exploration",
       fullDescription: "Исследуйте процесс поиска нефтяных месторождений с использованием современных технологий. Узнайте о методах геологоразведки и оборудовании, используемом для обнаружения запасов нефти.",
       icon: Zap,
-      downloadLink: "#"
+      downloadLink: "https://drive.google.com/uc?export=download&id=1aRRByfheYoa0LAN4EWO1rLV8Ng3h2Bwe"
     },
     {
       id: 3,
