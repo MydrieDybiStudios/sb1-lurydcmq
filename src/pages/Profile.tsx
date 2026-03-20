@@ -73,7 +73,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
   );
 };
 
-// ========== Мобильное меню (без изменений, но можно оставить) ==========
+// ========== Мобильное меню (бургер) ==========
 interface MobileMenuProps {
   onClose: () => void;
   onNavigateToAR: () => void;
@@ -108,7 +108,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   setActiveSection
 }) => {
   return (
-    <div className="md:hidden bg-black border-t border-gray-800 px-4 py-3 animate-slideDown">
+    <div className="absolute top-full left-0 right-0 bg-black border-t border-gray-800 px-4 py-3 shadow-2xl animate-slideDown z-50">
       <nav className="flex flex-col space-y-2">
         <button
           onClick={() => { setActiveSection("courses"); onClose(); }}
@@ -226,7 +226,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
 };
 
 // ========== Основной компонент Cabinet ==========
-
 const Cabinet: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
@@ -386,10 +385,10 @@ const Cabinet: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* ===== КРАСИВЫЙ И МИНИМАЛИСТИЧНЫЙ HEADER ===== */}
+      {/* ===== МИНИМАЛИСТИЧНЫЙ HEADER ===== */}
       <header className="bg-black text-white shadow-2xl sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 border-b border-yellow-500/20">
         <div className="container mx-auto px-4 py-2 flex justify-between items-center">
-          {/* Логотип + название (сокращённое на мобильных) */}
+          {/* Логотип + название */}
           <div className="flex items-center space-x-2 group cursor-pointer" onClick={handleExitToMain}>
             <div className="relative">
               <img
@@ -399,8 +398,8 @@ const Cabinet: React.FC = () => {
               />
               <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse" />
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-sm sm:text-base font-bold leading-tight">
+            <div>
+              <h1 className="text-sm sm:text-base font-bold">
                 <span className="hidden xs:inline">Личный кабинет</span>
                 <span className="xs:hidden">ЛК</span>
                 <span className="text-yellow-400 ml-1">«Югра.Нефть»</span>
@@ -409,10 +408,9 @@ const Cabinet: React.FC = () => {
           </div>
 
           {user && (
-            <div className="flex items-center space-x-1 sm:space-x-2">
-              {/* Десктопная навигация (lg и выше) — только основные кнопки, остальное в меню */}
-              <nav className="hidden lg:flex items-center space-x-1">
-                {/* Курсы и Профиль всегда видны */}
+            <div className="flex items-center space-x-2">
+              {/* Десктопная навигация (только на больших экранах) */}
+              <nav className="hidden xl:flex items-center space-x-1">
                 <button
                   onClick={() => setActiveSection("courses")}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
@@ -436,7 +434,7 @@ const Cabinet: React.FC = () => {
                   <span>Профиль</span>
                 </button>
 
-                {/* Меню "Библиотека" */}
+                {/* Библиотека */}
                 <DropdownMenu
                   trigger={
                     <button
@@ -475,7 +473,7 @@ const Cabinet: React.FC = () => {
                   </button>
                 </DropdownMenu>
 
-                {/* Меню "Ещё" (AR, VR, Симуляторы, Карта) */}
+                {/* Ещё (AR, VR, Симуляторы, Карта) */}
                 <DropdownMenu
                   trigger={
                     <button
@@ -521,7 +519,7 @@ const Cabinet: React.FC = () => {
                   </button>
                 </DropdownMenu>
 
-                {/* Админ-меню, если есть права */}
+                {/* Админ-меню */}
                 {isAdmin && (
                   <DropdownMenu
                     trigger={
@@ -556,73 +554,7 @@ const Cabinet: React.FC = () => {
                 )}
               </nav>
 
-              {/* Планшетная навигация (md, lg) — только иконки */}
-              <nav className="hidden md:flex lg:hidden items-center space-x-1">
-                <button
-                  onClick={() => setActiveSection("courses")}
-                  className={`p-2 rounded-lg transition ${
-                    activeSection === "courses" ? "bg-yellow-500 text-black" : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                  }`}
-                  title="Курсы"
-                >
-                  <BookOpen className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setActiveSection("profile")}
-                  className={`p-2 rounded-lg transition ${
-                    activeSection === "profile" ? "bg-yellow-500 text-black" : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                  }`}
-                  title="Профиль"
-                >
-                  <User className="w-5 h-5" />
-                </button>
-                <DropdownMenu
-                  trigger={
-                    <button className="p-2 rounded-lg text-yellow-400 hover:bg-yellow-500 hover:text-black transition" title="Ещё">
-                      <MoreHorizontal className="w-5 h-5" />
-                    </button>
-                  }
-                  isOpen={isMoreMenuOpen}
-                  onClose={() => setIsMoreMenuOpen(false)}
-                >
-                  {/* Здесь те же пункты, что и в "Ещё" выше */}
-                  <button onClick={() => { handleNavigateToAR(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
-                    <Compass className="w-4 h-4 text-yellow-400" /> AR-модуль
-                  </button>
-                  <button onClick={() => { handleNavigateToVR(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
-                    <Compass className="w-4 h-4 text-yellow-400" /> VR-модуль
-                  </button>
-                  <button onClick={() => { handleNavigateToSim(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
-                    <Compass className="w-4 h-4 text-yellow-400" /> Симуляторы
-                  </button>
-                  <button onClick={() => { handleNavigateToMap(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
-                    <Map className="w-4 h-4 text-yellow-400" /> Карта
-                  </button>
-                  <div className="border-t border-gray-700 my-1" />
-                  <button onClick={() => { handleNavigateToGlossary(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
-                    <BookOpen className="w-4 h-4 text-yellow-400" /> Словарь
-                  </button>
-                  <button onClick={() => { handleNavigateToArticles(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
-                    <FileText className="w-4 h-4 text-yellow-400" /> Статьи
-                  </button>
-                  <button onClick={() => { handleNavigateToBooks(); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
-                    <Book className="w-4 h-4 text-yellow-400" /> Книги
-                  </button>
-                  {isAdmin && (
-                    <>
-                      <div className="border-t border-gray-700 my-1" />
-                      <button onClick={() => { navigate("/admin/events"); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
-                        <Calendar className="w-4 h-4 text-yellow-400" /> Мероприятия
-                      </button>
-                      <button onClick={() => { navigate("/admin/courses"); setIsMoreMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
-                        <BookOpen className="w-4 h-4 text-yellow-400" /> Курсы (админ)
-                      </button>
-                    </>
-                  )}
-                </DropdownMenu>
-              </nav>
-
-              {/* Блок пользователя: аватар, имя, выход */}
+              {/* Блок пользователя: аватар, имя, выход (всегда виден) */}
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <div
                   className="flex items-center gap-1 sm:gap-2 cursor-pointer group bg-gray-900/50 rounded-full pl-1 pr-2 sm:pl-2 sm:pr-3 py-1 hover:bg-gray-800 transition"
@@ -651,14 +583,14 @@ const Cabinet: React.FC = () => {
 
                 <button
                   onClick={handleExitToMain}
-                  className="hidden lg:inline-flex px-3 py-1.5 border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 text-sm font-medium rounded-lg transition"
+                  className="hidden xl:inline-flex px-3 py-1.5 border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 text-sm font-medium rounded-lg transition"
                 >
                   На главную
                 </button>
 
-                {/* Мобильное бургер-меню */}
+                {/* Бургер-меню (показывается на всех экранах меньше xl) */}
                 <button
-                  className="md:hidden p-2 rounded-lg hover:bg-white/10 transition"
+                  className="xl:hidden p-2 rounded-lg hover:bg-white/10 transition"
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
                   {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -668,7 +600,7 @@ const Cabinet: React.FC = () => {
           )}
         </div>
 
-        {/* Мобильное меню (только для < md) */}
+        {/* Мобильное меню (только когда бургер открыт) */}
         {isMobileMenuOpen && user && (
           <MobileMenu
             setActiveSection={setActiveSection}
