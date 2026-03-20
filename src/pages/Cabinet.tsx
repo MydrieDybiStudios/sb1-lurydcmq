@@ -111,6 +111,7 @@ interface MobileMenuProps {
   onNavigateToBooks: () => void;
   onNavigateToAdminEvents: () => void;
   onNavigateToAdminCourses: () => void;
+  onNavigateToAdminOlympiads: () => void;
   onExitToMain: () => void;
   onLogout: () => void;
   isAdmin: boolean;
@@ -129,6 +130,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onNavigateToBooks,
   onNavigateToAdminEvents,
   onNavigateToAdminCourses,
+  onNavigateToAdminOlympiads,
   onExitToMain,
   onLogout,
   isAdmin
@@ -236,6 +238,13 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               <BookOpen className="w-4 h-4 mr-3" />
               Курсы
             </button>
+            <button
+              onClick={() => { onNavigateToAdminOlympiads(); onClose(); }}
+              className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
+            >
+              <Trophy className="w-4 h-4 mr-3" />
+              Олимпиады
+            </button>
           </div>
         )}
 
@@ -273,7 +282,7 @@ const Cabinet: React.FC = () => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
-  const [upcomingOlympiads, setUpcomingOlympiads] = useState<any[]>([]); // <-- новое состояние
+  const [upcomingOlympiads, setUpcomingOlympiads] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
@@ -339,7 +348,6 @@ const Cabinet: React.FC = () => {
       .in("id", olympiadIds)
       .order("created_at", { ascending: false });
     if (olympiads) {
-      // Добавляем информацию о регистрации к каждой олимпиаде
       const enriched = olympiads.map(olympiad => {
         const reg = regs.find(r => r.olympiad_id === olympiad.id);
         return { ...olympiad, registration: reg };
@@ -400,7 +408,7 @@ const Cabinet: React.FC = () => {
 
   useEffect(() => {
     fetchUpcomingEvents();
-    fetchUpcomingOlympiads(); // <-- загружаем олимпиады
+    fetchUpcomingOlympiads();
   }, [user, fetchUpcomingEvents, fetchUpcomingOlympiads]);
 
   const handleDirectionSelect = async (directionId: string) => {
@@ -453,7 +461,6 @@ const Cabinet: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* ===== HEADER (без изменений, см. предыдущую версию) ===== */}
       <header className="bg-black text-white shadow-2xl sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 border-b border-yellow-500/20">
         <div className="container mx-auto px-4 py-2 flex justify-between items-center">
           <div className="flex items-center space-x-2 group cursor-pointer" onClick={handleExitToMain}>
@@ -476,7 +483,6 @@ const Cabinet: React.FC = () => {
 
           {user && (
             <div className="flex items-center space-x-2">
-              {/* Desktop навигация (сокращённая) */}
               <nav className="hidden xl:flex items-center space-x-1">
                 <NavButton
                   onClick={() => setActiveSection("courses")}
@@ -490,7 +496,6 @@ const Cabinet: React.FC = () => {
                   icon={<User className="w-4 h-4" />}
                   label="Профиль"
                 />
-                {/* Библиотека */}
                 <DropdownMenu
                   trigger={
                     <button
@@ -516,7 +521,6 @@ const Cabinet: React.FC = () => {
                     <Book className="w-4 h-4 text-yellow-400" /> Книги и методички
                   </button>
                 </DropdownMenu>
-                {/* Ещё (AR, VR, Симуляторы, Карта) */}
                 <DropdownMenu
                   trigger={
                     <button
@@ -561,17 +565,28 @@ const Cabinet: React.FC = () => {
                     onClose={() => setIsAdminMenuOpen(false)}
                     align="left"
                   >
-                    <button onClick={() => { navigate("/admin/events"); setIsAdminMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                    <button
+                      onClick={() => { navigate("/admin/events"); setIsAdminMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white"
+                    >
                       <Calendar className="w-4 h-4 text-yellow-400" /> Мероприятия
                     </button>
-                    <button onClick={() => { navigate("/admin/courses"); setIsAdminMenuOpen(false); }} className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white">
+                    <button
+                      onClick={() => { navigate("/admin/courses"); setIsAdminMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white"
+                    >
                       <BookOpen className="w-4 h-4 text-yellow-400" /> Курсы
+                    </button>
+                    <button
+                      onClick={() => { navigate("/admin/olympiads"); setIsAdminMenuOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white"
+                    >
+                      <Trophy className="w-4 h-4 text-yellow-400" /> Олимпиады
                     </button>
                   </DropdownMenu>
                 )}
               </nav>
 
-              {/* Блок пользователя */}
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <div
                   className="flex items-center gap-1 sm:gap-2 cursor-pointer group bg-gray-900/50 rounded-full pl-1 pr-2 sm:pl-2 sm:pr-3 py-1 hover:bg-gray-800 transition"
@@ -630,6 +645,7 @@ const Cabinet: React.FC = () => {
             onNavigateToBooks={handleNavigateToBooks}
             onNavigateToAdminEvents={() => navigate("/admin/events")}
             onNavigateToAdminCourses={() => navigate("/admin/courses")}
+            onNavigateToAdminOlympiads={() => navigate("/admin/olympiads")}
             onExitToMain={handleExitToMain}
             onLogout={handleLogout}
             isAdmin={isAdmin}
@@ -637,7 +653,6 @@ const Cabinet: React.FC = () => {
         )}
       </header>
 
-      {/* Основной контент */}
       <main className="flex-grow container mx-auto px-4 py-8 relative">
         <div className="absolute top-20 left-0 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob" />
         <div className="absolute top-40 right-0 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000" />
@@ -681,7 +696,6 @@ const Cabinet: React.FC = () => {
                   <AchievementsSection />
                 </section>
 
-                {/* Виджет предстоящих мероприятий */}
                 <section className="mt-12">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center">
@@ -742,7 +756,6 @@ const Cabinet: React.FC = () => {
                   )}
                 </section>
 
-                {/* Виджет моих олимпиад (аналогично мероприятиям) */}
                 <section className="mt-12">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center">
