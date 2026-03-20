@@ -32,6 +32,7 @@ import AdminOlympiadForm from "./pages/AdminOlympiadForm";
 import AdminOlympiadStages from "./pages/AdminOlympiadStages";
 import AdminOlympiadStageForm from "./pages/AdminOlympiadStageForm";
 import AdminOlympiadTasks from "./pages/AdminOlympiadTasks";
+
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -86,7 +87,6 @@ function App() {
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/admin/events" element={<AdminEventsPage />} />
           <Route path="/admin/courses" element={<AdminCoursesPage />} />
-          <Route path="/olympiads" element={<OlympiadsPage />} />
 <Route path="/olympiads" element={<OlympiadsPage />} />
 <Route path="/olympiads/:id" element={<OlympiadDetailPage />} />
 <Route path="/olympiads/test/:stageId" element={<OlympiadTestPage />} />
