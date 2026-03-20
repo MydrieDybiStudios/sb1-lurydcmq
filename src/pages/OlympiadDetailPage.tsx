@@ -49,7 +49,6 @@ const OlympiadDetailPage: React.FC = () => {
       setRegistered(!!regData);
 
       if (regData) {
-        // Получаем попытки
         const { data: attemptsData } = await supabase
           .from('olympiad_attempts')
           .select('stage_id, status')
