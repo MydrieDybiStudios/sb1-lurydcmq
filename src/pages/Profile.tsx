@@ -1,782 +1,472 @@
-// src/pages/Cabinet.tsx
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState } from "react";
+import * as LucideIcons from "lucide-react";
+import { Camera, Award, BookOpen, Calendar, TrendingUp, Sparkles } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
-import Footer from "../components/Footer";
-import CoursesSection from "../components/CoursesSection";
-import AchievementsSection from "../components/AchievementsSection";
-import CourseModal from "../components/CourseModal";
-import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
-import {
-  Menu, X, ChevronRight, Award, BookOpen, User, Compass,
-  LogOut, Map, Book, FileText, Library, Calendar, Settings,
-  MoreHorizontal, ChevronDown
-} from "lucide-react";
 import coursesData from "../data/coursesData";
-import { directions } from "../data/directionsData";
-import DirectionSelector from "../components/DirectionSelector";
 
-// Импортируем круглый логотип
-import logo from "../logos/logo.png";
-
+// ---------- Типы ----------
 interface ProfileData {
   first_name: string;
   last_name: string;
   class_num: number;
   class_range: "1-8" | "8-11";
   avatar_url: string | null;
-  direction?: string | null;
 }
 
-// ========== Универсальный компонент выпадающего меню ==========
-interface DropdownMenuProps {
-  trigger: React.ReactNode;
-  children: React.ReactNode;
-  isOpen: boolean;
+interface Achievement {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+  earned_at: string;
+}
+
+interface ProgressItem {
+  course_id: string;
+  score: number;
+  total: number;
+  percentage: number;
+  updated_at: string;
+}
+
+// ---------- Toast ----------
+const Toast: React.FC<{
+  message: string;
+  type?: "success" | "error";
   onClose: () => void;
-  align?: "left" | "right";
-}
-
-const DropdownMenu: React.FC<DropdownMenuProps> = ({
-  trigger,
-  children,
-  isOpen,
-  onClose,
-  align = "right"
-}) => {
-  const ref = useRef<HTMLDivElement>(null);
-
+  duration?: number;
+}> = ({ message, type = "success", onClose, duration = 3000 }) => {
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+    const timer = setTimeout(onClose, duration);
+    return () => clearTimeout(timer);
+  }, [onClose, duration]);
 
   return (
-    <div className="relative" ref={ref}>
-      {trigger}
-      <div
-        className={`
-          absolute ${align === "right" ? "right-0" : "left-0"} mt-2 w-56
-          bg-gray-800 rounded-lg shadow-xl border border-gray-700 
-          overflow-hidden z-50 transform transition-all duration-200 origin-top-right
-          ${isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0 pointer-events-none"}
-        `}
-      >
-        {children}
+    <div
+      className={`fixed top-5 right-5 min-w-[220px] px-4 py-3 rounded-lg shadow-2xl text-white font-medium z-50 animate-slideInRight ${
+        type === "success" ? "bg-gradient-to-r from-green-500 to-emerald-600" : "bg-gradient-to-r from-red-500 to-pink-600"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        {type === "success" ? <Sparkles className="w-5 h-5" /> : <LucideIcons.AlertCircle className="w-5 h-5" />}
+        {message}
       </div>
     </div>
   );
 };
 
-// ========== Мобильное меню (бургер) ==========
-interface MobileMenuProps {
-  onClose: () => void;
-  onNavigateToAR: () => void;
-  onNavigateToVR: () => void;
-  onNavigateToSim: () => void;
-  onNavigateToMap: () => void;
-  onNavigateToGlossary: () => void;
-  onNavigateToArticles: () => void;
-  onNavigateToBooks: () => void;
-  onNavigateToAdminEvents: () => void;
-  onNavigateToAdminCourses: () => void;
-  onExitToMain: () => void;
-  onLogout: () => void;
-  isAdmin: boolean;
-  setActiveSection: (section: "courses" | "profile" | "ar" | "vr") => void;
-}
-
-const MobileMenu: React.FC<MobileMenuProps> = ({
-  onClose,
-  onNavigateToAR,
-  onNavigateToVR,
-  onNavigateToSim,
-  onNavigateToMap,
-  onNavigateToGlossary,
-  onNavigateToArticles,
-  onNavigateToBooks,
-  onNavigateToAdminEvents,
-  onNavigateToAdminCourses,
-  onExitToMain,
-  onLogout,
-  isAdmin,
-  setActiveSection
-}) => {
-  return (
-    <div className="absolute top-full left-0 right-0 bg-black border-t border-gray-800 px-4 py-3 shadow-2xl animate-slideDown z-50">
-      <nav className="flex flex-col space-y-2">
-        <button
-          onClick={() => { setActiveSection("courses"); onClose(); }}
-          className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-        >
-          <BookOpen className="w-5 h-5 mr-3" />
-          Курсы
-        </button>
-        <button
-          onClick={() => { setActiveSection("profile"); onClose(); }}
-          className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-        >
-          <User className="w-5 h-5 mr-3" />
-          Профиль
-        </button>
-        <button
-          onClick={() => { onNavigateToAR(); onClose(); }}
-          className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-        >
-          <Compass className="w-5 h-5 mr-3" />
-          AR-модуль
-        </button>
-        <button
-          onClick={() => { onNavigateToVR(); onClose(); }}
-          className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-        >
-          <Compass className="w-5 h-5 mr-3" />
-          VR-модуль
-        </button>
-        <button
-          onClick={() => { onNavigateToSim(); onClose(); }}
-          className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-        >
-          <Compass className="w-5 h-5 mr-3" />
-          Симуляторы
-        </button>
-        <button
-          onClick={() => { onNavigateToMap(); onClose(); }}
-          className="px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-        >
-          <Map className="w-5 h-5 mr-3" />
-          Карта месторождений
-        </button>
-
-        {/* Библиотека */}
-        <div className="border-t border-gray-800 pt-2 mt-2">
-          <div className="px-4 py-2 text-yellow-400 font-bold flex items-center">
-            <Library className="w-5 h-5 mr-3" />
-            Библиотека
-          </div>
-          <button
-            onClick={() => { onNavigateToGlossary(); onClose(); }}
-            className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-          >
-            <BookOpen className="w-4 h-4 mr-3" />
-            Словарь терминов
-          </button>
-          <button
-            onClick={() => { onNavigateToArticles(); onClose(); }}
-            className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-          >
-            <FileText className="w-4 h-4 mr-3" />
-            Технические статьи
-          </button>
-          <button
-            onClick={() => { onNavigateToBooks(); onClose(); }}
-            className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-          >
-            <Book className="w-4 h-4 mr-3" />
-            Книги и методички
-          </button>
-        </div>
-
-        {isAdmin && (
-          <div className="border-t border-gray-800 pt-2 mt-2">
-            <div className="px-4 py-2 text-yellow-400 font-bold flex items-center">
-              <Settings className="w-5 h-5 mr-3" />
-              Управление
-            </div>
-            <button
-              onClick={() => { onNavigateToAdminEvents(); onClose(); }}
-              className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-            >
-              <Calendar className="w-4 h-4 mr-3" />
-              Мероприятия
-            </button>
-            <button
-              onClick={() => { onNavigateToAdminCourses(); onClose(); }}
-              className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-            >
-              <BookOpen className="w-4 h-4 mr-3" />
-              Курсы
-            </button>
-          </div>
-        )}
-
-        <div className="border-t border-gray-800 pt-2 mt-2">
-          <button
-            onClick={() => { onExitToMain(); onClose(); }}
-            className="w-full px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-          >
-            На главную
-          </button>
-          <button
-            onClick={() => { onLogout(); onClose(); }}
-            className="w-full px-4 py-3 rounded-lg font-medium text-left transition flex items-center text-red-400 hover:bg-red-500 hover:text-white"
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            Выйти
-          </button>
-        </div>
-      </nav>
-    </div>
-  );
-};
-
-// ========== Основной компонент Cabinet ==========
-const Cabinet: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+// ---------- Компонент профиля ----------
+const Profile: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [progress, setProgress] = useState<ProgressItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<any | null>(null);
-  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<"courses" | "profile" | "ar" | "vr">("courses");
-  const [isDirectionModalOpen, setIsDirectionModalOpen] = useState(false);
-  const [isLibraryMenuOpen, setIsLibraryMenuOpen] = useState(false);
-  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
-  const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
-  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const navigate = useNavigate();
+  const [saving, setSaving] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<"success" | "error">("success");
 
-  // Мемоизированные обработчики
-  const handleNavigateToAR = useCallback(() => navigate("/ar-module"), [navigate]);
-  const handleNavigateToVR = useCallback(() => navigate("/vr-module"), [navigate]);
-  const handleNavigateToSim = useCallback(() => navigate("/simulators"), [navigate]);
-  const handleNavigateToMap = useCallback(() => navigate("/map"), [navigate]);
-  const handleNavigateToGlossary = useCallback(() => navigate("/glossary"), [navigate]);
-  const handleNavigateToArticles = useCallback(() => navigate("/articles"), [navigate]);
-  const handleNavigateToBooks = useCallback(() => navigate("/books"), [navigate]);
-  const handleExitToMain = useCallback(() => navigate("/"), [navigate]);
-  const handleGoToProfile = useCallback(() => setActiveSection("profile"), []);
-  const handleLogout = useCallback(async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+  const navigate = useNavigate();
+  const courseTitleMap = new Map(coursesData.map(c => [c.id, c.title]));
+
+  // ---------- Загрузка данных ----------
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        navigate("/");
+        return;
+      }
+
+      // Профиль
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError && profileError.code !== "PGRST116") {
+        setToastType("error");
+        setToastMessage("Ошибка загрузки профиля");
+      } else if (!profileData) {
+        await supabase
+          .from("profiles")
+          .upsert({
+            id: user.id,
+            first_name: "",
+            last_name: "",
+            class_num: 1,
+            class_range: "1-8",
+            avatar_url: null,
+            updated_at: new Date().toISOString(),
+          })
+          .select();
+      } else setProfile(profileData as ProfileData);
+
+      // Прогресс
+      const { data: progressData } = await supabase
+        .from("progress")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false });
+      if (progressData) setProgress(progressData);
+
+      // Достижения
+      const { data: userAchievements, error: achError } = await supabase
+        .from("user_achievements")
+        .select("*, achievements(title, description, icon)")
+        .eq("user_id", user.id)
+        .order("earned_at", { ascending: false });
+
+      if (!achError && userAchievements) {
+        setAchievements(
+          userAchievements.map((a: any) => ({
+            id: a.achievement_id,
+            title: a.achievements.title,
+            description: a.achievements.description,
+            icon: a.achievements.icon,
+            earned_at: a.earned_at,
+          }))
+        );
+      }
+
+      setLoading(false);
+    };
+
+    fetchProfileData();
   }, [navigate]);
 
-  const fetchUpcomingEvents = useCallback(async () => {
-    if (!user) {
-      setUpcomingEvents([]);
-      return;
+  // ---------- Сохранение профиля ----------
+  const handleSave = async () => {
+    if (!profile) return;
+    setSaving(true);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    try {
+      const { error } = await supabase.from("profiles").upsert(
+        {
+          id: user.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          class_num: profile.class_num,
+          class_range: profile.class_range,
+          avatar_url: profile.avatar_url,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+      if (error) throw error;
+
+      setToastType("success");
+      setToastMessage("Профиль успешно сохранён!");
+    } catch (err) {
+      console.error(err);
+      setToastType("error");
+      setToastMessage("Ошибка сохранения профиля!");
+    } finally {
+      setSaving(false);
     }
-    const { data: regs } = await supabase
-      .from("event_registrations")
-      .select("event_id")
-      .eq("user_id", user.id);
-    if (!regs?.length) {
-      setUpcomingEvents([]);
-      return;
-    }
-    const eventIds = regs.map(r => r.event_id);
-    const now = new Date().toISOString();
-    const { data: events } = await supabase
-      .from("events")
-      .select("*")
-      .in("id", eventIds)
-      .gt("start_time", now)
-      .order("start_time", { ascending: true })
-      .limit(3);
-    setUpcomingEvents(events || []);
-  }, [user]);
+  };
 
-  useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      try {
-        const { data: userData } = await supabase.auth.getUser();
-        setUser(userData?.user ?? null);
-        if (userData?.user) {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userData.user.id)
-            .single();
-          setProfile(profileData);
-          const { data: adminCheck } = await supabase.rpc("is_admin");
-          setIsAdmin(!!adminCheck);
-        } else {
-          const savedDirection = localStorage.getItem("preferredDirection");
-          if (savedDirection) setProfile({ direction: savedDirection } as ProfileData);
-        }
-      } catch (err) {
-        console.error("Ошибка получения данных:", err);
-        setUser(null);
-        setProfile(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserAndProfile();
+  // ---------- Загрузка аватара ----------
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-        setProfile(profileData);
-        const { data: adminCheck } = await supabase.rpc("is_admin");
-        setIsAdmin(!!adminCheck);
-      } else {
-        setProfile(null);
-        setUpcomingEvents([]);
-        setIsAdmin(false);
-      }
-    });
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
 
-    return () => authListener?.subscription.unsubscribe();
-  }, []);
+    setAvatarLoading(true);
 
-  useEffect(() => {
-    fetchUpcomingEvents();
-  }, [user, fetchUpcomingEvents]);
+    try {
+      if (!file.type.startsWith("image/"))
+        throw new Error("Можно загружать только изображения");
 
-  const handleDirectionSelect = async (directionId: string) => {
-    if (user) {
-      const { error } = await supabase
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(fileName, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("avatars").getPublicUrl(fileName);
+      if (!data?.publicUrl) throw new Error("Не удалось получить публичный URL");
+
+      await supabase
         .from("profiles")
-        .update({ direction: directionId })
-        .eq("id", user.id);
-      if (!error) setProfile(prev => prev ? { ...prev, direction: directionId } : { direction: directionId } as ProfileData);
-    } else {
-      localStorage.setItem("preferredDirection", directionId);
-      setProfile(prev => prev ? { ...prev, direction: directionId } : { direction: directionId } as ProfileData);
+        .upsert({ id: user.id, avatar_url: data.publicUrl }, { onConflict: "id" });
+      setProfile((prev) =>
+        prev ? { ...prev, avatar_url: data.publicUrl } : prev
+      );
+
+      setToastType("success");
+      setToastMessage("Аватар успешно обновлён");
+    } catch (err: any) {
+      setToastType("error");
+      setToastMessage(
+        "Ошибка загрузки аватара: " + (err.message || "неизвестная ошибка")
+      );
+    } finally {
+      setAvatarLoading(false);
     }
   };
 
-  const handleStartCourse = (courseId: number) => {
-    const course = coursesData.find(c => c.id === courseId);
-    if (course) {
-      setSelectedCourse(course);
-      setIsCourseModalOpen(true);
-    }
-  };
+  const handleBackToMenu = () => navigate("/");
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">Загружаем ваш личный кабинет...</p>
-        </div>
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+      <div className="text-center">
+        <div className="w-20 h-20 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-700 text-lg">Загружаем ваш профиль...</p>
       </div>
-    );
-  }
+    </div>
+  );
+  
+  if (!profile) return null;
 
-  const displayName = profile
-    ? `${profile.first_name || ""} ${profile.last_name || ""}`.trim() ||
-      (user?.email ? user.email.split("@")[0] : "Пользователь")
-    : user?.email
-    ? user.email.split("@")[0]
-    : "Пользователь";
-
-  const getInitials = () => {
-    if (profile?.first_name && profile?.last_name) {
-      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase();
-    }
-    if (profile?.first_name) return profile.first_name[0].toUpperCase();
-    if (profile?.last_name) return profile.last_name[0].toUpperCase();
-    return String(displayName?.[0] ?? "U").toUpperCase();
-  };
+  const classOptions =
+    profile.class_range === "1-8"
+      ? Array.from({ length: 8 }, (_, i) => i + 1)
+      : Array.from({ length: 4 }, (_, i) => i + 8);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      {/* ===== МИНИМАЛИСТИЧНЫЙ HEADER ===== */}
-      <header className="bg-black text-white shadow-2xl sticky top-0 z-50 backdrop-blur-sm bg-opacity-95 border-b border-yellow-500/20">
-        <div className="container mx-auto px-4 py-2 flex justify-between items-center">
-          {/* Логотип + название */}
-          <div className="flex items-center space-x-2 group cursor-pointer" onClick={handleExitToMain}>
-            <div className="relative">
-              <img
-                src={logo}
-                alt="Югра.Нефть"
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-yellow-400 shadow-lg transition-transform duration-300 group-hover:scale-110"
-              />
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse" />
-            </div>
-            <div>
-              <h1 className="text-sm sm:text-base font-bold">
-                <span className="hidden xs:inline">Личный кабинет</span>
-                <span className="xs:hidden">ЛК</span>
-                <span className="text-yellow-400 ml-1">«Югра.Нефть»</span>
-              </h1>
-            </div>
-          </div>
-
-          {user && (
-            <div className="flex items-center space-x-2">
-              {/* Десктопная навигация (только на больших экранах) */}
-              <nav className="hidden xl:flex items-center space-x-1">
-                <button
-                  onClick={() => setActiveSection("courses")}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
-                    activeSection === "courses"
-                      ? "bg-yellow-500 text-black"
-                      : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                  }`}
-                >
-                  <BookOpen className="w-4 h-4" />
-                  <span>Курсы</span>
-                </button>
-                <button
-                  onClick={() => setActiveSection("profile")}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center gap-1 ${
-                    activeSection === "profile"
-                      ? "bg-yellow-500 text-black"
-                      : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                  }`}
-                >
-                  <User className="w-4 h-4" />
-                  <span>Профиль</span>
-                </button>
-
-                {/* Библиотека */}
-                <DropdownMenu
-                  trigger={
-                    <button
-                      onClick={() => setIsLibraryMenuOpen(!isLibraryMenuOpen)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-yellow-400 hover:bg-yellow-500 hover:text-black transition"
-                    >
-                      <Library className="w-4 h-4" />
-                      <span>Библиотека</span>
-                      <ChevronDown className={`w-3 h-3 transition-transform ${isLibraryMenuOpen ? "rotate-180" : ""}`} />
-                    </button>
-                  }
-                  isOpen={isLibraryMenuOpen}
-                  onClose={() => setIsLibraryMenuOpen(false)}
-                  align="left"
-                >
-                  <button
-                    onClick={() => { handleNavigateToGlossary(); setIsLibraryMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
-                  >
-                    <BookOpen className="w-4 h-4 text-yellow-400" />
-                    <span>Словарь терминов</span>
-                  </button>
-                  <button
-                    onClick={() => { handleNavigateToArticles(); setIsLibraryMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
-                  >
-                    <FileText className="w-4 h-4 text-yellow-400" />
-                    <span>Технические статьи</span>
-                  </button>
-                  <button
-                    onClick={() => { handleNavigateToBooks(); setIsLibraryMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
-                  >
-                    <Book className="w-4 h-4 text-yellow-400" />
-                    <span>Книги и методички</span>
-                  </button>
-                </DropdownMenu>
-
-                {/* Ещё (AR, VR, Симуляторы, Карта) */}
-                <DropdownMenu
-                  trigger={
-                    <button
-                      onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-yellow-400 hover:bg-yellow-500 hover:text-black transition"
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                      <span>Ещё</span>
-                      <ChevronDown className={`w-3 h-3 transition-transform ${isMoreMenuOpen ? "rotate-180" : ""}`} />
-                    </button>
-                  }
-                  isOpen={isMoreMenuOpen}
-                  onClose={() => setIsMoreMenuOpen(false)}
-                  align="left"
-                >
-                  <button
-                    onClick={() => { handleNavigateToAR(); setIsMoreMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
-                  >
-                    <Compass className="w-4 h-4 text-yellow-400" />
-                    <span>AR-модуль</span>
-                  </button>
-                  <button
-                    onClick={() => { handleNavigateToVR(); setIsMoreMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
-                  >
-                    <Compass className="w-4 h-4 text-yellow-400" />
-                    <span>VR-модуль</span>
-                  </button>
-                  <button
-                    onClick={() => { handleNavigateToSim(); setIsMoreMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
-                  >
-                    <Compass className="w-4 h-4 text-yellow-400" />
-                    <span>Симуляторы</span>
-                  </button>
-                  <button
-                    onClick={() => { handleNavigateToMap(); setIsMoreMenuOpen(false); }}
-                    className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
-                  >
-                    <Map className="w-4 h-4 text-yellow-400" />
-                    <span>Карта месторождений</span>
-                  </button>
-                </DropdownMenu>
-
-                {/* Админ-меню */}
-                {isAdmin && (
-                  <DropdownMenu
-                    trigger={
-                      <button
-                        onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-yellow-400 hover:bg-yellow-500 hover:text-black transition border border-yellow-500/30"
-                      >
-                        <Settings className="w-4 h-4" />
-                        <span>Управление</span>
-                        <ChevronDown className={`w-3 h-3 transition-transform ${isAdminMenuOpen ? "rotate-180" : ""}`} />
-                      </button>
-                    }
-                    isOpen={isAdminMenuOpen}
-                    onClose={() => setIsAdminMenuOpen(false)}
-                    align="left"
-                  >
-                    <button
-                      onClick={() => { navigate("/admin/events"); setIsAdminMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
-                    >
-                      <Calendar className="w-4 h-4 text-yellow-400" />
-                      <span>Мероприятия</span>
-                    </button>
-                    <button
-                      onClick={() => { navigate("/admin/courses"); setIsAdminMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 transition text-sm text-white"
-                    >
-                      <BookOpen className="w-4 h-4 text-yellow-400" />
-                      <span>Курсы</span>
-                    </button>
-                  </DropdownMenu>
-                )}
-              </nav>
-
-              {/* Блок пользователя: аватар, имя, выход (всегда виден) */}
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <div
-                  className="flex items-center gap-1 sm:gap-2 cursor-pointer group bg-gray-900/50 rounded-full pl-1 pr-2 sm:pl-2 sm:pr-3 py-1 hover:bg-gray-800 transition"
-                  onClick={handleGoToProfile}
-                  title="Профиль"
-                >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600 overflow-hidden flex items-center justify-center border-2 border-yellow-400 shadow-lg">
-                    {profile?.avatar_url ? (
-                      <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-black font-bold text-sm">{getInitials()}</span>
-                    )}
-                  </div>
-                  <span className="hidden sm:inline text-yellow-400 text-sm font-medium max-w-[100px] truncate">
-                    {displayName}
-                  </span>
-                </div>
-
-                <button
-                  onClick={handleLogout}
-                  className="p-2 rounded-lg text-red-400 hover:bg-red-500 hover:text-white transition hidden sm:inline-flex"
-                  title="Выйти"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
-
-                <button
-                  onClick={handleExitToMain}
-                  className="hidden xl:inline-flex px-3 py-1.5 border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 text-sm font-medium rounded-lg transition"
-                >
-                  На главную
-                </button>
-
-                {/* Бургер-меню (показывается на всех экранах меньше xl) */}
-                <button
-                  className="xl:hidden p-2 rounded-lg hover:bg-white/10 transition"
-                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                >
-                  {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Мобильное меню (только когда бургер открыт) */}
-        {isMobileMenuOpen && user && (
-          <MobileMenu
-            setActiveSection={setActiveSection}
-            onClose={() => setIsMobileMenuOpen(false)}
-            onNavigateToAR={handleNavigateToAR}
-            onNavigateToVR={handleNavigateToVR}
-            onNavigateToSim={handleNavigateToSim}
-            onNavigateToMap={handleNavigateToMap}
-            onNavigateToGlossary={handleNavigateToGlossary}
-            onNavigateToArticles={handleNavigateToArticles}
-            onNavigateToBooks={handleNavigateToBooks}
-            onNavigateToAdminEvents={() => navigate("/admin/events")}
-            onNavigateToAdminCourses={() => navigate("/admin/courses")}
-            onExitToMain={handleExitToMain}
-            onLogout={handleLogout}
-            isAdmin={isAdmin}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-yellow-50 py-10 px-4">
+      <div className="max-w-3xl mx-auto">
+        {toastMessage && (
+          <Toast
+            message={toastMessage}
+            type={toastType}
+            onClose={() => setToastMessage(null)}
           />
         )}
-      </header>
 
-      {/* Основной контент (без изменений) */}
-      <main className="flex-grow container mx-auto px-4 py-8 relative">
-        <div className="absolute top-20 left-0 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob" />
-        <div className="absolute top-40 right-0 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000" />
-
-        {user ? (
-          <div className="relative z-10">
-            {activeSection === "courses" && (
-              <>
-                <section id="courses" className="mb-16">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-                    <div>
-                      <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 flex items-center">
-                        <BookOpen className="w-8 h-8 mr-3 text-yellow-500" />
-                        Мои курсы
-                      </h2>
-                      {profile?.direction && (
-                        <p className="text-gray-600 ml-11">
-                          Направление:{" "}
-                          <span className="font-semibold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">
-                            {directions.find(d => d.id === profile.direction)?.name || profile.direction}
-                          </span>
-                        </p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => setIsDirectionModalOpen(true)}
-                      className="mt-3 sm:mt-0 bg-black hover:bg-gray-900 text-yellow-400 px-5 py-2 rounded-lg font-medium transition flex items-center group"
-                    >
-                      Сменить направление
-                      <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition" />
-                    </button>
+        {/* Основная карточка профиля */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl border border-yellow-100 overflow-hidden">
+          {/* Верхний градиентный акцент */}
+          <div className="h-2 bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600"></div>
+          
+          <div className="p-8">
+            {/* Аватар и имя */}
+            <div className="flex flex-col items-center mb-8">
+              <div className="relative mb-4">
+                {avatarLoading ? (
+                  <div className="w-32 h-32 rounded-full bg-gray-200 animate-pulse flex items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div>
                   </div>
-                  <CoursesSection onStartCourse={handleStartCourse} selectedDirection={profile?.direction} />
-                </section>
-
-                <section id="achievements" className="relative">
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-8 flex items-center">
-                    <Award className="w-8 h-8 mr-3 text-yellow-500" />
-                    Мои достижения
-                  </h2>
-                  <AchievementsSection />
-                </section>
-
-                <section className="mt-12">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center">
-                      <Calendar className="w-8 h-8 mr-3 text-yellow-500" />
-                      Мои мероприятия
-                    </h2>
-                  </div>
-                  {upcomingEvents.length === 0 ? (
-                    <div className="bg-gray-100 rounded-xl p-8 text-center">
-                      <p className="text-gray-500">У вас пока нет запланированных мероприятий</p>
-                      <button
-                        onClick={() => navigate("/events")}
-                        className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
-                      >
-                        Перейти к афише
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {upcomingEvents.map(event => (
-                          <div
-                            key={event.id}
-                            className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition cursor-pointer"
-                            onClick={() => navigate(`/events/${event.id}`)}
-                          >
-                            <div className="p-5">
-                              <div className="flex justify-between items-start mb-2">
-                                <span className="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2.5 py-0.5 rounded">
-                                  {new Date(event.start_time).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {new Date(event.start_time).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
-                                </span>
-                              </div>
-                              <h3 className="font-bold text-lg mb-2 line-clamp-2">{event.title}</h3>
-                              {event.speaker_name && <p className="text-sm text-gray-600 mb-3">{event.speaker_name}</p>}
-                              <div className="flex justify-between items-center">
-                                <span className="text-xs text-gray-500">
-                                  {event.format === "online" ? "🌐 Онлайн" : "📍 Офлайн"}
-                                </span>
-                                <button className="text-yellow-600 hover:text-yellow-700 text-sm font-medium">Подробнее →</button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="text-center mt-6">
-                        <button
-                          onClick={() => navigate("/events")}
-                          className="inline-flex items-center gap-1 text-yellow-600 hover:text-yellow-700 font-medium"
-                        >
-                          Все мероприятия
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </section>
-              </>
-            )}
-
-            {activeSection === "profile" && (
-              <section className="max-w-4xl mx-auto">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-8 flex items-center">
-                  <User className="w-8 h-8 mr-3 text-yellow-500" />
-                  Профиль пользователя
-                </h2>
-                <Profile />
-              </section>
-            )}
-          </div>
-        ) : (
-          <div className="max-w-md mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 duration-300">
-            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6 text-center">
-              <img src={logo} alt="Югра.Нефть" className="w-20 h-20 rounded-full border-4 border-white shadow-xl mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-black">Доступ ограничен</h2>
-            </div>
-            <div className="p-8 text-center">
-              <p className="text-gray-600 mb-6">
-                Для доступа к курсам, достижениям и личному кабинету необходимо войти или зарегистрироваться.
+                ) : (
+                  <>
+                    <img
+                      src={profile.avatar_url || "https://via.placeholder.com/150"}
+                      alt="Avatar"
+                      className="w-32 h-32 rounded-full object-cover ring-4 ring-yellow-300 ring-offset-2 ring-offset-white shadow-xl"
+                    />
+                    <label className="absolute bottom-0 right-0 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white rounded-full p-3 cursor-pointer shadow-lg transform hover:scale-110 transition-all duration-200">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarUpload}
+                      />
+                      <Camera className="w-5 h-5" />
+                    </label>
+                  </>
+                )}
+              </div>
+              
+              <h1 className="text-3xl font-bold text-gray-800 mb-1">
+                {profile.first_name} {profile.last_name}
+              </h1>
+              <p className="text-yellow-600 font-medium flex items-center gap-1">
+                <Sparkles className="w-4 h-4" />
+                {profile.class_num} класс
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={() => navigate("/")}
-                  className="bg-black hover:bg-gray-900 text-yellow-400 font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105"
-                >
-                  Войти
-                </button>
-                <button
-                  onClick={() => navigate("/")}
-                  className="border-2 border-black hover:bg-black hover:text-yellow-400 text-black font-semibold py-3 px-6 rounded-lg transition transform hover:scale-105"
-                >
-                  Регистрация
-                </button>
+            </div>
+
+            {/* Поля ввода */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Имя</label>
+                <input
+                  type="text"
+                  value={profile.first_name}
+                  onChange={(e) =>
+                    setProfile((p) => p && { ...p, first_name: e.target.value })
+                  }
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition"
+                  placeholder="Имя"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">Фамилия</label>
+                <input
+                  type="text"
+                  value={profile.last_name}
+                  onChange={(e) =>
+                    setProfile((p) => p && { ...p, last_name: e.target.value })
+                  }
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition"
+                  placeholder="Фамилия"
+                />
               </div>
             </div>
+
+            {/* Переключатель классов */}
+            <div className="mb-6 p-4 bg-yellow-50/50 rounded-xl border border-yellow-100">
+              <p className="text-sm font-medium text-gray-700 mb-3">Диапазон классов</p>
+              <div className="flex items-center justify-between">
+                <span className={`text-sm ${profile.class_range === "1-8" ? "text-yellow-600 font-bold" : "text-gray-400"}`}>1–8</span>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={profile.class_range === "8-11"}
+                    onChange={() =>
+                      setProfile((p) =>
+                        p && {
+                          ...p,
+                          class_range: p.class_range === "1-8" ? "8-11" : "1-8",
+                          class_num: p.class_range === "1-8" ? 8 : 1,
+                        }
+                      )
+                    }
+                  />
+                  <div className="w-14 h-7 bg-gray-300 rounded-full peer peer-checked:bg-gradient-to-r peer-checked:from-yellow-500 peer-checked:to-yellow-600 transition-all"></div>
+                  <div className="absolute left-1 top-1 bg-white w-5 h-5 rounded-full shadow transition-transform peer-checked:translate-x-7"></div>
+                </label>
+                <span className={`text-sm ${profile.class_range === "8-11" ? "text-yellow-600 font-bold" : "text-gray-400"}`}>8–11</span>
+              </div>
+            </div>
+
+            {/* Выбор класса */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-600 mb-1">Класс</label>
+              <select
+                value={profile.class_num}
+                onChange={(e) =>
+                  setProfile((p) => p && { ...p, class_num: Number(e.target.value) })
+                }
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition"
+              >
+                {classOptions.map((num) => (
+                  <option key={num} value={num} className="bg-white">
+                    {num} класс
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Кнопки */}
+            <div className="flex gap-4 mb-8">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="flex-1 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:shadow-yellow-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? "Сохранение..." : "Сохранить изменения"}
+              </button>
+              <button
+                onClick={handleBackToMenu}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-200"
+              >
+                Главное меню
+              </button>
+            </div>
+
+            {/* Прогресс */}
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <BookOpen className="text-yellow-600" />
+                Прогресс по курсам
+              </h2>
+              {progress.length === 0 ? (
+                <div className="bg-yellow-50/50 rounded-xl p-8 text-center border border-yellow-100">
+                  <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">Пока нет данных о прогрессе</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {progress.map((p) => (
+                    <div
+                      key={p.course_id}
+                      className="bg-white rounded-xl p-4 border border-gray-200 hover:border-yellow-400 transition-all duration-200 group shadow-sm"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold text-gray-800 group-hover:text-yellow-600 transition">
+                          {courseTitleMap.get(+p.course_id) || `Курс ${p.course_id}`}
+                        </h3>
+                        <span className="text-sm text-yellow-600 font-bold">{p.percentage}%</span>
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-500 mb-2">
+                        <span>Баллы: {p.score}/{p.total}</span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {new Date(p.updated_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full transition-all duration-500"
+                          style={{ width: `${p.percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Достижения */}
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <Award className="text-yellow-600" />
+                Достижения
+              </h2>
+              {achievements.length === 0 ? (
+                <div className="bg-yellow-50/50 rounded-xl p-8 text-center border border-yellow-100">
+                  <Award className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">Пока нет достижений</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {achievements.map((a, index) => {
+                    const IconComponent = (LucideIcons as any)[a.icon] || LucideIcons.Award;
+                    return (
+                      <div
+                        key={a.id}
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                        className="bg-gradient-to-br from-yellow-50 to-white rounded-xl p-4 border border-yellow-200 hover:border-yellow-400 transition-all duration-200 group animate-fadeIn shadow-sm"
+                      >
+                        <div className="flex flex-col items-center text-center">
+                          <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                            <IconComponent className="w-6 h-6 text-yellow-600" />
+                          </div>
+                          <p className="font-semibold text-gray-800 text-sm mb-1">{a.title}</p>
+                          <p className="text-xs text-gray-600">{a.description}</p>
+                          <p className="text-[10px] text-yellow-600/70 mt-2">
+                            {new Date(a.earned_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </main>
-
-      <Footer />
-
-      <CourseModal isOpen={isCourseModalOpen} onClose={() => setIsCourseModalOpen(false)} course={selectedCourse} />
-      <DirectionSelector
-        isOpen={isDirectionModalOpen}
-        onClose={() => setIsDirectionModalOpen(false)}
-        onSelect={handleDirectionSelect}
-        currentDirection={profile?.direction || undefined}
-      />
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Cabinet;
+export default Profile;
