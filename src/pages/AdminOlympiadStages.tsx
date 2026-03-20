@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
-import { OlympiadStage } from '../../types/olympiad';
+import { OlympiadStage } from '../types/olympiad';
 
 const AdminOlympiadStages: React.FC = () => {
   const { id } = useParams<{ id: string }>();
