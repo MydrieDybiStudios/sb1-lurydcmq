@@ -9,7 +9,8 @@ import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
 import {
   Menu, X, ChevronRight, Award, BookOpen, User, Compass,
-  LogOut, Map, Book, FileText, Library, Calendar, Settings
+  LogOut, Map, Book, FileText, Library, Calendar, Settings,
+  MoreHorizontal
 } from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
@@ -34,21 +35,23 @@ interface NavButtonProps {
   active?: boolean;
   icon: React.ReactNode;
   label: string;
+  hideLabel?: boolean;
 }
 
-const NavButton: React.FC<NavButtonProps> = ({ onClick, active, icon, label }) => (
+const NavButton: React.FC<NavButtonProps> = ({ onClick, active, icon, label, hideLabel = false }) => (
   <button
     onClick={onClick}
     className={`
-      px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-1
+      px-3 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-1
       ${active
         ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/50'
         : 'text-yellow-400 hover:bg-yellow-500 hover:text-black'
       }
     `}
+    title={hideLabel ? label : undefined}
   >
     {icon}
-    <span>{label}</span>
+    {!hideLabel && <span>{label}</span>}
   </button>
 );
 
@@ -264,6 +267,7 @@ const Cabinet: React.FC = () => {
   const [activeSection, setActiveSection] = useState<"courses" | "profile" | "ar" | "vr">("courses");
   const [isDirectionModalOpen, setIsDirectionModalOpen] = useState(false);
   const [isLibraryMenuOpen, setIsLibraryMenuOpen] = useState(false);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
@@ -473,7 +477,7 @@ const Cabinet: React.FC = () => {
 
           {user && (
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Десктопная навигация */}
+              {/* Десктопная навигация - компактная */}
               <nav className="hidden md:flex items-center space-x-1 bg-gray-900/50 rounded-lg p-1">
                 <NavButton
                   onClick={() => setActiveSection("courses")}
@@ -487,36 +491,16 @@ const Cabinet: React.FC = () => {
                   icon={<User className="w-4 h-4" />}
                   label="Профиль"
                 />
-                <NavButton
-                  onClick={handleNavigateToAR}
-                  icon={<Compass className="w-4 h-4" />}
-                  label="AR"
-                />
-                <NavButton
-                  onClick={handleNavigateToVR}
-                  icon={<Compass className="w-4 h-4" />}
-                  label="VR"
-                />
-                <NavButton
-                  onClick={handleNavigateToSim}
-                  icon={<Compass className="w-4 h-4" />}
-                  label="Симуляторы"
-                />
-                <NavButton
-                  onClick={handleNavigateToMap}
-                  icon={<Map className="w-4 h-4" />}
-                  label="Карта"
-                />
 
                 {/* Библиотека как Dropdown */}
                 <DropdownMenu
                   trigger={
                     <button
                       onClick={() => setIsLibraryMenuOpen(!isLibraryMenuOpen)}
-                      className="flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition-all duration-200 text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                      className="flex items-center gap-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 text-yellow-400 hover:bg-yellow-500 hover:text-black"
                     >
-                      <Library className="w-4 h-4 mr-1" />
-                      Библиотека
+                      <Library className="w-4 h-4" />
+                      <span className="hidden lg:inline">Библиотека</span>
                       <ChevronRight className={`w-4 h-4 transition-transform ${isLibraryMenuOpen ? 'rotate-90' : ''}`} />
                     </button>
                   }
@@ -543,6 +527,51 @@ const Cabinet: React.FC = () => {
                   >
                     <Book className="w-4 h-4 text-yellow-400" />
                     <span>Книги и методички</span>
+                  </button>
+                </DropdownMenu>
+
+                {/* Меню «Ещё» для второстепенных разделов */}
+                <DropdownMenu
+                  trigger={
+                    <button
+                      onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
+                      className="flex items-center gap-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                      <span className="hidden lg:inline">Ещё</span>
+                      <ChevronRight className={`w-4 h-4 transition-transform ${isMoreMenuOpen ? 'rotate-90' : ''}`} />
+                    </button>
+                  }
+                  isOpen={isMoreMenuOpen}
+                  onClose={() => setIsMoreMenuOpen(false)}
+                >
+                  <button
+                    onClick={() => { handleNavigateToAR(); setIsMoreMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                  >
+                    <Compass className="w-4 h-4 text-yellow-400" />
+                    <span>AR-модуль</span>
+                  </button>
+                  <button
+                    onClick={() => { handleNavigateToVR(); setIsMoreMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                  >
+                    <Compass className="w-4 h-4 text-yellow-400" />
+                    <span>VR-модуль</span>
+                  </button>
+                  <button
+                    onClick={() => { handleNavigateToSim(); setIsMoreMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                  >
+                    <Compass className="w-4 h-4 text-yellow-400" />
+                    <span>Симуляторы</span>
+                  </button>
+                  <button
+                    onClick={() => { handleNavigateToMap(); setIsMoreMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-700 transition text-sm text-white"
+                  >
+                    <Map className="w-4 h-4 text-yellow-400" />
+                    <span>Карта месторождений</span>
                   </button>
                 </DropdownMenu>
               </nav>
@@ -578,10 +607,10 @@ const Cabinet: React.FC = () => {
                     trigger={
                       <button
                         onClick={() => setIsAdminMenuOpen(!isAdminMenuOpen)}
-                        className="flex items-center gap-1 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black text-yellow-400 font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                        className="flex items-center gap-1 border border-yellow-500/30 hover:bg-yellow-500 hover:text-black text-yellow-400 font-medium py-2 px-3 rounded-lg transition-all duration-200"
                       >
                         <Settings className="w-4 h-4" />
-                        <span className="hidden sm:inline">Управление</span>
+                        <span className="hidden lg:inline">Управление</span>
                         <ChevronRight className={`w-4 h-4 transition-transform ${isAdminMenuOpen ? 'rotate-90' : ''}`} />
                       </button>
                     }
@@ -608,16 +637,17 @@ const Cabinet: React.FC = () => {
                 {/* Кнопка выхода (десктоп) */}
                 <button
                   onClick={handleLogout}
-                  className="hidden sm:inline-flex items-center space-x-1 border border-red-500/30 hover:bg-red-500 hover:text-white text-red-400 font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                  className="hidden sm:inline-flex items-center space-x-1 border border-red-500/30 hover:bg-red-500 hover:text-white text-red-400 font-medium py-2 px-3 rounded-lg transition-all duration-200"
+                  title="Выйти"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Выйти</span>
+                  <span className="hidden lg:inline">Выйти</span>
                 </button>
 
                 {/* Кнопка "На главную" (десктоп) */}
                 <button
                   onClick={handleExitToMain}
-                  className="hidden lg:inline-flex border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                  className="hidden lg:inline-flex border border-yellow-500 hover:bg-yellow-500 hover:text-black text-yellow-500 font-medium py-2 px-3 rounded-lg transition-all duration-200"
                 >
                   На главную
                 </button>
