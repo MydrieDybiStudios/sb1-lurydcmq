@@ -87,6 +87,7 @@ function App() {
           <Route path="/admin/events" element={<AdminEventsPage />} />
           <Route path="/admin/courses" element={<AdminCoursesPage />} />
           <Route path="/olympiads" element={<OlympiadsPage />} />
+<Route path="/olympiads" element={<OlympiadsPage />} />
 <Route path="/olympiads/:id" element={<OlympiadDetailPage />} />
 <Route path="/olympiads/test/:stageId" element={<OlympiadTestPage />} />
 
