@@ -1,4 +1,4 @@
-// src/pages/Cabinet.tsx
+// src/pages/Cabinet.tsx (без олимпиад)
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
 import Footer from "../components/Footer";
@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Menu, X, ChevronRight, Award, BookOpen, User, Compass,
   LogOut, Map, Book, FileText, Library, Calendar, Settings,
-  MoreHorizontal, ChevronDown, Trophy
+  MoreHorizontal, ChevronDown
 } from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
@@ -111,7 +111,6 @@ interface MobileMenuProps {
   onNavigateToBooks: () => void;
   onNavigateToAdminEvents: () => void;
   onNavigateToAdminCourses: () => void;
-  onNavigateToAdminOlympiads: () => void;
   onExitToMain: () => void;
   onLogout: () => void;
   isAdmin: boolean;
@@ -130,7 +129,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
   onNavigateToBooks,
   onNavigateToAdminEvents,
   onNavigateToAdminCourses,
-  onNavigateToAdminOlympiads,
   onExitToMain,
   onLogout,
   isAdmin
@@ -238,13 +236,6 @@ const MobileMenu: React.FC<MobileMenuProps> = ({
               <BookOpen className="w-4 h-4 mr-3" />
               Курсы
             </button>
-            <button
-              onClick={() => { onNavigateToAdminOlympiads(); onClose(); }}
-              className="w-full px-8 py-3 rounded-lg font-medium text-left transition flex items-center text-yellow-400 hover:bg-yellow-500 hover:text-black"
-            >
-              <Trophy className="w-4 h-4 mr-3" />
-              Олимпиады
-            </button>
           </div>
         )}
 
@@ -282,7 +273,6 @@ const Cabinet: React.FC = () => {
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
-  const [upcomingOlympiads, setUpcomingOlympiads] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
 
@@ -327,35 +317,6 @@ const Cabinet: React.FC = () => {
     setUpcomingEvents(events || []);
   }, [user]);
 
-  // Функция загрузки олимпиад, на которые зарегистрирован пользователь
-  const fetchUpcomingOlympiads = useCallback(async () => {
-    if (!user) {
-      setUpcomingOlympiads([]);
-      return;
-    }
-    const { data: regs } = await supabase
-      .from("olympiad_registrations")
-      .select("olympiad_id, status, final_score, place, diploma_url")
-      .eq("user_id", user.id);
-    if (!regs?.length) {
-      setUpcomingOlympiads([]);
-      return;
-    }
-    const olympiadIds = regs.map(r => r.olympiad_id);
-    const { data: olympiads } = await supabase
-      .from("olympiads")
-      .select("*")
-      .in("id", olympiadIds)
-      .order("created_at", { ascending: false });
-    if (olympiads) {
-      const enriched = olympiads.map(olympiad => {
-        const reg = regs.find(r => r.olympiad_id === olympiad.id);
-        return { ...olympiad, registration: reg };
-      });
-      setUpcomingOlympiads(enriched);
-    }
-  }, [user]);
-
   useEffect(() => {
     const fetchUserAndProfile = async () => {
       try {
@@ -398,7 +359,6 @@ const Cabinet: React.FC = () => {
       } else {
         setProfile(null);
         setUpcomingEvents([]);
-        setUpcomingOlympiads([]);
         setIsAdmin(false);
       }
     });
@@ -408,8 +368,7 @@ const Cabinet: React.FC = () => {
 
   useEffect(() => {
     fetchUpcomingEvents();
-    fetchUpcomingOlympiads();
-  }, [user, fetchUpcomingEvents, fetchUpcomingOlympiads]);
+  }, [user, fetchUpcomingEvents]);
 
   const handleDirectionSelect = async (directionId: string) => {
     if (user) {
@@ -577,12 +536,6 @@ const Cabinet: React.FC = () => {
                     >
                       <BookOpen className="w-4 h-4 text-yellow-400" /> Курсы
                     </button>
-                    <button
-                      onClick={() => { navigate("/admin/olympiads"); setIsAdminMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-gray-700 text-sm text-white"
-                    >
-                      <Trophy className="w-4 h-4 text-yellow-400" /> Олимпиады
-                    </button>
                   </DropdownMenu>
                 )}
               </nav>
@@ -645,7 +598,6 @@ const Cabinet: React.FC = () => {
             onNavigateToBooks={handleNavigateToBooks}
             onNavigateToAdminEvents={() => navigate("/admin/events")}
             onNavigateToAdminCourses={() => navigate("/admin/courses")}
-            onNavigateToAdminOlympiads={() => navigate("/admin/olympiads")}
             onExitToMain={handleExitToMain}
             onLogout={handleLogout}
             isAdmin={isAdmin}
@@ -749,89 +701,6 @@ const Cabinet: React.FC = () => {
                           className="inline-flex items-center gap-1 text-yellow-600 hover:text-yellow-700 font-medium"
                         >
                           Все мероприятия
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </section>
-
-                <section className="mt-12">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center">
-                      <Trophy className="w-8 h-8 mr-3 text-yellow-500" />
-                      Мои олимпиады
-                    </h2>
-                  </div>
-                  {upcomingOlympiads.length === 0 ? (
-                    <div className="bg-gray-100 rounded-xl p-8 text-center">
-                      <p className="text-gray-500">Вы ещё не участвуете в олимпиадах</p>
-                      <button
-                        onClick={() => navigate("/olympiads")}
-                        className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
-                      >
-                        Перейти к олимпиадам
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {upcomingOlympiads.map(item => {
-                          const olympiad = item;
-                          const reg = item.registration;
-                          const statusText = reg?.status === 'completed' ? 'Завершена' : 'Участвую';
-                          const statusColor = reg?.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                          return (
-                            <div
-                              key={olympiad.id}
-                              className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition cursor-pointer"
-                              onClick={() => navigate(`/olympiads/${olympiad.id}`)}
-                            >
-                              {olympiad.cover_image_url && (
-                                <div className="h-32 overflow-hidden">
-                                  <img src={olympiad.cover_image_url} alt={olympiad.title} className="w-full h-full object-cover" />
-                                </div>
-                              )}
-                              <div className="p-5">
-                                <div className="flex justify-between items-start mb-2">
-                                  <span className={`px-2.5 py-0.5 rounded text-xs font-semibold ${statusColor}`}>
-                                    {statusText}
-                                  </span>
-                                </div>
-                                <h3 className="font-bold text-lg mb-2 line-clamp-2">{olympiad.title}</h3>
-                                {reg?.place && (
-                                  <p className="text-sm text-gray-600 mb-2">Место: {reg.place}</p>
-                                )}
-                                {reg?.final_score && (
-                                  <p className="text-sm text-gray-600 mb-2">Баллы: {reg.final_score}</p>
-                                )}
-                                {reg?.diploma_url && (
-                                  <a
-                                    href={reg.diploma_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-yellow-600 hover:text-yellow-700 text-sm font-medium block mt-2"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    Скачать диплом
-                                  </a>
-                                )}
-                                <div className="flex justify-end mt-3">
-                                  <button className="text-yellow-600 hover:text-yellow-700 text-sm font-medium">
-                                    Подробнее →
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      <div className="text-center mt-6">
-                        <button
-                          onClick={() => navigate("/olympiads")}
-                          className="inline-flex items-center gap-1 text-yellow-600 hover:text-yellow-700 font-medium"
-                        >
-                          Все олимпиады
                           <ChevronRight className="w-4 h-4" />
                         </button>
                       </div>
