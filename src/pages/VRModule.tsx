@@ -5,12 +5,13 @@ import Footer from "../components/Footer";
 
 // Импортируем фото для VR модулей
 import znakomstvo from "../logos/znakomstvo.jpg";
-import avaria from "../logos/avaria.jpg";
+import avaria from "../logos/osmotr.png";
 import museum from "../logos/vr-museum.jpg";
 import kach from "../logos/kach.jpg";
 import poisk from "../logos/poisk.jpg";
 import bur from "../logos/bur.jpg";
 import lab from "../logos/lab.jpg";
+import grp from "../logos/grp.png";
 
 // Импортируем круглый логотип
 import logo from "../logos/logo.png";
@@ -19,11 +20,11 @@ const VRModule: React.FC = () => {
   const navigate = useNavigate();
   const [selectedModule, setSelectedModule] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState<{[key: string]: boolean}>({});
+  const [imageLoaded, setImageLoaded] = useState<{ [key: string]: boolean }>({});
   const [zoomLevel, setZoomLevel] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Все VR модули как самостоятельные элементы
+  // Все VR модули как самостоятельные элементы (без progress)
   const vrModules = [
     {
       id: 1,
@@ -31,13 +32,12 @@ const VRModule: React.FC = () => {
       description: "Прохождение техники безопасности, Знакомство с виртуальным помощником.",
       duration: "5-10 минут",
       difficulty: "Начальный",
-      progress: 0,
       image: znakomstvo,
       features: ["Техника Безопасности", "Интерактивные сценарии", "Виртуальный гид", "Знакомство"],
       type: "exploration",
       fullDescription: "Этот модуль познакомит вас с основами работы в виртуальной реальности и техникой безопасности. Вы встретитесь с виртуальным помощником, который проведет вас через все этапы обучения.",
       icon: Shield,
-      downloadLink: "#"
+      downloadLink: "https://drive.google.com/uc?export=download&id=1Aqxwan_cBSG_N8tYHmzHltbOfE1xcWe1"
     },
     {
       id: 2,
@@ -45,7 +45,6 @@ const VRModule: React.FC = () => {
       description: "Виртуальное путешествие по процессу поиска и разведки нефтяных месторождений. Изучите современные методы геологоразведки.",
       duration: "5-10 минут",
       difficulty: "Начальный",
-      progress: 0,
       image: poisk,
       features: ["3D модели оборудования", "Интерактивные сценарии", "Виртуальный гид"],
       type: "exploration",
@@ -59,13 +58,12 @@ const VRModule: React.FC = () => {
       description: "Иммерсивный опыт запуска буровой установки. Управляйте процессом бурения в виртуальной реальности.",
       duration: "5-10 минут",
       difficulty: "Средний",
-      progress: 0,
       image: bur,
       features: ["Симуляция управления", "Анимация процессов", "Техника безопасности"],
       type: "simulation",
       fullDescription: "Погрузитесь в процесс запуска буровой установки. Управляйте оборудованием, следите за показателями и осваивайте технику безопасности при работе с буровыми системами.",
       icon: Video,
-      downloadLink: "#"
+      downloadLink: "https://drive.google.com/uc?export=download&id=13gMufgQRrydLFvxILjerEN6-LkZ_y9UK"
     },
     {
       id: 4,
@@ -73,27 +71,25 @@ const VRModule: React.FC = () => {
       description: "Виртуальная симуляция работы нефтедобывающего оборудования. Освойте принципы работы насосных станций.",
       duration: "5-10 минут",
       difficulty: "Средний",
-      progress: 0,
       image: kach,
       features: ["Реалистичная физика", "Запуск качалки", "Процедуры устранения поломок"],
       type: "simulation",
       fullDescription: "Освойте работу насосных станций и принципы добычи нефти. Научитесь запускать и обслуживать насосы-качалки, а также устранять типичные неисправности.",
       icon: Play,
-      downloadLink: "https://cloud.mail.ru/public/SSPv/fhzCUyftR"
+      downloadLink: "https://drive.google.com/uc?export=download&id=11ngwYVfCQkKEUO9X_CNFu_beOWgwm9uY"
     },
     {
       id: 5,
-      title: "Авария на месторождении",
-      description: "Симуляция устранения аварии на месторождении",
+      title: "Осмотр месторождения",
+      description: "Симуляция проверки обЪектов на месторождении",
       duration: "10-15 минут",
       difficulty: "Продвинутый",
-      progress: 0,
       image: avaria,
-      features: ["Процедуры устранения поломок", "Сварка", "Техническое обслуживание"],
+      features: ["Процедуры фиксирования поломок", "Нарушение", "Проверка"],
       type: "interactive",
-      fullDescription: "Отработайте действия в аварийной ситуации на нефтяном месторождении. Освойте процедуры устранения поломок, технику безопасности и методы быстрого реагирования.",
+      fullDescription: "Проинспектируйте объекты на нефтяном месторождении.",
       icon: Zap,
-      downloadLink: "#"
+      downloadLink: "https://drive.google.com/uc?export=download&id=1ZB7APzV_Ihysu8lqEMlP7S4yh3XELRII"
     },
     {
       id: 6,
@@ -101,13 +97,12 @@ const VRModule: React.FC = () => {
       description: "Интерактивная лаборатория для исследования и анализа нефти. Проводите химические опыты в безопасной VR-среде.",
       duration: "5-10 минут",
       difficulty: "Продвинутый",
-      progress: 0,
       image: lab,
       features: ["Виртуальные эксперименты", "Анализ проб", "Исследовательские задачи"],
       type: "interactive",
       fullDescription: "Проводите химические анализы и эксперименты с нефтью в полностью безопасной виртуальной лаборатории. Изучайте свойства нефти и методы ее исследования.",
       icon: Headphones,
-      downloadLink: "#"
+      downloadLink: "https://drive.google.com/uc?export=download&id=1DojoPhlxO-jX47FWOqyJFy8cbBAkSlQs"
     },
     {
       id: 7,
@@ -115,20 +110,27 @@ const VRModule: React.FC = () => {
       description: "Оцифрованный музей имени Романа Ивановича Кузоваткина. Исследуйте интерактивные экспонаты и архивные материалы.",
       duration: "15-20 минут",
       difficulty: "Начальный",
-      progress: 0,
       image: museum,
       features: ["Исторические реконструкции", "Интерактивные экспонаты", "3D хронология", "Виртуальный гид"],
       type: "educational",
       fullDescription: "Посетите виртуальный музей нефтяной промышленности. Изучите историю добычи нефти, интерактивные экспонаты и архивные материалы в immersive-среде.",
       icon: GraduationCap,
-      downloadLink: "#"
+      downloadLink: "https://drive.google.com/uc?export=download&id=1M_ZkDNbqd_bXV53DQxoONcaDumFwQi0O"
+    },
+    {
+      id: 8,
+      title: "Гидроразрыв пласта",
+      description: "Освойте основные действия при ГРП",
+      duration: "15-20 минут",
+      difficulty: "Продвинутый",
+      image: grp,
+      features: ["ГРП", "Закачка жидкости", "Технология"],
+      type: "educational",
+      fullDescription: "Симуляция действий при ГРП. Технология ГРП",
+      icon: GraduationCap,
+      downloadLink: "https://drive.google.com/uc?export=download&id=1LOvWiLIg3RGv_Pi1fuHL2vD7NrVJ6F2y"
     }
   ];
-
- 
-
-  // Пустая статистика (текущая)
-  
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -170,7 +172,7 @@ const VRModule: React.FC = () => {
   };
 
   const handleImageLoad = (id: number) => {
-    setImageLoaded(prev => ({...prev, [id]: true}));
+    setImageLoaded(prev => ({ ...prev, [id]: true }));
   };
 
   // Блокировка скролла body при открытом модальном окне
@@ -192,9 +194,9 @@ const VRModule: React.FC = () => {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <img 
-                src={logo} 
-                alt="Югра.Нефть" 
+              <img
+                src={logo}
+                alt="Югра.Нефть"
                 className="w-12 h-12 rounded-full object-cover border-2 border-yellow-400 shadow-lg"
               />
               <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white"></div>
@@ -225,21 +227,15 @@ const VRModule: React.FC = () => {
               Виртуальная реальность
             </h1>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Погрузитесь в мир нефтяной промышленности через 
+              Погрузитесь в мир нефтяной промышленности через
               <span className="font-semibold text-yellow-400"> иммерсивные VR-технологии</span>
             </p>
           </div>
 
-        
-
-        
-
           {/* VR Modules */}
           <div className="mb-16">
-            
-
             {/* Горизонтальный скролл на мобильных, сетка на десктопе */}
-            <div 
+            <div
               ref={scrollContainerRef}
               className="flex lg:grid lg:grid-cols-2 gap-6 overflow-x-auto pb-4 lg:overflow-visible lg:pb-0 scrollbar-thin scrollbar-thumb-yellow-600 scrollbar-track-gray-800"
               style={{ scrollbarWidth: 'thin' }}
@@ -247,12 +243,12 @@ const VRModule: React.FC = () => {
               {vrModules.map((module) => {
                 const IconComponent = module.icon;
                 return (
-                  <div 
+                  <div
                     key={module.id}
                     className="flex-shrink-0 w-[calc(100vw-2rem)] sm:w-[400px] lg:w-full group bg-gray-800 rounded-3xl shadow-2xl hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-700 hover:border-yellow-500/30"
                   >
                     <div className="relative overflow-hidden">
-                      <div 
+                      <div
                         className="aspect-video bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center cursor-pointer relative"
                         onClick={() => handleModuleDetails(module)}
                       >
@@ -277,7 +273,7 @@ const VRModule: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Badges */}
                         <div className="absolute top-4 left-4 bg-black/80 text-white px-3 py-1.5 rounded-full text-sm font-medium backdrop-blur-sm border border-yellow-500/30">
                           Модуль {module.id}
@@ -334,18 +330,13 @@ const VRModule: React.FC = () => {
                             <div className="text-sm font-semibold text-white">{module.duration}</div>
                             <div className="text-xs text-gray-500">Длительность</div>
                           </div>
-                          <div className="text-center">
-                            <div className="text-sm font-semibold text-white mb-1">{module.progress}%</div>
-                            <div className="text-xs text-gray-500">Прогресс</div>
-                          </div>
                         </div>
-                        
+
                         <div className="flex space-x-2">
                           <a
                             href={module.downloadLink}
                             className="bg-gray-700 hover:bg-gray-600 text-white font-bold p-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md"
                             title="Скачать сцену"
-                            
                           >
                             <Download className="w-5 h-5" />
                           </a>
@@ -356,20 +347,6 @@ const VRModule: React.FC = () => {
                             <Info className="w-5 h-5 mr-2" />
                             Подробнее
                           </button>
-                        </div>
-                      </div>
-
-                      {/* Progress Bar */}
-                      <div className="mt-4">
-                        <div className="flex justify-between text-sm text-gray-400 mb-2">
-                          <span>Прогресс прохождения</span>
-                          <span>{module.progress}%</span>
-                        </div>
-                        <div className="w-full bg-gray-700 rounded-full h-2">
-                          <div 
-                            className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full transition-all duration-1000"
-                            style={{ width: `${module.progress}%` }}
-                          ></div>
                         </div>
                       </div>
                     </div>
@@ -387,17 +364,15 @@ const VRModule: React.FC = () => {
                 <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white rounded-full"></div>
                 <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-white rounded-full"></div>
               </div>
-              
+
               <div className="max-w-4xl mx-auto relative z-10">
-                
-                
                 <h2 className="text-4xl md:text-5xl font-bold mb-6">
                   Готовы к погружению в VR?
                 </h2>
                 <p className="text-xl md:text-2xl mb-8 text-yellow-100 leading-relaxed">
                   Испытайте профессию нефтяника на себе в виртуальной реальности
                 </p>
-                
+
                 <div className="bg-black/20 backdrop-blur-sm rounded-2xl p-8 border border-yellow-500/30 max-w-2xl mx-auto">
                   <h4 className="font-semibold mb-6 text-2xl">Рекомендации для VR:</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-lg">
@@ -457,13 +432,13 @@ const VRModule: React.FC = () => {
               >
                 <X className="w-6 h-6" />
               </button>
-              
+
               {/* Тег VR модуль слева вверху */}
               <div className="absolute top-6 left-6 z-30 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center space-x-1">
                 <span>{getTypeIcon(selectedModule.type)}</span>
                 <span>VR Модуль</span>
               </div>
-              
+
               <div className="p-8 overflow-y-auto flex-grow">
                 {/* Header (с отступом сверху, чтобы не наезжать на теги) */}
                 <div className="flex items-start justify-between mb-8 mt-12">
@@ -546,28 +521,6 @@ const VRModule: React.FC = () => {
                           </div>
                           <span className="text-white font-semibold text-lg">{selectedModule.duration}</span>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <GraduationCap className="w-6 h-6 text-green-400" />
-                            <span className="text-gray-300 text-lg">Прогресс</span>
-                          </div>
-                          <span className="text-white font-semibold text-lg">{selectedModule.progress}%</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Progress */}
-                    <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 mb-6">
-                      <h3 className="text-2xl font-bold text-yellow-400 mb-4">Прогресс прохождения</h3>
-                      <div className="flex justify-between text-gray-300 mb-3 text-lg">
-                        <span>Завершено</span>
-                        <span>{selectedModule.progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-700 rounded-full h-3">
-                        <div 
-                          className="bg-gradient-to-r from-green-500 to-emerald-600 h-3 rounded-full transition-all duration-1000"
-                          style={{ width: `${selectedModule.progress}%` }}
-                        ></div>
                       </div>
                     </div>
 
@@ -575,7 +528,6 @@ const VRModule: React.FC = () => {
                     <a
                       href={selectedModule.downloadLink}
                       className="block bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold py-4 px-6 rounded-xl transition-all duration-300 text-center text-lg shadow-lg"
-                      
                     >
                       <Download className="inline-block w-5 h-5 mr-2" />
                       Скачать сцену
