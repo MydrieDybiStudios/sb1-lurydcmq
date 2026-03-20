@@ -24,7 +24,6 @@ import { EventsPage } from './pages/EventsPage';
 import { EventDetailPage } from './pages/EventDetailPage';
 import AdminEventsPage from './pages/AdminEventsPage';
 import AdminCoursesPage from './pages/AdminCoursesPage';
-
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
