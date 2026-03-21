@@ -9,7 +9,7 @@ import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
 import {
   Menu, X, ChevronRight, Award, BookOpen, User, Compass,
-  LogOut, Map, Book, FileText,Library, Calendar, Settings
+  LogOut, Map, Book, FileText, Library, Calendar, Settings
 } from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
@@ -275,11 +275,15 @@ const Cabinet: React.FC = () => {
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
             </div>
             <div className="flex flex-col">
-              <h1 className="text-base sm:text-lg md:text-xl font-bold leading-tight tracking-tight">
-                <span className="hidden sm:inline">Личный кабинет</span>
-                <span className="sm:hidden">ЛК</span>
-                <span className="text-yellow-400 ml-1">«Югра.Нефть»</span>
-              </h1>
+              <div>
+                <h1 className="text-base sm:text-lg md:text-xl font-bold leading-tight tracking-tight">
+                  <span className="hidden sm:inline">Личный кабинет</span>
+                  <span className="sm:hidden">ЛК</span>
+                </h1>
+                <h2 className="text-base sm:text-lg md:text-xl font-bold leading-tight tracking-tight text-yellow-400">
+                  «Югра.Нефть»
+                </h2>
+              </div>
               <p className="text-xs text-gray-300 hidden md:block">Ваши курсы, достижения и прогресс</p>
             </div>
           </div>
@@ -297,16 +301,6 @@ const Cabinet: React.FC = () => {
                 >
                   <BookOpen className="w-4 h-4 inline mr-1" />
                   Курсы
-                </button>
-                <button
-                  onClick={() => setActiveSection("profile")}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${activeSection === "profile"
-                    ? "bg-yellow-500 text-black shadow-lg shadow-yellow-500/50"
-                    : "text-yellow-400 hover:bg-yellow-500 hover:text-black"
-                  }`}
-                >
-                  <User className="w-4 h-4 inline mr-1" />
-                  Профиль
                 </button>
                 <button
                   onClick={handleNavigateToAR}
