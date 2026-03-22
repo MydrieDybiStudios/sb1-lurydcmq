@@ -9,11 +9,12 @@ import Profile from "./Profile";
 import { useNavigate } from "react-router-dom";
 import {
   Menu, X, ChevronRight, Award, BookOpen, User, Compass,
-  LogOut, Map, Book, FileText, Library, Calendar, Settings
+  LogOut, Map, Book, FileText, Library, Calendar, Settings, FolderOpen
 } from "lucide-react";
 import coursesData from "../data/coursesData";
 import { directions } from "../data/directionsData";
 import DirectionSelector from "../components/DirectionSelector";
+import ProjectCard from "../components/ProjectCard";
 
 // Импортируем круглый логотип
 import logo from "../logos/logo.png";
@@ -40,6 +41,7 @@ const Cabinet: React.FC = () => {
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAdminMenuOpen, setIsAdminMenuOpen] = useState(false);
+  const [projects, setProjects] = useState<any[]>([]); // состояние для проектов
   const navigate = useNavigate();
 
   // Функция загрузки предстоящих мероприятий
@@ -81,6 +83,30 @@ const Cabinet: React.FC = () => {
     }
 
     setUpcomingEvents(events || []);
+  };
+
+  // Функция загрузки проектов
+  const fetchProjects = async () => {
+    if (!user) {
+      setProjects([]);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        members:project_members(user_id)
+      `)
+      .eq('project_members.user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    if (error) {
+      console.error('Ошибка загрузки проектов:', error);
+      return;
+    }
+    setProjects(data || []);
   };
 
   // Эффект для загрузки пользователя и профиля
@@ -149,6 +175,15 @@ const Cabinet: React.FC = () => {
       fetchUpcomingEvents();
     } else {
       setUpcomingEvents([]);
+    }
+  }, [user]);
+
+  // Отдельный эффект для загрузки проектов при изменении user
+  useEffect(() => {
+    if (user) {
+      fetchProjects();
+    } else {
+      setProjects([]);
     }
   }, [user]);
 
@@ -692,6 +727,41 @@ const Cabinet: React.FC = () => {
                         </button>
                       </div>
                     </>
+                  )}
+                </section>
+
+                {/* Виджет моих проектов */}
+                <section className="mt-12">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-3xl md:text-4xl font-bold text-gray-800 flex items-center">
+                      <FolderOpen className="w-8 h-8 mr-3 text-yellow-500" />
+                      Мои проекты
+                    </h2>
+                    <button
+                      onClick={() => navigate('/projects')}
+                      className="text-yellow-600 hover:text-yellow-700 font-medium text-sm flex items-center gap-1"
+                    >
+                      Все проекты
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {projects.length === 0 ? (
+                    <div className="bg-gray-100 rounded-xl p-8 text-center">
+                      <p className="text-gray-500">У вас пока нет проектов</p>
+                      <button
+                        onClick={() => navigate('/projects/create')}
+                        className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-black font-medium py-2 px-6 rounded-lg transition"
+                      >
+                        Создать проект
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {projects.map(project => (
+                        <ProjectCard key={project.id} project={project} />
+                      ))}
+                    </div>
                   )}
                 </section>
               </>

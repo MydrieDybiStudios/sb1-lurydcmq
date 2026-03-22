@@ -24,6 +24,10 @@ import { EventsPage } from './pages/EventsPage';
 import { EventDetailPage } from './pages/EventDetailPage';
 import AdminEventsPage from './pages/AdminEventsPage';
 import AdminCoursesPage from './pages/AdminCoursesPage';
+import ProjectsPage from './pages/ProjectsPage';
+import ProjectDetail from './pages/ProjectDetail';
+import ProjectCreate from './pages/ProjectCreate';
+
 function App() {
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -78,6 +82,10 @@ function App() {
           <Route path="/events/:id" element={<EventDetailPage />} />
           <Route path="/admin/events" element={<AdminEventsPage />} />
           <Route path="/admin/courses" element={<AdminCoursesPage />} />
+          <Route path="/projects" element={<ProjectsPage />} />
+          <Route path="/projects/new" element={<ProjectDetail />} /> {/* для создания нового проекта можно использовать ту же страницу с флагом new */}
+          <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/projects/create" element={<ProjectCreate />} />
         </Routes>
 
         {/* Модальные окна */}
