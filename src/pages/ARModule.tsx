@@ -99,7 +99,7 @@ const ARModule: React.FC = () => {
   const currentImages = activeTab === "history" ? historyImages : careerImages;
 
   const handleDownloadApp = () => {
-    window.open("https://example.com/download-yugra-neft-ar", "_blank");
+    window.open("https://drive.google.com/uc?export=download&id=1ZwO_V45PdKs7UI5aw0bSyGxkcIwGH_gQ", "_blank");
   };
 
   const openImageModal = (image: string) => {
@@ -333,10 +333,6 @@ const ARModule: React.FC = () => {
                 </button>
 
                 <div className="flex justify-center space-x-8 mt-8 text-yellow-200">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                    <span>iOS</span>
-                  </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 bg-green-400 rounded-full"></div>
                     <span>Android</span>

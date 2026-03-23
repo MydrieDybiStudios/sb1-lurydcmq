@@ -5,13 +5,14 @@ import Footer from "../components/Footer";
 
 // Импортируем фото для VR модулей
 import znakomstvo from "../logos/znakomstvo.jpg";
-import avaria from "../logos/osmotr.png";
+import osmotr from "../logos/osmotr.png";
 import museum from "../logos/vr-museum.jpg";
 import kach from "../logos/kach.jpg";
 import poisk from "../logos/poisk.jpg";
 import bur from "../logos/bur.jpg";
 import lab from "../logos/lab.jpg";
 import grp from "../logos/grp.png";
+import avaria from "../logos/avaria.jpg";
 
 // Импортируем круглый логотип
 import logo from "../logos/logo.png";
@@ -84,7 +85,7 @@ const VRModule: React.FC = () => {
       description: "Симуляция проверки обЪектов на месторождении",
       duration: "10-15 минут",
       difficulty: "Продвинутый",
-      image: avaria,
+      image: osmotr,
       features: ["Процедуры фиксирования поломок", "Нарушение", "Проверка"],
       type: "interactive",
       fullDescription: "Проинспектируйте объекты на нефтяном месторождении.",
@@ -129,6 +130,19 @@ const VRModule: React.FC = () => {
       fullDescription: "Симуляция действий при ГРП. Технология ГРП",
       icon: GraduationCap,
       downloadLink: "https://drive.google.com/uc?export=download&id=1LOvWiLIg3RGv_Pi1fuHL2vD7NrVJ6F2y"
+    },
+    {
+      id: 9,
+      title: "Авария на месторождении",
+      description: "Устранить аварию на месторождении.",
+      duration: "5-10 минут",
+      difficulty: "Средний",
+      image: avaria,
+      features: ["Техника Безопасности", "Интерактивные сценарии"],
+      type: "exploration",
+      fullDescription: "Этот модуль познакомит вас с симуляцией аварии на месторождении.",
+      icon: Shield,
+      downloadLink: "https://drive.google.com/uc?export=download&id=1DnfldgAFHrD5ofHjyffmmNEzjCB2jRzq"
     }
   ];
 
