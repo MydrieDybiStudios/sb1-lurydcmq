@@ -22,11 +22,11 @@ export default function GigaChatBot() {
     try {
       const data = await sendMessageToGigaChat(updatedMessages);
       setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Ошибка:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: 'Произошла ошибка при подключении' 
+        content: `Ошибка: ${error.message || 'Произошла ошибка при подключении'}` 
       }]);
     } finally {
       setIsLoading(false);

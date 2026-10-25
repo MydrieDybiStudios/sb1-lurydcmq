@@ -73,10 +73,17 @@ const Profile: React.FC = () => {
   // ---------- Загрузка данных ----------
   useEffect(() => {
     const fetchProfileData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+      // ИСПРАВЛЕННАЯ ЗОНА 1: Сначала проверяем наличие сессии
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate("/");
+        return;
+      }
+
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
         navigate("/");
         return;
       }
@@ -144,10 +151,18 @@ const Profile: React.FC = () => {
     if (!profile) return;
     setSaving(true);
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) return;
+    // ИСПРАВЛЕННАЯ ЗОНА 2: Проверка сессии перед сохранением
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setSaving(false);
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setSaving(false);
+      return;
+    }
 
     try {
       const { error } = await supabase.from("profiles").upsert(
@@ -180,9 +195,11 @@ const Profile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    // ИСПРАВЛЕННАЯ ЗОНА 3: Проверка сессии перед загрузкой файла
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     setAvatarLoading(true);
