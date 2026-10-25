@@ -1,7 +1,6 @@
 // src/api/gigachat.ts
 export async function sendMessageToGigaChat(messages: any[]) {
     try {
-        // Запрос идет на твой же сайт, на адрес /api/gigachat
         const response = await fetch('/api/gigachat', {
             method: 'POST',
             headers: {
@@ -10,19 +9,22 @@ export async function sendMessageToGigaChat(messages: any[]) {
             body: JSON.stringify({ messages }),
         });
 
+        // Строго читаем как текст, чтобы не было краша JSON на пустом ответе или HTML
         const responseText = await response.text();
 
-        if (responseText.trim().startsWith('<')) {
-            throw new Error("Сервер вернул HTML вместо JSON. Убедитесь, что бэкенд отвечает по этому адресу.");
+        if (!responseText) {
+            throw new Error("Сервер не вернул данные. Бэкенд недоступен.");
         }
 
-        let data = {};
-        if (responseText) {
-            try {
-                data = JSON.parse(responseText);
-            } catch (e) {
-                throw new Error(`Ошибка парсинга JSON. Статус: ${response.status}`);
-            }
+        if (responseText.trim().startsWith('<')) {
+            throw new Error("Сервер вернул HTML-страницу. Убедитесь, что бэкенд развёрнут и отвечает по адресу /api/gigachat.");
+        }
+
+        let data: any = {};
+        try {
+            data = JSON.parse(responseText);
+        } catch (e) {
+            throw new Error(`Ошибка парсинга ответа от сервера. Ответ: ${responseText.substring(0, 30)}...`);
         }
 
         if (!response.ok) {
@@ -32,9 +34,9 @@ export async function sendMessageToGigaChat(messages: any[]) {
         if (data.content) {
             return { content: data.content };
         } else {
-            throw new Error('Неожиданный ответ от сервера');
+            throw new Error('Неожиданный ответ от сервера GigaChat');
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('GigaChat API error:', error);
         throw error;
     }

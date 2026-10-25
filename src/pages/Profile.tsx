@@ -72,78 +72,94 @@ const Profile: React.FC = () => {
 
   // ---------- Загрузка данных ----------
   useEffect(() => {
+    let isMounted = true;
+
     const fetchProfileData = async () => {
-      // ИСПРАВЛЕННАЯ ЗОНА 1: Сначала проверяем наличие сессии
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate("/");
-        return;
-      }
+      try {
+        // Бронебойная проверка сессии
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session) {
+          if (isMounted) navigate("/");
+          return;
+        }
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        navigate("/");
-        return;
-      }
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          if (isMounted) navigate("/");
+          return;
+        }
 
-      // Профиль
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError && profileError.code !== "PGRST116") {
-        setToastType("error");
-        setToastMessage("Ошибка загрузки профиля");
-      } else if (!profileData) {
-        await supabase
+        // Профиль
+        const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .upsert({
-            id: user.id,
-            first_name: "",
-            last_name: "",
-            class_num: 1,
-            class_range: "1-8",
-            avatar_url: null,
-            updated_at: new Date().toISOString(),
-          })
-          .select();
-      } else setProfile(profileData as ProfileData);
+          .select("*")
+          .eq("id", user.id)
+          .single();
 
-      // Прогресс
-      const { data: progressData } = await supabase
-        .from("progress")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false });
-      if (progressData) setProgress(progressData);
+        if (profileError && profileError.code !== "PGRST116") {
+          if (isMounted) {
+            setToastType("error");
+            setToastMessage("Ошибка загрузки профиля");
+          }
+        } else if (!profileData) {
+          await supabase
+            .from("profiles")
+            .upsert({
+              id: user.id,
+              first_name: "",
+              last_name: "",
+              class_num: 1,
+              class_range: "1-8",
+              avatar_url: null,
+              updated_at: new Date().toISOString(),
+            })
+            .select();
+        } else if (isMounted) {
+          setProfile(profileData as ProfileData);
+        }
 
-      // Достижения
-      const { data: userAchievements, error: achError } = await supabase
-        .from("user_achievements")
-        .select("*, achievements(title, description, icon)")
-        .eq("user_id", user.id)
-        .order("earned_at", { ascending: false });
+        // Прогресс
+        const { data: progressData } = await supabase
+          .from("progress")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("updated_at", { ascending: false });
+          
+        if (progressData && isMounted) setProgress(progressData);
 
-      if (!achError && userAchievements) {
-        setAchievements(
-          userAchievements.map((a: any) => ({
-            id: a.achievement_id,
-            title: a.achievements.title,
-            description: a.achievements.description,
-            icon: a.achievements.icon,
-            earned_at: a.earned_at,
-          }))
-        );
+        // Достижения
+        const { data: userAchievements, error: achError } = await supabase
+          .from("user_achievements")
+          .select("*, achievements(title, description, icon)")
+          .eq("user_id", user.id)
+          .order("earned_at", { ascending: false });
+
+        if (!achError && userAchievements && isMounted) {
+          setAchievements(
+            userAchievements.map((a: any) => ({
+              id: a.achievement_id,
+              title: a.achievements.title,
+              description: a.achievements.description,
+              icon: a.achievements.icon,
+              earned_at: a.earned_at,
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Ошибка инициализации профиля:", err);
+      } finally {
+        // Гарантируем, что спиннер загрузки исчезнет в любом случае
+        if (isMounted) setLoading(false);
       }
-
-      setLoading(false);
     };
 
     fetchProfileData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, [navigate]);
 
   // ---------- Сохранение профиля ----------
@@ -151,20 +167,13 @@ const Profile: React.FC = () => {
     if (!profile) return;
     setSaving(true);
 
-    // ИСПРАВЛЕННАЯ ЗОНА 2: Проверка сессии перед сохранением
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      setSaving(false);
-      return;
-    }
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setSaving(false);
-      return;
-    }
-
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Сессия истекла");
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Пользователь не найден");
+
       const { error } = await supabase.from("profiles").upsert(
         {
           id: user.id,
@@ -181,10 +190,10 @@ const Profile: React.FC = () => {
 
       setToastType("success");
       setToastMessage("Профиль успешно сохранён!");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setToastType("error");
-      setToastMessage("Ошибка сохранения профиля!");
+      setToastMessage(err.message || "Ошибка сохранения профиля!");
     } finally {
       setSaving(false);
     }
@@ -195,16 +204,15 @@ const Profile: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // ИСПРАВЛЕННАЯ ЗОНА 3: Проверка сессии перед загрузкой файла
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
     setAvatarLoading(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Сессия истекла");
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Пользователь не найден");
+
       if (!file.type.startsWith("image/"))
         throw new Error("Можно загружать только изображения");
 
@@ -222,6 +230,7 @@ const Profile: React.FC = () => {
       await supabase
         .from("profiles")
         .upsert({ id: user.id, avatar_url: data.publicUrl }, { onConflict: "id" });
+        
       setProfile((prev) =>
         prev ? { ...prev, avatar_url: data.publicUrl } : prev
       );
