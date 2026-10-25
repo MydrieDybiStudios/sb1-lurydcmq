@@ -109,54 +109,94 @@ const Cabinet: React.FC = () => {
     setProjects(data || []);
   };
 
+  // ========== ИСПРАВЛЕННАЯ ПРОБЛЕМНАЯ ЗОНА ==========
   // Эффект для загрузки пользователя и профиля
   useEffect(() => {
+    let isMounted = true;
+
     const fetchUserAndProfile = async () => {
       try {
-        const { data: userData } = await supabase.auth.getUser();
-        setUser(userData?.user ?? null);
-
-        if (userData?.user) {
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userData.user.id)
-            .single();
-
-          setProfile(profileData);
-
-          const { data: adminCheck } = await supabase.rpc('is_admin');
-          setIsAdmin(!!adminCheck);
-        } else {
-          const savedDirection = localStorage.getItem('preferredDirection');
-          if (savedDirection) {
-            setProfile({ direction: savedDirection } as ProfileData);
+        // 1. Сначала безопасно получаем сессию вместо прямого getUser(), чтобы избежать AuthSessionMissingError
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError || !session?.user) {
+          if (isMounted) {
+            setUser(null);
+            const savedDirection = localStorage.getItem('preferredDirection');
+            if (savedDirection) {
+              setProfile({ direction: savedDirection } as ProfileData);
+            } else {
+              setProfile(null);
+            }
           }
+          return;
+        }
+
+        const currentUser = session.user;
+        if (isMounted) setUser(currentUser);
+
+        // 2. Используем maybeSingle() вместо single(), чтобы не падать, если профиля еще нет в БД
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", currentUser.id)
+          .maybeSingle();
+
+        if (!profileError && profileData) {
+          if (isMounted) setProfile(profileData);
+        } else if (!profileData) {
+          // Если записи в profiles еще нет — создаем базовую запись, чтобы кабинет и настройки работали
+          const newProfile = {
+            id: currentUser.id,
+            first_name: currentUser.user_metadata?.name?.split(" ")[0] || "",
+            last_name: currentUser.user_metadata?.name?.split(" ")[1] || "",
+            class_num: 1,
+            class_range: "1-8" as const,
+            avatar_url: null,
+            updated_at: new Date().toISOString(),
+          };
+          await supabase.from("profiles").upsert(newProfile);
+          if (isMounted) setProfile(newProfile);
+        }
+
+        // 3. Безопасный вызов проверки админа
+        const { data: adminCheck, error: adminError } = await supabase.rpc('is_admin');
+        if (!adminError && isMounted) {
+          setIsAdmin(!!adminCheck);
         }
       } catch (err) {
         console.error("Ошибка получения данных:", err);
-        setUser(null);
-        setProfile(null);
+        if (isMounted) {
+          setUser(null);
+          setProfile(null);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchUserAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMounted) return;
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-        setProfile(profileData);
+        try {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          if (isMounted && profileData) setProfile(profileData);
 
-        const { data: adminCheck } = await supabase.rpc('is_admin');
-        setIsAdmin(!!adminCheck);
+          const { data: adminCheck } = await supabase.rpc('is_admin');
+          if (isMounted) setIsAdmin(!!adminCheck);
+        } catch (e) {
+          console.error("Ошибка обновления состояния авторизации:", e);
+        }
       } else {
         setProfile(null);
         setUpcomingEvents([]);
@@ -165,9 +205,11 @@ const Cabinet: React.FC = () => {
     });
 
     return () => {
+      isMounted = false;
       authListener?.subscription.unsubscribe();
     };
   }, []);
+  // ========== КОНЕЦ ИСПРАВЛЕННОЙ ЗОНЫ ==========
 
   // Отдельный эффект для загрузки мероприятий при изменении user
   useEffect(() => {

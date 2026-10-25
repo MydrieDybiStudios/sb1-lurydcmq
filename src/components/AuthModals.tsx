@@ -27,6 +27,7 @@ const AuthModals: React.FC<AuthModalsProps> = ({
   const [loginPassword, setLoginPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Состояния для регистрации
   const [registerName, setRegisterName] = useState('');
@@ -40,19 +41,50 @@ const AuthModals: React.FC<AuthModalsProps> = ({
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
+    setIsSubmitting(true);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
+        email: loginEmail.trim(),
         password: loginPassword,
       });
 
       if (error) throw error;
 
+      // Проверяем, есть ли профиль в таблице profiles, если нет — создаем базовый
+      if (data?.user) {
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          const fullName = data.user.user_metadata?.name || '';
+          const [firstName = '', lastName = ''] = fullName.split(' ');
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            first_name: firstName,
+            last_name: lastName,
+            class_num: 1,
+            class_range: '1-8',
+            avatar_url: null,
+            updated_at: new Date().toISOString(),
+          });
+        }
+      }
+
       onAuthSuccess();
       onCloseLogin();
     } catch (error: any) {
-      setLoginError(error.message);
+      console.error('Login error:', error);
+      if (error.message?.includes('Unexpected end of JSON input') || error.message?.includes('Failed to fetch')) {
+        setLoginError('Ошибка связи с базой данных. Проверьте VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY в настройках Render.');
+      } else {
+        setLoginError(error.message || 'Ошибка при входе в аккаунт');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -71,21 +103,47 @@ const AuthModals: React.FC<AuthModalsProps> = ({
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: registerEmail,
+        email: registerEmail.trim(),
         password: registerPassword,
         options: {
-          data: { name: registerName },
+          data: { name: registerName.trim() },
         },
       });
 
       if (error) throw error;
 
+      // Сразу создаем профиль в таблице profiles, чтобы личный кабинет открывался без зависаний
+      if (data?.user) {
+        const nameParts = registerName.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          first_name: firstName,
+          last_name: lastName,
+          class_num: 1,
+          class_range: '1-8',
+          avatar_url: null,
+          updated_at: new Date().toISOString(),
+        });
+      }
+
       onAuthSuccess();
       onCloseRegister();
     } catch (error: any) {
-      setRegisterError(error.message);
+      console.error('Register error:', error);
+      if (error.message?.includes('Unexpected end of JSON input') || error.message?.includes('Failed to fetch')) {
+        setRegisterError('Ошибка связи с базой данных. Проверьте VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY в настройках Render.');
+      } else {
+        setRegisterError(error.message || 'Ошибка при регистрации');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -200,9 +258,10 @@ const AuthModals: React.FC<AuthModalsProps> = ({
               {/* Кнопка входа */}
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-black font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/30"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-black font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/30 disabled:opacity-50"
               >
-                Войти
+                {isSubmitting ? 'Вход...' : 'Войти'}
               </button>
 
               {/* Ссылка на регистрацию */}
@@ -361,9 +420,10 @@ const AuthModals: React.FC<AuthModalsProps> = ({
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-black font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/30 mt-4"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-500 text-black font-bold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] hover:shadow-lg hover:shadow-yellow-500/30 mt-4 disabled:opacity-50"
               >
-                Зарегистрироваться
+                {isSubmitting ? 'Регистрация...' : 'Зарегистрироваться'}
               </button>
 
               <p className="text-center text-sm text-gray-400 mt-6">
